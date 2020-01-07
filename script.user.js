@@ -8,11 +8,11 @@
 // @supportURL  https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/issues
 // @updateURL   https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/raw/master/script.user.js
 // @downloadURL https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/raw/master/script.user.js
-// @include     /^https:\/\/blackpearl\.biz\/forums\/(129|172|173|174|175|176|178|179|180|181|182|183|184|187|188|189|190|193|194|197|198|199|200|203|204|206|208|223)\/post-thread/
+// @include     /^https:\/\/blackpearl\.biz\/forums\/(129|172|173|174|175|176|178|179|180|181|182|183|184|187|188|189|190|193|194|197|198|199|200|203|204|206|207|208|210|223)\/post-thread/
 // @require     https://code.jquery.com/jquery-3.4.1.min.js
+// @require     https://code.jquery.com/ui/1.12.1/jquery-ui.js
 // @require     https://raw.githubusercontent.com/Semantic-Org/UI-Search/master/search.js
 // @require     https://raw.githubusercontent.com/Semantic-Org/UI-Api/master/api.js
-// @require     https://code.jquery.com/ui/1.12.1/jquery-ui.js
 // @grant       GM_addStyle
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
@@ -67,19 +67,29 @@ if (APIVALUE !== 'foo'){
 
 GM.getValue("APIKEY", "foo").then(value => {
     const APIKEY = value
+    var section_check = document.getElementsByClassName("p-breadcrumbs")[0].innerText;
+    if (section_check.includes("TV")){
+        if (section_check.includes("Cartoons") | section_check.includes("Documentaries")) {
+            var query = `https://www.omdbapi.com/?apikey=${APIKEY}&r=JSON&s={query}`
+            } else {
+                query = `https://www.omdbapi.com/?apikey=${APIKEY}&r=JSON&s={query}&type=series`
+            }
+    } else if (section_check.includes("Movies")) {
+        query = `https://www.omdbapi.com/?apikey=${APIKEY}&r=JSON&s={query}&type=movie`
+        }
     $('.ui.search')
         .search({
         type          : 'category',
         apiSettings: {
-            url: `https://www.omdbapi.com/?apikey=${APIKEY}&r=JSON&s={query}`,
+            url: query,
             onResponse : function(myfunc) {
                 var
-                    response = {
-                        results : {}
-                    };
+                response = {
+                    results : {}
+                };
                 $.each(myfunc.Search, function(index, item) {
                     var
-                        category   = item.Type.toUpperCase() || 'Unknown',
+                    category   = item.Type.toUpperCase() || 'Unknown',
                         maxResults = 10;
                     if(index >= maxResults) {
                         return false;
@@ -98,11 +108,11 @@ GM.getValue("APIKEY", "foo").then(value => {
                     });
                 });
                 return response;
-          }
+            }
         },
         fields: {
-          results : 'results',
-          title   : 'name',
+            results : 'results',
+            title   : 'name',
         },
         onSelect: function(response){
             $('#hiddenIID').val(response.imdbID);

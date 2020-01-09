@@ -27,6 +27,7 @@ You may also paste the link itself into the IMDB field. For example: https://www
 
 ### 3.
 Next if you have screenshots of the specific release you're posting. Enter them here with a space inbetween each link.
+
 For example:
         `imgur.com/image.png imgur.com/image2.png imgur.com/image3.png`
 
@@ -36,6 +37,10 @@ Next, you'll want to grab the offical trailer of the movie from youtube. Usually
 ### 5.
 Enter your download link. Be sure it's one of the accepted file hosts. You can see all the allowed filehosts [HERE](https://blackpearl.biz/faq/#faq10)
 
+To enter multiple download links, ensure there is a space between each of the links.
+
+For example: 
+            `downloadlink1 downloadlink2 downloadlink3`
 ### 6.
 Enter your mediainfo. You can get mediainfo locally using [MediaInfo](https://mediaarea.net/en/MediaInfo/Download)(Use View>Text to make life easier) or through a Remote. There are two ways of getting mediainfo remotely. One is at the bottom of [This Post](https://blackpearl.biz/threads/6070/) using Google Colab. The other is using an online tool such as this [Heroku App](https://overbits.herokuapp.com/mediainfo).
 

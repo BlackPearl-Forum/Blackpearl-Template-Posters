@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name        Blackpearl IMDB
-// @version     2.4.1
+// @version     2.4.2
 // @description Template Maker
 // @author      NotLaxudope
 // @icon        https://blackpearl.biz/favicon.png
-// @homepage    https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster
-// @supportURL  https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/issues
+// @homepage    https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/
+// @supportURL  https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/issues/
 // @updateURL   https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/raw/master/script.user.js
 // @downloadURL https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/raw/master/script.user.js
 // @include     /^https:\/\/blackpearl\.biz\/forums\/(129|172|173|174|175|176|178|179|180|181|182|183|184|187|188|189|190|193|194|197|198|199|200|203|204|206|207|208|210|223)\/post-thread/
@@ -152,9 +152,15 @@ GM.getValue("APIKEY", "foo").then(value => {
                 alert("You Don't Have Any Mediainfo? It's Required!");
             } else {
                 if (Downcloud.checked){
-                    ddl = '[DOWNCLOUD]' + ddl + '[/DOWNCLOUD]'
+                    var ddlsplit = ddl.split(" ");
+                    ddl = ''
+                    for (var dls of ddlsplit) {
+                        ddl += `[DOWNCLOUD]${dls}[/DOWNCLOUD]\n`;
+                    }
+                } else {
+                    ddl = ddl.replace(/\ /g, '\n');
                 }
-                ddl = '[HIDEREACT=1,2,3,4,5,6]' + ddl + '[/HIDEREACT]'
+                ddl = '[HIDEREACT=1,2,3,4,5,6]\n' + ddl + '\n[/HIDEREACT]'
                 if (hidereactscore !== "0"){
                     ddl = `[HIDEREACTSCORE=${hidereactscore}]` + ddl + '[/HIDEREACTSCORE]'
                 }

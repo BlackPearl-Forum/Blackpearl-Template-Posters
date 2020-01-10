@@ -21,7 +21,7 @@
 // ==/UserScript==
 
 var Generate_Template = `
-<button id="gmShowTemplate" name="template_button" style="display:none">Show</button>
+<button id="gmShowTemplate" name="template_button" style="display:none" type="button">Show</button>
 <div id="OmdbGenerator">
 <input type="text" id="hiddenIID" value="" style="display:none">
 <div class="ui search">
@@ -49,7 +49,7 @@ HidePosts
 `
 
 var omdbinput = `
-<button id="gmShowTemplate" name="template_button" style="display:none">Show</button>
+<button id="gmShowTemplate" name="template_button" style="display:none" type="button">Show</button>
 <div id="OmdbGenerator">
 <label>Enter Your OMDB API Key, Then Click On Save :)</label>
 <input type="text" id="omdbKey" value="" class="input" placeholder="Omdb API Key">
@@ -70,16 +70,17 @@ if (APIVALUE !== 'foo'){
 
 GM.getValue("APIKEY", "foo").then(value => {
     const APIKEY = value
-    var section_check = document.getElementsByClassName("p-breadcrumbs")[0].innerText;
-    if (section_check.includes("TV")){
-        if (section_check.includes("Cartoons") | section_check.includes("Documentaries")) {
-            var query = `https://www.omdbapi.com/?apikey=${APIKEY}&r=JSON&s={query}`
-            } else {
-                query = `https://www.omdbapi.com/?apikey=${APIKEY}&r=JSON&s={query}&type=series`
-            }
-    } else if (section_check.includes("Movies")) {
+    var url_check = window.location.href;
+    var section_check = url_check.match(/\d+/, '');
+    var Movies = "204 183 184 172 173 174 175 176 178 179 180 181 182 202 129";
+    var Series = "208 206 193 194 187 188 189 190 197 198 199 200 203 209 223";
+    if (Series.includes(section_check)){
+        query = `https://www.omdbapi.com/?apikey=${APIKEY}&r=JSON&s={query}&type=series`
+    } else if (Movies.includes(section_check)) {
         query = `https://www.omdbapi.com/?apikey=${APIKEY}&r=JSON&s={query}&type=movie`
-        }
+    } else {
+        query = `https://www.omdbapi.com/?apikey=${APIKEY}&r=JSON&s={query}`
+    }
     $('.ui.search')
         .search({
         type          : 'category',
@@ -341,6 +342,7 @@ GM_addStyle ( "                                                   \
             border-image-slice:     1;                            \
             background:             transparent;                  \
             color:                  white;                        \
+            max-width:              35px;                         \
       }                                                           \
       #textarea_divider {                                         \
             margin-top:             -11px;                        \
@@ -432,6 +434,7 @@ GM_addStyle ( "                                                   \
             border-image-slice:     1;                            \
             background:             transparent;                  \
             color:                  white;                        \
+            max-width:              35px;                         \
       }                                                           \
       #textarea_divider {                                         \
             margin-top:             -11px;                        \

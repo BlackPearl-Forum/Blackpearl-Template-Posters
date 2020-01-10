@@ -2,7 +2,7 @@
 # Blackpearl OMDB Template Generator
 OMDB Thread Template Generator userscript
 <!-- keep image height ~ 500px -->
-![](https://i.imgur.com/hX7XFVC.png)
+![](https://i.imgur.com/J2y1Su4.png)
 
 ## Requirements:
 A userscript manager + installing the script
@@ -16,7 +16,7 @@ Grab your Free OMDB API key here: [omdbapi.com](https://www.omdbapi.com/apikey.a
 ### 1.
 First you'll want to navigate to the one of the Movie or TV Show sections and start to post a thread. Then the interface will show up,  input your OMDB API key and click the "Save Key" button.
 
-![](https://i.imgur.com/Kct0tUv.png)
+![](https://i.imgur.com/8SSdBeQ.png)
 
 ### 2.
 There are two ways of using the IMDB field. You can start typing the name of the Movie or Show and this will present you with a list to choose from. Simply click the correct one and move to the next step. If you are having trouble finding the movie you want I recommend using the IMDB ID method below.

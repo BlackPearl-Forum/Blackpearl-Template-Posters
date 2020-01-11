@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name        Blackpearl IMDB
-// @version     2.4.2
+// @version     3.0.0
 // @description Template Maker
-// @author      NotLaxudope
+// @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png
 // @homepage    https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/
 // @supportURL  https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/issues/
@@ -21,62 +21,66 @@
 // ==/UserScript==
 
 var Generate_Template = `
-<div id="gmPopupContainer">
-<a href='javascript:void(0)' onclick='$("#gmPopupContainer").hide ();' class="close"></a>
-<form>
+<button id="gmShowTemplate" name="template_button" style="display:none" type="button">Show</button>
+<div id="OmdbGenerator">
 <input type="text" id="hiddenIID" value="" style="display:none">
 <div class="ui search">
-<input type="text" class="prompt" id="searchID" placeholder="IMDB ID or Title" onfocus="this.placeholder = ''" onblur="this.placeholder = 'IMDB ID or Title'">
-<div class="results"></div>
+<input type="text" class="prompt input" id="searchID" placeholder="IMDB ID or Title" onfocus="this.placeholder = ''" onblur="this.placeholder = 'IMDB ID or Title'">
+<div class="results input" style="display:none"></div>
 </div>
-<input type="text" id="screensLinks" value="" class="field" placeholder="Screenshot Links" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Screenshot Links'">
-<input type="text" id="ytLink" value="" class="field" placeholder="Youtube Trailer Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Youtube Trailer Link'">
-<input type="text" id="ddl" value="" class="field" placeholder="Download Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Download Link'">
-<textarea rows="1" style="width:100%;" class="field" id="Media_Info" placeholder="Mediainfo" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Mediainfo'"></textarea>
+<input type="text" id="screensLinks" value="" class="input" placeholder="Screenshot Links" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Screenshot Links'">
+<input type="text" id="ytLink" value="" class="input" placeholder="Youtube Trailer Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Youtube Trailer Link'">
+<input type="text" id="ddl" value="" class="input" placeholder="Download Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Download Link'">
+<textarea rows="1" style="width:100%;" class="input" id="Media_Info" placeholder="Mediainfo" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Mediainfo'"></textarea>
+<div id="textarea_divider">&nbsp;</div>
 <span>DownCloud</span>
 <label class="switch">
 <input type="checkbox" id="Downcloud" value="Downcloud" checked></input>
-<span class="slider round"></span></label>&nbsp;<br></br>
-<input type="number" id="HideReactScore" min="0" max="100" value="0"> HideReactScore
-<input type="number" id="HidePosts" min="0" max="50" value="0"> HidePosts<br>
-<p id="myNumberSum">&nbsp;</p>
-<button id="gmAddNumsBtn" type="button">Generate Template</button>
-<div class="divider"/>
-<button id="gmClearBtn" type="reset">Clear</button>
-</form>
+<span class="slider round"></span></label>
+HideReactScore
+<input type="number" id="HideReactScore" min="0" max="100" value="0">
+HidePosts
+<input type="number" id="HidePosts" min="0" max="50" value="0"> <br>
+<div id="textarea_divider">&nbsp;</div>
+<button id="gmGenerate" name="template_button" type="button">Generate Template</button>
+<button id="gmClearBtn" name="template_button" type="reset">Clear</button>
+<button id="gmHideTemplate" name="template_button" type="button">Hide</button>
 </div>
 `
+
 var omdbinput = `
-<div id="gmPopupContainer">
-<a href='#' onclick='$("#gmPopupContainer").hide ();' class="close"></a>
-<form>
+<button id="gmShowTemplate" name="template_button" style="display:none" type="button">Show</button>
+<div id="OmdbGenerator">
 <label>Enter Your OMDB API Key, Then Click On Save :)</label>
 <input type="text" id="omdbKey" value="" class="input" placeholder="Omdb API Key">
-<button id="gmAddNumsBtn" onClick="window.location.reload();" type="button">Save Key</button>
-<button id="gmClearBtn" type="reset">Clear</button>
-</form>
+<button id="gmGenerate" name="template_button" onClick="window.location.reload();" type="button">Save Key</button>
+<button id="gmClearBtn" name="template_button" type="reset">Clear</button>
+<button id="gmHideTemplate" name="template_button" type="button">Hide</button>
 </div>
 `
 
 GM.getValue("APIKEY", "foo").then(value => { const APIVALUE = value
 if (APIVALUE !== 'foo'){
-    $("body").append (Generate_Template);
+    var temphtml = document.getElementsByTagName("dd")[0];
+    temphtml.innerHTML += Generate_Template;
 } else {
-    $("body").append (omdbinput);
+    temphtml = document.getElementsByTagName("dd")[0];
+    temphtml.innerHTML += omdbinput;
 }
 
 GM.getValue("APIKEY", "foo").then(value => {
     const APIKEY = value
-    var section_check = document.getElementsByClassName("p-breadcrumbs")[0].innerText;
-    if (section_check.includes("TV")){
-        if (section_check.includes("Cartoons") | section_check.includes("Documentaries")) {
-            var query = `https://www.omdbapi.com/?apikey=${APIKEY}&r=JSON&s={query}`
-            } else {
-                query = `https://www.omdbapi.com/?apikey=${APIKEY}&r=JSON&s={query}&type=series`
-            }
-    } else if (section_check.includes("Movies")) {
+    var url_check = window.location.href;
+    var section_check = url_check.match(/\d+/, '');
+    var Movies = "204 183 184 172 173 174 175 176 178 179 180 181 182 202 129";
+    var Series = "208 206 193 194 187 188 189 190 197 198 199 200 203 209 223";
+    if (Series.includes(section_check)){
+        query = `https://www.omdbapi.com/?apikey=${APIKEY}&r=JSON&s={query}&type=series`
+    } else if (Movies.includes(section_check)) {
         query = `https://www.omdbapi.com/?apikey=${APIKEY}&r=JSON&s={query}&type=movie`
-        }
+    } else {
+        query = `https://www.omdbapi.com/?apikey=${APIKEY}&r=JSON&s={query}`
+    }
     $('.ui.search')
         .search({
         type          : 'category',
@@ -119,10 +123,26 @@ GM.getValue("APIKEY", "foo").then(value => {
             $('#searchID').val(response.title);
         },
         minCharacters : 3
-    })
+    });
 
+    $(document).on('keydown', function(event) {
+        if (event.key == "Escape") {
+            $("#OmdbGenerator").hide ();
+            document.getElementById("gmShowTemplate").style.display = "block";
+        }
+    });
+
+    $("#gmHideTemplate").click ( function () {
+        document.getElementById("gmShowTemplate").style.display = "block";
+        $("#OmdbGenerator").hide ();
+    });
+
+    $("#gmShowTemplate").click ( function () {
+        document.getElementById("gmShowTemplate").style.display = "none";
+        $("#OmdbGenerator").show ();
+    });
     //--- Use jQuery to activate the dialog buttons.
-    $("#gmAddNumsBtn").click ( function () {
+    $("#gmGenerate").click ( function () {
         var omdbkey = $("#omdbKey").val ();
         var IID = $("#hiddenIID").val ();
         var screenshots = $("#screensLinks").val ();
@@ -268,11 +288,15 @@ GM.getValue("APIKEY", "foo").then(value => {
 [hr][/hr][indent][size=6][color=rgb(250, 197, 28)][b]Movie Info[/b][/color][/size][/indent]
 [LIST][*]${rated}${genre}${director}${writer}${actors}${released}${runtime}${production}[/LIST]\n${MEDIAINFO}${ddl}`;
                         GM_setClipboard (dump);
-                        $(`#myNumberSum`).text (`Copied! Just paste on Blackpearl.biz`);
-                        document.getElementsByName("message")[0].value = dump;
-                        var xf_title_value = document.getElementById("title").value;
-                        if (!xf_title_value){
-                            document.getElementById("title").value = json.Title + " (" + json.Year + ")";
+                        try {
+                            document.getElementsByName("message")[0].value = dump;
+                        } catch(err) {
+                            alert('You should be running this in BBCode Mode. Check the Readme for more information!\n' + err);
+                        } finally {
+                            var xf_title_value = document.getElementById("title").value;
+                            if (!xf_title_value){
+                                document.getElementById("title").value = json.Title + " (" + json.Year + ")";
+                            }
                         }
                     }
                 })
@@ -281,27 +305,9 @@ GM.getValue("APIKEY", "foo").then(value => {
     });
 });
 
-$(document).on('keydown', function(event) {
-       if (event.key == "Escape") {
-           $("#gmPopupContainer").hide ();
-       }
-   });
-
 //--- CSS styles make it work...
 GM_addStyle ( "                                                   \
     @media screen and (min-width: 300px) {                        \
-      #gmPopupContainer {                                         \
-            position:               fixed;                        \
-            bottom:                 0;                            \
-            right:                  0;                            \
-            padding:                1em;                          \
-            width:                  320px;                        \
-            background:             #42464D;                      \
-            border:                 1px double black;             \
-            border-radius:          1ex;                          \
-            margin-left:            -8px;                         \
-            z-index:                777;                          \
-        }                                                         \
       /* Divide Buttons */                                        \
       .divider{                                                   \
             width:                  8px;                          \
@@ -309,72 +315,37 @@ GM_addStyle ( "                                                   \
             display:                inline-block;                 \
       }                                                           \
       /* Buttons */                                               \
-      button {                                                    \
+      button[name=template_button] {                              \
             background-color:       #4caf50;                      \
             color:                  white;                        \
             text-align:             center;                       \
             text-decoration:        none;                         \
             display:                inline-block;                 \
             font-size:              14px;                         \
-            font-weight:            400;                          \
+            font-weight:            600;                          \
             padding:                4px;                          \
             cursor:                 pointer;                      \
             outline:                none;                         \
+            margin-right:           8px;                          \
             border:                 none;                         \
-            border-radius:          10px;                         \
+            border-radius:          3px;                          \
+            border-color:           #67bd6a;                      \
+            margin-top:             5px;                          \
+            box-shadow:             0 0 2px 0 rgba(0,0,0,0.14),   \
+                                    0 2px 2px 0 rgba(0,0,0,0.12), \
+                                    0 1px 3px 0 rgba(0,0,0,0.2);  \
         }                                                         \
       /* Reactscore & Posts */                                    \
       input[type=number]{                                         \
             border-bottom:          2px solid teal;               \
             border-image: linear-gradient(to right, #11998e,#38ef7d);\
             border-image-slice:     1;                            \
-      }                                                           \
-      /* Imdb search */                                           \
-      input[id=searchID]{                                         \
-            font-family:            inherit;                      \
-            width:                  100%;                         \
-            border:                 0;                            \
-            border-bottom:          2px solid #9b9b9b;            \
-            outline:                0;                            \
-            font-size:              1.3rem;                       \
-            color:                  white;                        \
-            padding:                7px 0;                        \
-            background:             transparent;                  \
-            transition:             border-color 0.2s;            \
-      }                                                           \
-      input[id=searchID]:focus {                                  \
-            padding-bottom:         6px;                          \
-            border-bottom:          2px solid teal;               \
-            font-weight:            700;                          \
-            border-width:           3px;                          \
-            border-image: linear-gradient(to right, #11998e,#38ef7d);\
-            border-image-slice:     1;                            \
-      }                                                           \
-      /* utoob & screens & DL */                                  \
-      .field {                                                    \
-            font-family:            inherit;                      \
-            width:                  100%;                         \
-            border:                 0;                            \
-            border-bottom:          2px solid #9b9b9b;            \
-            outline:                0;                            \
-            font-size:              1.3rem;                       \
-            color:                  white;                        \
-            padding:                7px 0;                        \
-            background:             transparent;                  \
-            transition:             border-color 0.2s;            \
-      }                                                           \
-      .field:focus {                                              \
-            padding-bottom:         6px;                          \
-            border-bottom:          2px solid teal;               \
-            font-weight:            700;                          \
-            border-width:           3px;                          \
-            border-image: linear-gradient(to right, #11998e,#38ef7d);\
-            border-image-slice:     1;                            \
-      }                                                           \
-      /* match all inputs to background*/                         \
-      input{                                                      \
             background:             transparent;                  \
             color:                  white;                        \
+            max-width:              35px;                         \
+      }                                                           \
+      #textarea_divider {                                         \
+            margin-top:             -11px;                        \
       }                                                           \
       /* Start Rounded sliders Checkboxes */                      \
       .switch {                                                   \
@@ -427,114 +398,46 @@ GM_addStyle ( "                                                   \
       .slider.round:before {                                      \
             border-radius:          50%;                          \
       }                                                           \
-      /* End Rounded sliders Checkboxes */                        \
-      .close {                                                    \
-            position:               absolute;                     \
-            right:                  26px;                         \
-            top:                    4px;                          \
-            opacity:                0.5;                          \
-      }                                                           \
-      .close:hover {                                              \
-            opacity:                1;                            \
-      }                                                           \
-      .close:before, .close:after {                               \
-            position:               absolute;                     \
-            left:                   15px;                         \
-            content:                ' ';                          \
-            height:                 15px;                         \
-            width:                  2.5px;                        \
-            background-color:       #4caf50;                      \
-      }                                                           \
-      .close:before {                                             \
-            transform:              rotate(45deg);                \
-      }                                                           \
-      .close:after {                                              \
-            transform:              rotate(-45deg);               \
-      }                                                           \
 }                                                                 \
     @media screen and (min-width: 768px) {                        \
-      #gmPopupContainer {                                         \
-            position:               fixed;                        \
-            bottom:                 0;                            \
-            right:                  0;                            \
-            padding:                2em;                          \
-            width:                  350px;                        \
-            background:             #42464D;                      \
-            border:                 3px double black;             \
-            border-radius:          1ex;                          \
-            margin-left:            -8px;                         \
-            z-index:                777;                          \
-      }                                                           \
+      /* Divide Buttons */                                        \
       .divider{                                                   \
-            width:                  8px;                          \
+            width:                  15px;                         \
             height:                 auto;                         \
             display:                inline-block;                 \
       }                                                           \
-      button {                                                    \
+      /* Buttons */                                               \
+      button[name=template_button] {                              \
             background-color:       #4caf50;                      \
             color:                  white;                        \
             text-align:             center;                       \
             text-decoration:        none;                         \
             display:                inline-block;                 \
             font-size:              15px;                         \
-            font-weight:            400;                          \
+            font-weight:            600;                          \
             padding:                6px;                          \
             cursor:                 pointer;                      \
             outline:                none;                         \
+            margin-right:           8px;                          \
             border:                 none;                         \
-            border-radius:          10px;                         \
+            border-radius:          3px;                          \
+            border-color:           #67bd6a;                      \
+            margin-top:             5px;                          \
+            box-shadow:             0 0 2px 0 rgba(0,0,0,0.14),   \
+                                    0 2px 2px 0 rgba(0,0,0,0.12), \
+                                    0 1px 3px 0 rgba(0,0,0,0.2);  \
         }                                                         \
+      /* Reactscore & Posts */                                    \
       input[type=number]{                                         \
             border-bottom:          2px solid teal;               \
             border-image: linear-gradient(to right, #11998e,#38ef7d);\
             border-image-slice:     1;                            \
-      }                                                           \
-      input[id=searchID]{                                         \
-            font-family:            inherit;                      \
-            width:                  100%;                         \
-            border:                 0;                            \
-            border-bottom:          2px solid #9b9b9b;            \
-            outline:                0;                            \
-            font-size:              1.3rem;                       \
-            color:                  white;                        \
-            padding:                7px 0;                        \
-            background:             transparent;                  \
-            transition:             border-color 0.2s;            \
-      }                                                           \
-      input[id=searchID]:focus {                                  \
-            padding-bottom:         6px;                          \
-            border-bottom:          2px solid teal;               \
-            font-weight:            700;                          \
-            border-width:           3px;                          \
-            border-image: linear-gradient(to right, #11998e,#38ef7d);\
-            border-image-slice:     1;                            \
-      }                                                           \
-      .field {                                                    \
-            font-family:            inherit;                      \
-            width:                  100%;                         \
-            border:                 0;                            \
-            border-bottom:          2px solid #9b9b9b;            \
-            outline:                0;                            \
-            font-size:              1.3rem;                       \
-            color:                  white;                        \
-            padding:                7px 0;                        \
-            background:             transparent;                  \
-            transition:             border-color 0.2s;            \
-      }                                                           \
-        &::placeholder {                                          \
-            color: transparent;                                   \
-     }                                                            \
-      .field:focus {                                              \
-            padding-bottom:         6px;                          \
-            border-bottom:          2px solid teal;               \
-            font-weight:            700;                          \
-            border-width:           3px;                          \
-            border-image: linear-gradient(to right, #11998e,#38ef7d);\
-            border-image-slice:     1;                            \
-      }                                                           \
-      input{                                                      \
             background:             transparent;                  \
             color:                  white;                        \
+            max-width:              35px;                         \
+      }                                                           \
+      #textarea_divider {                                         \
+            margin-top:             -11px;                        \
       }                                                           \
       .switch {                                                   \
             position:               relative;                     \
@@ -586,29 +489,6 @@ GM_addStyle ( "                                                   \
       }                                                           \
       .slider.round:before {                                      \
             border-radius:          50%;                          \
-      }                                                           \
-      .close {                                                    \
-            position:               absolute;                     \
-            right:                  30px;                         \
-            top:                    6px;                          \
-            opacity:                0.5;                          \
-      }                                                           \
-      .close:hover {                                              \
-            opacity:                1;                            \
-      }                                                           \
-      .close:before, .close:after {                               \
-            position:               absolute;                     \
-            left:                   15px;                         \
-            content:                ' ';                          \
-            height:                 20px;                         \
-            width:                  3.5px;                        \
-            background-color:       #4caf50;                      \
-      }                                                           \
-      .close:before {                                             \
-            transform:              rotate(45deg);                \
-      }                                                           \
-      .close:after {                                              \
-            transform:              rotate(-45deg);               \
       }                                                           \
 }                                                                 \
 ")});

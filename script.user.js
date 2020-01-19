@@ -178,9 +178,8 @@ function generateTemplate(titlechange) {
 					parsedHtml.getElementsByClassName('T32cc UAO9ie')[1].innerText;
 				let ContentRating =
 					'\n[*][B]Content Rating: [/B] ' +
-					parsedHtml
-						.getElementsByClassName('KmO8jd')[0]
-						.innerText.split('\n')[0];
+					document.getElementsByClassName('htlgb')[11].querySelector('div')
+						.innerText;
 				let requiredAndroid =
 					'\n[*][B]Required Android Version: [/B] ' +
 					parsedHtml.getElementsByClassName('htlgb')[9].textContent;

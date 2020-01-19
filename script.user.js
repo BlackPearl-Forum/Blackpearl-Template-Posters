@@ -178,7 +178,7 @@ function generateTemplate(titlechange) {
 					parsedHtml.getElementsByClassName('T32cc UAO9ie')[1].innerText;
 				let ContentRating =
 					'\n[*][B]Content Rating: [/B] ' +
-					document.getElementsByClassName('htlgb')[11].querySelector('div')
+					parsedHtml.getElementsByClassName('htlgb')[11].querySelector('div')
 						.innerText;
 				let requiredAndroid =
 					'\n[*][B]Required Android Version: [/B] ' +

@@ -1,38 +1,28 @@
 // ==UserScript==
-// @name        Blackpearl IMDB
-// @version     3.0.0
-// @description Template Maker
+// @name        Blackpearl Android Template Generator
+// @version     1.0.0
+// @description Android App Template
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png
-// @homepage    https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/
+// @homepage    https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/tree/Android
 // @supportURL  https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/issues/
-// @updateURL   https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/raw/master/script.user.js
-// @downloadURL https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/raw/master/script.user.js
-// @include     /^https:\/\/blackpearl\.biz\/forums\/(129|172|173|174|175|176|178|179|180|181|182|183|184|187|188|189|190|193|194|197|198|199|200|203|204|206|207|208|210|223)\/post-thread/
+// @updateURL   https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/raw/Android/script.user.js
+// @downloadURL https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/raw/Android/script.user.js
+// @include     /^https:\/\/blackpearl\.biz\/forums\/(94)\/post-thread/
 // @require     https://code.jquery.com/jquery-3.4.1.min.js
-// @require     https://code.jquery.com/ui/1.12.1/jquery-ui.js
-// @require     https://raw.githubusercontent.com/Semantic-Org/UI-Search/master/search.js
-// @require     https://raw.githubusercontent.com/Semantic-Org/UI-Api/master/api.js
 // @grant       GM_addStyle
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
-// @grant       GM.setValue
-// @grant       GM.getValue
 // @run-at      document-end
 // ==/UserScript==
 
-const Generate_Template = `
-<button id="gmShowTemplate" name="template_button" style="display:none" type="button">Show</button>
-<div id="OmdbGenerator">
-<input type="text" id="hiddenIID" value="" style="display:none">
-<div class="ui search" id="omdb_search">
-<input type="text" class="prompt input" id="searchID" placeholder="IMDB ID, Title, or Link"  onfocus="this.placeholder = ''" onblur="this.placeholder = 'IMDB ID, Title, or Link'">
-<div class="results input" style="display:none"></div>
-</div>
-<input type="text" id="screensLinks" value="" class="input" placeholder="Screenshot Links" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Screenshot Links'">
-<input type="text" id="ytLink" value="" class="input" placeholder="Youtube Trailer Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Youtube Trailer Link'">
+const htmlTemplate = `
+<button id="ShowTemplate" name="template_button" style="display:none" type="button">Show</button>
+<div id="ApkGenerator">
+<input type="text" id="gplaylink" value="" class="input" placeholder="Google Play Store Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Google Play Store Link'">
+<input type="text" id="modinfo" value="" class="input" placeholder="Mod Details" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Mod Details'">
+<input type="text" id="virustotal" value="" class="input" placeholder="VirusTotal Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Screenshot Links'">
 <input type="text" id="ddl" value="" class="input" placeholder="Download Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Download Link'">
-<textarea rows="1" style="width:100%;" class="input" id="Media_Info" placeholder="Mediainfo" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Mediainfo'"></textarea>
 <div id="textarea_divider">&nbsp;</div>
 <span>DownCloud</span>
 <label class="switch">
@@ -43,290 +33,210 @@ HideReactScore
 HidePosts
 <input type="number" id="HidePosts" min="0" max="50" value="0"> <br>
 <div id="textarea_divider">&nbsp;</div>
-<button id="gmGenerate" name="template_button" type="button">Generate Template</button>
-<button id="gmClearBtn" name="template_button" type="reset">Clear</button>
-<button id="gmHideTemplate" name="template_button" type="button">Hide</button>
+<button class="button--primary button button--icon" id="gmGenerate" name="template_button" type="button">Generate Template</button>
+<button class="button--primary button button--icon" id="gmClearBtn" name="template_button" type="reset">Clear</button>
+<button class="button--primary button button--icon" id="gmHideTemplate" name="template_button" type="button">Hide</button>
 </div>
 `;
 
-const omdbinput = `
-<button id="gmShowTemplate" name="template_button" style="display:none" type="button">Show</button>
-<div id="OmdbGenerator">
-<label>Enter Your OMDB API Key, Then Click On Save :)</label>
-<input type="text" id="omdbKey" value="" class="input" placeholder="Omdb API Key">
-<button id="gmSaveKey" name="template_button" onClick="window.location.reload();" type="button">Save Key</button>
-<button id="gmClearBtn" name="template_button" type="reset">Clear</button>
-<button id="gmHideTemplate" name="template_button" type="button">Hide</button>
-</div>
-`;
+main();
 
-GM.getValue('APIKEY', 'foo').then(value => {
-	const APIVALUE = value;
-	const htmlpush = document.getElementsByTagName('dd')[0];
-	const titlechange = document.getElementById('title');
-	if (APIVALUE !== 'foo') {
-		htmlpush.innerHTML += Generate_Template;
-	} else {
-		htmlpush.innerHTML += omdbinput;
-	}
+function main() {
+	var temphtml = document.getElementsByTagName('dd')[0];
+	temphtml.innerHTML += htmlTemplate;
+	var titlechange = document.getElementsByName('title')[0];
 	if (titlechange) {
-		document.getElementById('title').className += 'input';
+		titlechange.className += 'input';
 	}
-	const tab_url = window.location.href;
-	var section_check = tab_url.match(/\d+/, '');
-	const Movies = '204 183 184 172 173 174 175 176 178 179 180 181 182 202 129';
-	const Series = '208 206 193 194 187 188 189 190 197 198 199 200 203 209 223';
-	if (Series.includes(section_check)) {
-		query = `https://www.omdbapi.com/?apikey=${APIVALUE}&r=JSON&s={query}&type=series`;
-	} else if (Movies.includes(section_check)) {
-		query = `https://www.omdbapi.com/?apikey=${APIVALUE}&r=JSON&s={query}&type=movie`;
+	$('#gmHideTemplate').click(() => hideTemplate());
+	$('#gmShowTemplate').click(() => showTemplate());
+	$('#gmGenerate').click(() => generateTemplate(titlechange));
+}
+
+$(document).on('keydown', function(event) {
+	if (event.key == 'Escape') {
+		$('#ApkGenerator').hide();
+		document.getElementById('ShowTemplate').style.display = 'block';
+	}
+});
+
+function showTemplate() {
+	document.getElementById('gmShowTemplate').style.display = 'none';
+	$('#ApkGenerator').show();
+}
+function hideTemplate() {
+	document.getElementById('gmShowTemplate').style.display = 'block';
+	$('#ApkGenerator').hide();
+}
+
+function generateTemplate(titlechange) {
+	let link = $('#gplaylink').val();
+	let modinfo = $('#modinfo').val();
+	let VT = $('#virustotal').val();
+	let ddl = $('#ddl').val();
+	let hidereactscore = $('#HideReactScore').val();
+	let hideposts = $('#HidePosts').val();
+	//* Error Messages *//
+	if (!link) {
+		alert('Gotta give us a Google Play link at least!');
+	} else if (!ddl) {
+		alert("Uh Oh! You Forgot Your Download Link! That's Pretty Important...");
+	} else if (!VT) {
+		alert("You Don't Have Any VirusTotal? It's Required!");
 	} else {
-		query = `https://www.omdbapi.com/?apikey=${APIVALUE}&r=JSON&s={query}`;
-	}
-	$('#omdb_search').search({
-		type: 'category',
-		apiSettings: {
-			url: query,
-			onResponse: function(myfunc) {
-				var response = {
-					results: {}
-				};
-				$.each(myfunc.Search, function(index, item) {
-					var category = item.Type.toUpperCase() || 'Unknown',
-						maxResults = 10;
-					if (index >= maxResults) {
-						return false;
-					}
-					if (response.results[category] === undefined) {
-						response.results[category] = {
-							name: '~~~~~~~~~~' + category + '~~~~~~~~~~',
-							results: []
-						};
-					}
-					var Name = item.Title + ' (' + item.Year + ')';
-					response.results[category].results.push({
-						title: Name,
-						description: Name,
-						imdbID: item.imdbID
-					});
-				});
-				return response;
+		//* Add BBcode if checked/changed *//
+		if (Downcloud.checked) {
+			let ddlsplit = ddl.split(' ');
+			ddl = '';
+			for (var dls of ddlsplit) {
+				ddl += `[DOWNCLOUD]${dls}[/DOWNCLOUD]\n`;
 			}
-		},
-		fields: {
-			results: 'results',
-			title: 'name'
-		},
-		onSelect: function(response) {
-			$('#hiddenIID').val(response.imdbID);
-			$('#searchID').val(response.title);
-		},
-		minCharacters: 3
-	});
-
-	$(document).on('keydown', function(event) {
-		if (event.key == 'Escape') {
-			$('#OmdbGenerator').hide();
-			document.getElementById('gmShowTemplate').style.display = 'block';
-		}
-	});
-
-	$('#gmHideTemplate').click(function() {
-		document.getElementById('gmShowTemplate').style.display = 'block';
-		$('#OmdbGenerator').hide();
-	});
-
-	$('#gmShowTemplate').click(function() {
-		document.getElementById('gmShowTemplate').style.display = 'none';
-		$('#OmdbGenerator').show();
-	});
-	$('#gmSaveKey').click(function() {
-		if (APIVALUE == 'foo') {
-			let omdbkey = $('#omdbKey').val();
-			if (omdbkey) {
-				GM.setValue('APIKEY', omdbkey);
-			} else {
-				alert("You Didn't Enter Your Key!!");
-			}
-		}
-	});
-	//--- Use jQuery to activate the dialog buttons.
-	$('#gmGenerate').click(function() {
-		var IID = $('#hiddenIID').val();
-		var screenshots = $('#screensLinks').val();
-		var uToob = $('#ytLink').val();
-		var ddl = $('#ddl').val();
-		var MEDIAINFO = $('#Media_Info').val();
-		var hidereactscore = $('#HideReactScore').val();
-		var hideposts = $('#HidePosts').val();
-		if (!IID) {
-			IID = $('#searchID').val();
-			if (IID.includes('imdb')) {
-				IID = IID.match(/tt\d+/)[0];
-			}
-		}
-		if (!IID) {
-			alert("You Didn't Select A Title or Enter a IMDB ID!");
-		} else if (!ddl) {
-			alert("Uh Oh! You Forgot Your Download Link! That's Pretty Important...");
-		} else if (!MEDIAINFO) {
-			alert("You Don't Have Any Mediainfo? It's Required!");
 		} else {
-			if (Downcloud.checked) {
-				let ddlsplit = ddl.split(' ');
-				ddl = '';
-				for (let dls of ddlsplit) {
-					ddl += `[DOWNCLOUD]${dls}[/DOWNCLOUD]\n`;
+			ddl = ddl.replace(/\ /g, '\n');
+		}
+		ddl = '[HIDEREACT=1,2,3,4,5,6]\n' + ddl + '\n[/HIDEREACT]';
+		if (hidereactscore !== '0') {
+			ddl = `[HIDEREACTSCORE=${hidereactscore}]` + ddl + '[/HIDEREACTSCORE]';
+		}
+		if (hideposts !== '0') {
+			ddl = `[HIDEPOSTS=${hideposts}]` + ddl + '[/HIDEPOSTS]';
+		}
+		//* Get GPS page & details for post *//
+		GM_xmlhttpRequest({
+			method: 'GET',
+			url: link,
+			onload: function(response) {
+				let test = response.responseText;
+				let parser = new DOMParser();
+				let parsedHtml = parser.parseFromString(test, 'text/html');
+				//* Grab all images & find logo *//
+				let images = parsedHtml.getElementsByTagName('img');
+				for (let logoimg of images) {
+					let logoattr = logoimg.alt;
+					if (logoattr == 'Cover art') {
+						var logo =
+							"[CENTER][IMG width='100px']" +
+							logoimg.srcset.replace('-rw', '').replace(' 2x', '') +
+							'[/IMG]\n';
+					}
 				}
-			} else {
-				ddl = ddl.replace(/\ /g, '\n');
-			}
-			ddl = '[HIDEREACT=1,2,3,4,5,6]\n' + ddl + '\n[/HIDEREACT]';
-			if (hidereactscore !== '0') {
-				ddl = `[HIDEREACTSCORE=${hidereactscore}]` + ddl + '[/HIDEREACTSCORE]';
-			}
-			if (hideposts !== '0') {
-				ddl = `[HIDEPOSTS=${hideposts}]` + ddl + '[/HIDEPOSTS]';
-			}
-			if (screenshots) {
-				screenshots = screenshots.split(' ');
-				var screen = `\n[hr][/hr][indent][size=6][color=rgb(250, 197, 28)][b]Screenshots[/b][/color][/size][/indent]\n [Spoiler='screenshots']\n`;
-				for (let ss of screenshots) {
-					screen += `[img]${ss}[/img]`;
-				}
-				screen += `[/Spoiler] \n`;
-			} else {
-				screen = '';
-			}
-			if (uToob.match(/[a-z]/)) {
-				var trailer = `\n[hr][/hr][indent][size=6][color=rgb(250, 197, 28)][b]Trailer[/b][/color][/size][/indent]\n ${uToob}`;
-			} else {
-				trailer = '';
-			}
-			GM_xmlhttpRequest({
-				method: 'GET',
-				url: `http://www.omdbapi.com/?apikey=${APIVALUE}&i=${IID}&plot=full&y&r=json`,
-				onload: function(response) {
-					let json = JSON.parse(response.responseText);
-					if (json.Poster && json.Poster !== 'N/A') {
-						var poster = '[center][img] ' + json.Poster + ' [/img]\n';
-					} else {
-						poster = '';
-					}
-					if (json.Title && json.Title !== 'N/A') {
-						var title = '[color=rgb(250, 197, 28)][b][size=6] ' + json.Title;
-					} else {
-						alert(
-							"You Messed Up! Check That You've Entered Something Into The IMDB Field!"
-						);
-					}
-					if (json.Year && json.Year !== 'N/A') {
-						var year = json.Year + ')[/size][/b][/color]\n';
-					} else {
-						year = '';
-					}
-					if (json.imdbID && json.imdbID !== 'N/A') {
-						var imdb_id =
-							'[url=https://www.imdb.com/title/' +
-							json.imdbID +
-							'][img]https://i.imgur.com/rcSipDw.png[/img][/url]';
-					} else {
-						imdb_id = '';
-					}
-					if (json.imdbRating && json.imdbRating !== 'N/A') {
-						var rating = '[size=6][b]' + json.imdbRating + '[/b]/10[/size]\n';
-					} else {
-						rating = '';
-					}
-					if (json.imdbVotes && json.imdbVotes !== 'N/A') {
-						var imdbvotes =
-							'[size=6][img]https://i.imgur.com/sEpKj3O.png[/img]' +
-							json.imdbVotes +
-							'[/size][/center]\n';
-					} else {
-						imdbvotes = '';
-					}
-					if (json.Plot && json.Plot !== 'N/A') {
-						var plot =
-							'[hr][/hr][indent][size=6][color=rgb(250, 197, 28)][b]Plot[/b][/color][/size][/indent]\n\n ' +
-							json.Plot;
-					} else {
-						plot = '';
-					}
-					if (json.Rated && json.Rated !== 'N/A') {
-						var rated = '[B]Rating: [/B]' + json.Rated + '\n';
-					} else {
-						rated = '';
-					}
-					if (json.Genre && json.Genre !== 'N/A') {
-						var genre = '[*][B]Genre: [/B] ' + json.Genre + '\n';
-					} else {
-						genre = '';
-					}
-					if (json.Director && json.Director !== 'N/A') {
-						var director = '[*][B]Directed By: [/B] ' + json.Director + '\n';
-					} else {
-						director = '';
-					}
-					if (json.Writer && json.Writer !== 'N/A') {
-						var writer = '[*][B]Written By: [/B] ' + json.Writer + '\n';
-					} else {
-						writer = '';
-					}
-					if (json.Actors && json.Actors !== 'N/A') {
-						var actors = '[*][B]Starring: [/B] ' + json.Actors + '\n';
-					} else {
-						actors = '';
-					}
-					if (json.Released && json.Released !== 'N/A') {
-						var released = '[*][B]Release Date: [/B] ' + json.Released + '\n';
-					} else {
-						released = '';
-					}
-					if (json.Runtime && json.Runtime !== 'N/A') {
-						var runtime = '[*][B]Runtime: [/B] ' + json.Runtime + '\n';
-					} else {
-						runtime = '';
-					}
-					if (json.Production && json.Production !== 'N/A') {
-						var production = '[*][B]Production: [/B] ' + json.Production + '\n';
-					} else {
-						production = '';
-					}
-					MEDIAINFO =
-						"[hr][/hr][indent][size=6][color=rgb(250, 197, 28)][b]Media Info[/b][/color][/size][/indent]\n [spoiler='Click here to view Media Info']\n " +
-						MEDIAINFO +
-						'\n[/spoiler]\n';
-					ddl =
-						'[hr][/hr][center][size=6][color=rgb(250, 197, 28)][b]Download Link[/b][/color][/size]\n' +
-						ddl +
-						'\n[/center]';
-					let dump = `${poster}${title} (${year}${imdb_id} ${rating}${imdbvotes}${plot}${trailer}${screen}
-[hr][/hr][indent][size=6][color=rgb(250, 197, 28)][b]Movie Info[/b][/color][/size][/indent]
-[LIST][*]${rated}${genre}${director}${writer}${actors}${released}${runtime}${production}[/LIST]\n${MEDIAINFO}${ddl}`;
-					GM_setClipboard(dump);
-					try {
-						document.getElementsByName('message')[0].value = dump;
-					} catch (err) {
-						alert(
-							'You should be running this in BBCode Mode. Check the Readme for more information!\n' +
-								err
-						);
-					} finally {
-						let xf_title_value = titlechange.value;
-						if (!xf_title_value) {
-							document.getElementById('title').value =
-								json.Title + ' (' + json.Year + ')';
+				//* App Name *//
+				let name = parsedHtml.getElementsByClassName('AHFaub')[0].innerText;
+				let title =
+					'[COLOR=rgb(26, 162, 96)][B][SIZE=6]' +
+					name +
+					'[/SIZE][/B][/COLOR]\n';
+				//* rating *//
+				let rating =
+					"[IMG width='40px']https://i.postimg.cc/g28wfSTs/630px-Green-star-41-108-41-svg.png[/IMG][SIZE=6][B]" +
+					parsedHtml.getElementsByClassName('BHMmbe')[0].innerText +
+					'/5[/B]\n';
+				//* Amount of Reviews *//
+				let reviewscount =
+					"[IMG width='40px']https://i.postimg.cc/L617X3tq/Webp-net-resizeimage.png[/IMG]" +
+					parsedHtml.getElementsByClassName('O3QoBc hzfjkd')[0].nextSibling
+						.innerHTML +
+					'[/SIZE][/CENTER]\n';
+				//* Grab SS from images (Only grab 3!) *//
+				var screenshots = [];
+				for (let screen of images) {
+					let screenattr = screen.alt;
+					if (screenattr == 'Screenshot Image') {
+						if (!screen.dataset | !screen.dataset.srcset) {
+							screenshots.push(
+								screen.srcset.replace('-rw', '').replace(' 2x', '') + '\n'
+							);
+						} else {
+							screenshots.push(
+								screen.dataset.srcset.replace('-rw', '').replace(' 2x', '') +
+									'\n'
+							);
 						}
 					}
+					if (screenshots.length == '3') {
+						break;
+					}
 				}
-			});
-		}
-	});
+				var screens = '';
+				for (let ss of screenshots) {
+					screens += '[IMG width="300px"]' + ss + '[/IMG]';
+				}
+				screens =
+					'[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Screenshots[/B][/COLOR][/SIZE][/INDENT][CENTER]' +
+					screens +
+					'[/CENTER]\n[hr][/hr]\n';
+				//* App Description *//
+				let description =
+					"[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]App Description[/B][/COLOR][/SIZE][/INDENT]\n [SPOILER='App Description']\n" +
+					parsedHtml.getElementsByClassName('DWPxHb')[0].textContent +
+					'\n[/SPOILER]\n[hr][/hr]\n';
+				let dev =
+					'[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]App Details[/B][/COLOR][/SIZE][/INDENT]\n[LIST]\n[*][B]Developer: [/B] ' +
+					parsedHtml.getElementsByClassName('T32cc UAO9ie')[0].innerText;
+				let category =
+					'\n[*][B]Category: [/B] ' +
+					parsedHtml.getElementsByClassName('T32cc UAO9ie')[1].innerText;
+				let ContentRating =
+					'\n[*][B]Content Rating: [/B] ' +
+					parsedHtml
+						.getElementsByClassName('KmO8jd')[0]
+						.innerText.split('\n')[0];
+				let requiredAndroid =
+					'\n[*][B]Required Android Version: [/B] ' +
+					parsedHtml.getElementsByClassName('htlgb')[9].textContent;
+				let size =
+					'\n[*][B]Size: [/B] ' +
+					parsedHtml.getElementsByClassName('htlgb')[3].textContent +
+					' (Taken from the Google Play Store)';
+				let LatestPlayStoreVersion =
+					'\n[*][B]Latest Google Play Version: [/B] ' +
+					parsedHtml.getElementsByClassName('htlgb')[7].textContent +
+					'\n[/LIST]\n';
+				link =
+					'[URL=' +
+					link +
+					"][IMG width='250px']https://i.postimg.cc/mrWtVGwr/image.png[/IMG][/URL]\n[hr][/hr]\n";
+				//* Don't add modinfo line if not needed *//
+				if (modinfo) {
+					modinfo =
+						'[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Mod Info[/B][/COLOR][/SIZE][/INDENT]\n' +
+						modinfo +
+						'[hr][/hr]\n';
+				} else {
+					modinfo = '';
+				}
+				VT =
+					'[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Virustotal[/B][/COLOR][/SIZE][/INDENT]\n[DOWNCLOUD]' +
+					VT +
+					'[/DOWNCLOUD]\n[hr][/hr]\n';
+				ddl =
+					'[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Download Link[/B][/COLOR][/SIZE][/INDENT]\n[CENTER]\n' +
+					ddl +
+					'\n[/CENTER]';
+				let dump = `${logo}${title}${rating}${reviewscount}${screens}${description}${dev}${category}${ContentRating}${requiredAndroid}${size}${LatestPlayStoreVersion}${link}${modinfo}${VT}${ddl}`;
+				GM_setClipboard(dump);
+				//* Try to paste to page. Alert user if using wrong mode *//
+				try {
+					document.getElementsByName('message')[0].value = dump;
+				} catch (err) {
+					alert(
+						'You should be running this in BBCode Mode. Check the Readme for more information!\n' +
+							err
+					);
+				} finally {
+					let xf_title_value = titlechange.value;
+					if (!xf_title_value) {
+						document.getElementById('title').value = name;
+					}
+				}
+			}
+		});
+	}
+}
 
-	//--- CSS styles make it work...
-	GM_addStyle(
-		"                                                         \
+//--- CSS styles make it work...
+GM_addStyle(
+	"                                                   \
     @media screen and (min-width: 300px) {                        \
       /* Divide Buttons */                                        \
       .divider{                                                   \
@@ -334,27 +244,6 @@ GM.getValue('APIKEY', 'foo').then(value => {
             height:                 auto;                         \
             display:                inline-block;                 \
       }                                                           \
-      /* Buttons */                                               \
-      button[name=template_button] {                              \
-            background-color:       #4caf50;                      \
-            color:                  white;                        \
-            text-align:             center;                       \
-            text-decoration:        none;                         \
-            display:                inline-block;                 \
-            font-size:              14px;                         \
-            font-weight:            600;                          \
-            padding:                4px;                          \
-            cursor:                 pointer;                      \
-            outline:                none;                         \
-            margin-right:           8px;                          \
-            border:                 none;                         \
-            border-radius:          3px;                          \
-            border-color:           #67bd6a;                      \
-            margin-top:             5px;                          \
-            box-shadow:             0 0 2px 0 rgba(0,0,0,0.14),   \
-                                    0 2px 2px 0 rgba(0,0,0,0.12), \
-                                    0 1px 3px 0 rgba(0,0,0,0.2);  \
-        }                                                         \
       /* Reactscore & Posts */                                    \
       input[type=number]{                                         \
             border-bottom:          2px solid teal;               \
@@ -426,27 +315,6 @@ GM.getValue('APIKEY', 'foo').then(value => {
             height:                 auto;                         \
             display:                inline-block;                 \
       }                                                           \
-      /* Buttons */                                               \
-      button[name=template_button] {                              \
-            background-color:       #4caf50;                      \
-            color:                  white;                        \
-            text-align:             center;                       \
-            text-decoration:        none;                         \
-            display:                inline-block;                 \
-            font-size:              15px;                         \
-            font-weight:            600;                          \
-            padding:                6px;                          \
-            cursor:                 pointer;                      \
-            outline:                none;                         \
-            margin-right:           8px;                          \
-            border:                 none;                         \
-            border-radius:          3px;                          \
-            border-color:           #67bd6a;                      \
-            margin-top:             5px;                          \
-            box-shadow:             0 0 2px 0 rgba(0,0,0,0.14),   \
-                                    0 2px 2px 0 rgba(0,0,0,0.12), \
-                                    0 1px 3px 0 rgba(0,0,0,0.2);  \
-        }                                                         \
       /* Reactscore & Posts */                                    \
       input[type=number]{                                         \
             border-bottom:          2px solid teal;               \
@@ -512,5 +380,4 @@ GM.getValue('APIKEY', 'foo').then(value => {
       }                                                           \
 }                                                                 \
 "
-	);
-});
+);

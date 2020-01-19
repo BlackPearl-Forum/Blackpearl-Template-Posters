@@ -26,11 +26,13 @@ main();
 const htmlTemplate = `
 <button id="gmShowTemplate" name="templateButton" style="display:none" type="button">Show</button>
 <div id="discogGenerator">
-<input type="text" id="master_url" value="" style="display:none">
+<input type="text" id="masterUrl" value="" style="display:none">
 <div class="ui search" id="Discog_search">
 <input type="text" class="prompt input" id="searchID" placeholder="Artist + Album name"  onfocus="this.placeholder = ''" onblur="this.placeholder = 'Artist + Album name'">
 <div class="results input" style="display:none"></div>
 </div>
+<input type="text" id="qImgs" value="" class="input" placeholder="Quality Image Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Quality Image Link'">
+<textarea rows="1" style="width:100%;" class="input" id="qText" placeholder="Quality Text" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Quality Text'"></textarea>
 <input type="text" id="ddl" value="" class="input" placeholder="Download Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Download Link'">
 <div id="textarea_divider">&nbsp;</div>
 <span>DownCloud</span>
@@ -153,7 +155,7 @@ function searchDiscog(APIVALUE) {
 		},
 		onSelect: function(response) {
 			console.log(response);
-			$('#master_url').val(response.master_url);
+			$('#masterUrl').val(response.master_url);
 		},
 		minCharacters: 3
 	});
@@ -161,10 +163,12 @@ function searchDiscog(APIVALUE) {
 
 function generateTemplate(APIVALUE, titlechange) {
 	let ddl = $('#ddl').val();
-	let hidereactscore = $('#HideReactScore').val();
-	let hideposts = $('#HidePosts').val();
-	let master_url = $('#master_url').val();
-	if (!master_url) {
+	let qImgs = $('#qImgs').val();
+	let qText = $('#qText').val();
+	let hideReactScore = $('#HideReactScore').val();
+	let hidePosts = $('#HidePosts').val();
+	let masterUrl = $('#masterUrl').val();
+	if (!masterUrl) {
 		alert("You Didn't Select A Result or Enter a URL!");
 	} else if (!ddl) {
 		alert("Uh Oh! You Forgot Your Download Link! That's Pretty Important...");
@@ -173,14 +177,14 @@ function generateTemplate(APIVALUE, titlechange) {
 			ddl = '[DOWNCLOUD]' + ddl + '[/DOWNCLOUD]';
 		}
 		ddl = '[HIDEREACT=1,2,3,4,5,6]' + ddl + '[/HIDEREACT]';
-		if (hidereactscore !== '0') {
-			ddl = `[HIDEREACTSCORE=${hidereactscore}]` + ddl + '[/HIDEREACTSCORE]';
+		if (hideReactScore !== '0') {
+			ddl = `[HIDEREACTSCORE=${hideReactScore}]` + ddl + '[/HIDEREACTSCORE]';
 		}
-		if (hideposts !== '0') {
-			ddl = `[HIDEPOSTS=${hideposts}]` + ddl + '[/HIDEPOSTS]';
+		if (hidePosts !== '0') {
+			ddl = `[HIDEPOSTS=${hidePosts}]` + ddl + '[/HIDEPOSTS]';
 		}
 		var xhReq = new XMLHttpRequest();
-		xhReq.open('GET', `${master_url}?token=${APIVALUE}`, false);
+		xhReq.open('GET', `${masterUrl}?token=${APIVALUE}`, false);
 		xhReq.send(null);
 		var albumjson = JSON.parse(xhReq.responseText);
 		var artist_url = albumjson.artists[0].resource_url;
@@ -207,40 +211,70 @@ function generateTemplate(APIVALUE, titlechange) {
 					'[INDENT][SIZE=6][COLOR=rgb(44, 171, 162)][B]Album Details[/B][/COLOR][/SIZE][/INDENT]\n[SPOILER="Track List"]\n[TABLE=collapse]\n[TR]\n[TH]No.[/TH]\n[TH]Track Name[/TH]\n[TH]Track Duration[/TH]\n[/TR]\n';
 				for (let t of tracklist) {
 					tracks +=
-						'[TR][TD]' +
-						t.position +
-						'[/TD]\n[TD]' +
-						t.title +
-						'[/TD]\n[TD]' +
-						t.duration +
-						'[/TD][/TR]\n';
+						'[TR][TD]' + t.position + '[/TD]\n[TD]' + t.title + '[/TD]\n[TD]';
+					if (t.duration) {
+						tracks += t.duration + '[/TD][/TR]\n';
+					} else {
+                                    tracks += '[/TR]\n'
+                              }
 				}
 				tracks += '[/TABLE]\n[/SPOILER]\n';
-				let styles = '[SIZE=6]' + albumjson.styles[0];
-				let genres = albumjson.genres[0] + '[/SIZE][/CENTER]\n';
-				let artistinfo =
-					'[SPOILER="About Artist"]\n' +
-					artistjson.profile.replace(/\[.=/gm, '').replace(/\]/gm, '') +
-					'\n[/SPOILER]';
-				let memberlist = artistjson.members;
-				let members =
-					'[INDENT][SIZE=6][COLOR=rgb(44, 171, 162)][B]Artist Details[/B][/COLOR][/SIZE][/INDENT]\n[SPOILER="Member List"]\n';
-				for (let ml of memberlist) {
-					members +=
-						ml.name + '\n[IMG width="150px"]' + ml.thumbnail_url + '[/IMG]\n';
+				let styles = albumjson.styles ? '[SIZE=6]' + albumjson.styles[0] : '';
+				let genres = albumjson.genres
+					? albumjson.genres[0] + '[/SIZE][/CENTER]\n'
+					: '';
+				let artistinfo = artistjson.profile
+					? '[SPOILER="About Artist"]\n' +
+					  artistjson.profile.replace(/\[.=/gm, '').replace(/\]/gm, '') +
+					  '\n[/SPOILER]'
+					: '';
+				if (artistjson.members) {
+					let memberlist = artistjson.members;
+					var members =
+						'[INDENT][SIZE=6][COLOR=rgb(44, 171, 162)][B]Artist Details[/B][/COLOR][/SIZE][/INDENT]\n[SPOILER="Member List"]\n';
+					if (memberlist.length > 1) {
+						for (let ml of memberlist) {
+							members +=
+								ml.name +
+								'\n[IMG width="150px"]' +
+								ml.thumbnail_url +
+								'[/IMG]\n';
+						}
+					}
+					members += '\n[/SPOILER]\n';
 				}
-				members += '\n[/SPOILER]\n';
-				let artistslinks = artistjson.urls;
-				let artlink = '[SPOILER="Artist Links"]\n';
-				for (let artistlink of artistslinks) {
-					artlink += artistlink + '\n';
+				if (artistjson.urls) {
+					let artistslinks = artistjson.urls;
+					var artlink = '[SPOILER="Artist Links"]\n';
+					for (let artistlink of artistslinks) {
+						artlink += artistlink + '\n';
+					}
+					artlink += '\n[/SPOILER]\n[hr][/hr]\n';
 				}
-				artlink += '\n[/SPOILER]\n[hr][/hr]\n';
 				ddl =
 					'[hr][/hr][center][size=6][color=rgb(44, 171, 162)][b]Download Link[/b][/color][/size]\n' +
 					ddl +
 					'\n[/center]';
-				let dump = `${Cover}${artist}${title}${tracknum}${styles} ${genres}${members}${artistinfo}${artlink}${tracks}${ddl}`;
+				if (qImgs) {
+					let q = qImgs.split(' ');
+					var qImg = '';
+					for (let qi of q) {
+						qImg += `[img width="300"]${qi}[/img]`;
+					}
+				} else {
+					qImg = '';
+				}
+				qImg = qImg ? qImg + '\n' : '';
+				qText = qText
+					? '[SPOILER="Quality Proof"]' + qText + '[/Spoiler]\n'
+					: '';
+				let quality =
+					qImg || qText
+						? '[hr][/hr][center][size=6][color=rgb(44, 171, 162)][b]Quality Proof[/b][/color][/size]\n' +
+						  qImg +
+						  qText
+						: '';
+				let dump = `${Cover}${artist}${title}${tracknum}${styles} ${genres}${members}${artistinfo}${artlink}${tracks}${quality}${ddl}`;
 				GM_setClipboard(dump);
 				try {
 					document.getElementsByName('message')[0].value = dump;

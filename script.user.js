@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Blackpearl IMDB
-// @version     3.0.1
+// @version     3.0.2
 // @description Template Maker
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png
@@ -81,7 +81,7 @@ function main() {
 		$('#gmHideTemplate').click(() => hideTemplate());
 		$('#gmShowTemplate').click(() => showTemplate());
 		$('#gmSaveKey').click(() => saveApiKey(APIVALUE, htmlpush));
-		$('#gmGenerate').click(() => generateTemplate(APIVALUE, titlechange));
+		$('#gmGenerate').click(() => generateTemplate(APIVALUE));
 	});
 }
 function showTemplate() {
@@ -162,7 +162,7 @@ function saveApiKey(APIVALUE, htmlpush) {
 	}
 }
 
-function generateTemplate(APIVALUE, titlechange) {
+function generateTemplate(APIVALUE) {
 	console.log(APIVALUE);
 	var IID = $('#hiddenIID').val();
 	var screenshots = $('#screensLinks').val();
@@ -308,7 +308,7 @@ function generateTemplate(APIVALUE, titlechange) {
 							err
 					);
 				} finally {
-					let xf_title_value = titlechange.value;
+					let xf_title_value = document.querySelector("#title").value;
 					if (!xf_title_value) {
 						document.getElementById('title').value =
 							json.Title + ' (' + json.Year + ')';

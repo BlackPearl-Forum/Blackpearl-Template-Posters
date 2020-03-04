@@ -129,6 +129,11 @@ function generateTemplate() {
 	} else if (!VT) {
 		alert("You Don't Have Any VirusTotal? It's Required!");
 	} else {
+		if (link.contains('&hl')) {
+			link = link.replace(/\&.*$/, '&hl=en_US');
+		} else {
+			link = link + '&hl=en_US';
+		}
 		//* Add BBcode if checked/changed *//
 		var mod = mod.checked ? ' [Mod]' : '';
 		var unlocked = unlocked.checked ? ' [Unlocked]' : '';

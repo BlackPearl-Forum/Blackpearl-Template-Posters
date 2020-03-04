@@ -129,7 +129,7 @@ function generateTemplate() {
 	} else if (!VT) {
 		alert("You Don't Have Any VirusTotal? It's Required!");
 	} else {
-		if (link.contains('&hl')) {
+		if (link.includes('&hl')) {
 			link = link.replace(/\&.*$/, '&hl=en_US');
 		} else {
 			link = link + '&hl=en_US';

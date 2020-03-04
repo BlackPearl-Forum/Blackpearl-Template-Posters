@@ -20,10 +20,31 @@ const htmlTemplate = `
 <button id="ShowTemplate" name="template_button" style="display:none" type="button">Show</button>
 <div id="ApkGenerator">
 <input type="text" id="gplaylink" value="" class="input" placeholder="Google Play Store Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Google Play Store Link'">
-<input type="text" id="modinfo" value="" class="input" placeholder="Mod Details" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Mod Details'">
-<input type="text" id="virustotal" value="" class="input" placeholder="VirusTotal Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Screenshot Links'">
+<textarea rows="1" style="width:100%;" class="input" id="modinfo" placeholder="Mod Details" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Mod Details'"></textarea>
+<input type="text" id="virustotal" value="" class="input" placeholder="VirusTotal Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Virustotal Link'">
 <input type="text" id="ddl" value="" class="input" placeholder="Download Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Download Link'">
 <div id="textarea_divider">&nbsp;</div>
+<span>Mod</span>
+<label class="switch">
+<input type="checkbox" id="mod" value="mod" >
+<span class="slider round"></span></label>
+<span>Unlocked</span>
+<label class="switch">
+<input type="checkbox" id="unlocked" value="unlocked" >
+<span class="slider round"></span></label>
+<span>Premium</span>
+<label class="switch">
+<input type="checkbox" id="premium" value="premium" >
+<span class="slider round"></span></label>
+<span>Ad-Free</span>
+<label class="switch">
+<input type="checkbox" id="adfree" value="adfree" >
+<span class="slider round"></span></label>
+<span>Lite</span>
+<label class="switch">
+<input type="checkbox" id="lite" value="lite" >
+<span class="slider round"></span></label>
+<br/>
 <span>DownCloud</span>
 <label class="switch">
 <input type="checkbox" id="Downcloud" value="Downcloud" checked></input>
@@ -50,7 +71,7 @@ function main() {
 	}
 	$('#gmHideTemplate').click(() => hideTemplate());
 	$('#gmShowTemplate').click(() => showTemplate());
-	$('#gmGenerate').click(() => generateTemplate(titlechange));
+	$('#gmGenerate').click(() => generateTemplate());
 }
 
 $(document).on('keydown', function(event) {
@@ -59,6 +80,25 @@ $(document).on('keydown', function(event) {
 		document.getElementById('ShowTemplate').style.display = 'block';
 	}
 });
+
+/*Grab Specific divs*/
+function filterSize(element) {
+	return element.textContent === 'Size';
+}
+function filterCurVer(element) {
+	return element.textContent === 'Current Version';
+}
+function filterReqAndr(element) {
+	return element.textContent === 'Requires Android';
+}
+
+/*fix word casing*/
+function upperCase(str) {
+	str = str.toLowerCase();
+	return str.replace(/(^|\s)\S/g, function(t) {
+		return t.toUpperCase();
+	});
+}
 
 function showTemplate() {
 	document.getElementById('gmShowTemplate').style.display = 'none';
@@ -69,13 +109,18 @@ function hideTemplate() {
 	$('#ApkGenerator').hide();
 }
 
-function generateTemplate(titlechange) {
+function generateTemplate() {
 	let link = $('#gplaylink').val();
 	let modinfo = $('#modinfo').val();
 	let VT = $('#virustotal').val();
 	let ddl = $('#ddl').val();
 	let hidereactscore = $('#HideReactScore').val();
 	let hideposts = $('#HidePosts').val();
+	mod = document.querySelector('input[value="mod"]');
+	unlocked = document.querySelector('input[value="unlocked"]');
+	adfree = document.querySelector('input[value="adfree"]');
+	lite = document.querySelector('input[value="lite"]');
+	premium = document.querySelector('input[value="premium"]');
 	//* Error Messages *//
 	if (!link) {
 		alert('Gotta give us a Google Play link at least!');
@@ -85,6 +130,17 @@ function generateTemplate(titlechange) {
 		alert("You Don't Have Any VirusTotal? It's Required!");
 	} else {
 		//* Add BBcode if checked/changed *//
+		var mod = mod.checked ? ' [Mod]' : '';
+		var unlocked = unlocked.checked ? ' [Unlocked]' : '';
+		var adfree = adfree.checked ? ' [Ad-Free]' : '';
+		var premium = premium.checked ? ' [Premium]' : '';
+		if (mod.checked & lite.checked) {
+			var lite = ' [Mod-Lite]';
+			mod = '';
+		} else {
+			lite = lite.checked ? ' [Lite]' : '';
+		}
+		var titleExtra = mod + unlocked + premium + adfree + lite;
 		if (Downcloud.checked) {
 			let ddlsplit = ddl.split(' ');
 			ddl = '';
@@ -109,6 +165,19 @@ function generateTemplate(titlechange) {
 				let test = response.responseText;
 				let parser = new DOMParser();
 				let parsedHtml = parser.parseFromString(test, 'text/html');
+				//*Grab json from parse*//
+				var gplayjson = parsedHtml.querySelector(
+					'script[type="application/ld+json"]'
+				).text;
+				gplayjson = JSON.parse(gplayjson);
+				//turn nodelist into an array
+				var h2 = Array.prototype.slice.call(parsedHtml.querySelectorAll('div'));
+				//Array of matches
+				var siz = h2.filter(filterSize);
+				var curVer = h2.filter(filterCurVer);
+				var reqAndr = h2.filter(filterReqAndr);
+
+				//Filter Function
 				//* Grab all images & find logo *//
 				let images = parsedHtml.getElementsByTagName('img');
 				for (let logoimg of images) {
@@ -121,21 +190,19 @@ function generateTemplate(titlechange) {
 					}
 				}
 				//* App Name *//
-				let name = parsedHtml.getElementsByClassName('AHFaub')[0].innerText;
 				let title =
 					'[COLOR=rgb(26, 162, 96)][B][SIZE=6]' +
-					name +
+					gplayjson.name +
 					'[/SIZE][/B][/COLOR]\n';
 				//* rating *//
 				let rating =
 					"[IMG width='40px']https://i.postimg.cc/g28wfSTs/630px-Green-star-41-108-41-svg.png[/IMG][SIZE=6][B]" +
-					parsedHtml.getElementsByClassName('BHMmbe')[0].innerText +
+					Math.floor(gplayjson.aggregateRating.ratingValue) +
 					'/5[/B]\n';
 				//* Amount of Reviews *//
 				let reviewscount =
 					"[IMG width='40px']https://i.postimg.cc/L617X3tq/Webp-net-resizeimage.png[/IMG]" +
-					parsedHtml.getElementsByClassName('O3QoBc hzfjkd')[0].nextSibling
-						.innerHTML +
+					gplayjson.aggregateRating.ratingCount +
 					'[/SIZE][/CENTER]\n';
 				//* Grab SS from images (Only grab 3!) *//
 				var screenshots = [];
@@ -162,34 +229,31 @@ function generateTemplate(titlechange) {
 					screens += '[IMG width="300px"]' + ss + '[/IMG]';
 				}
 				screens =
-					'[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Screenshots[/B][/COLOR][/SIZE][/INDENT][CENTER]' +
+					'[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Screenshots[/B][/COLOR][/SIZE][/INDENT][CENTER]\n' +
 					screens +
 					'[/CENTER]\n[hr][/hr]\n';
 				//* App Description *//
 				let description =
-					"[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]App Description[/B][/COLOR][/SIZE][/INDENT]\n [SPOILER='App Description']\n" +
-					parsedHtml.getElementsByClassName('DWPxHb')[0].textContent +
+					"[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]App Description[/B][/COLOR][/SIZE][/INDENT]\n[SPOILER='App Description']\n" +
+					gplayjson.description +
 					'\n[/SPOILER]\n[hr][/hr]\n';
 				let dev =
 					'[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]App Details[/B][/COLOR][/SIZE][/INDENT]\n[LIST]\n[*][B]Developer: [/B] ' +
-					parsedHtml.getElementsByClassName('T32cc UAO9ie')[0].innerText;
+					upperCase(gplayjson.author.name);
 				let category =
-					'\n[*][B]Category: [/B] ' +
-					parsedHtml.getElementsByClassName('T32cc UAO9ie')[1].innerText;
+					'\n[*][B]Category: [/B] ' + upperCase(gplayjson.applicationCategory);
 				let ContentRating =
-					'\n[*][B]Content Rating: [/B] ' +
-					parsedHtml.getElementsByClassName('htlgb')[11].querySelector('div')
-						.innerText;
+					'\n[*][B]Content Rating: [/B] ' + gplayjson.contentRating;
 				let requiredAndroid =
 					'\n[*][B]Required Android Version: [/B] ' +
-					parsedHtml.getElementsByClassName('htlgb')[9].textContent;
+					reqAndr[0].nextElementSibling.innerText;
 				let size =
 					'\n[*][B]Size: [/B] ' +
-					parsedHtml.getElementsByClassName('htlgb')[3].textContent +
+					siz[0].nextElementSibling.innerText +
 					' (Taken from the Google Play Store)';
 				let LatestPlayStoreVersion =
 					'\n[*][B]Latest Google Play Version: [/B] ' +
-					parsedHtml.getElementsByClassName('htlgb')[7].textContent +
+					curVer[0].nextElementSibling.innerText +
 					'\n[/LIST]\n';
 				link =
 					'[URL=' +
@@ -213,19 +277,20 @@ function generateTemplate(titlechange) {
 					ddl +
 					'\n[/CENTER]';
 				let dump = `${logo}${title}${rating}${reviewscount}${screens}${description}${dev}${category}${ContentRating}${requiredAndroid}${size}${LatestPlayStoreVersion}${link}${modinfo}${VT}${ddl}`;
-				GM_setClipboard(dump);
 				//* Try to paste to page. Alert user if using wrong mode *//
 				try {
 					document.getElementsByName('message')[0].value = dump;
 				} catch (err) {
+					GM_setClipboard(dump);
 					alert(
 						'You should be running this in BBCode Mode. Check the Readme for more information!\n' +
 							err
 					);
 				} finally {
-					let xf_title_value = titlechange.value;
+					let xf_title_value = document.getElementById('title').value;
 					if (!xf_title_value) {
-						document.getElementById('title').value = name;
+						document.getElementById('title').value =
+							gplayjson.name + titleExtra;
 					}
 				}
 			}
@@ -235,7 +300,7 @@ function generateTemplate(titlechange) {
 
 //--- CSS styles make it work...
 GM_addStyle(
-	"                                                   \
+	"                                                             \
     @media screen and (min-width: 300px) {                        \
       /* Divide Buttons */                                        \
       .divider{                                                   \
@@ -261,6 +326,7 @@ GM_addStyle(
             display:                inline-block;                 \
             width:                  42px;                         \
             height:                 17px;                         \
+            margin-bottom:          5px;                          \
       }                                                           \
       .switch input {                                             \
             opacity:                0;                            \
@@ -331,6 +397,7 @@ GM_addStyle(
             display:                inline-block;                 \
             width:                  42px;                         \
             height:                 17px;                         \
+            margin-bottom:          5px;                          \
       }                                                           \
       .switch input {                                             \
             opacity:                0;                            \

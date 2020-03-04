@@ -6,7 +6,7 @@ Android Thread Template Generator userscript
 
 ## Requirements:
 A userscript manager + installing the script
-<a href="https://raw.githubusercontent.com/laxudope/blackpearl/master/script.user.js">Click to install script </a>
+<a href="https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/raw/Android/script.user.js">Click to install script </a>
 <small>(A userscript engine, like [Violentmonkey](https://violentmonkey.github.io/get-it/) or [Tampermonkey](https://www.tampermonkey.net/))</small>
 
 # How To Use

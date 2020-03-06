@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Blackpearl Android Template Generator
 // @version     1.0.0
-// @description Android App Template
+// @description Generates a Template for the Android section of Blackpearl
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png
 // @homepage    https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/tree/Android
@@ -129,11 +129,9 @@ function generateTemplate() {
 	} else if (!VT) {
 		alert("You Don't Have Any VirusTotal? It's Required!");
 	} else {
-		if (link.includes('&hl')) {
-			link = link.replace(/\&.*$/, '&hl=en_US');
-		} else {
-			link = link + '&hl=en_US';
-		}
+		link = link.includes('&hl')
+			? link.replace(/\&.*$/, '&hl=en_US')
+			: link + '&hl=en_US';
 		//* Add BBcode if checked/changed *//
 		var mod = mod.checked ? ' [Mod]' : '';
 		var unlocked = unlocked.checked ? ' [Unlocked]' : '';
@@ -195,20 +193,23 @@ function generateTemplate() {
 					}
 				}
 				//* App Name *//
-				let title =
-					'[COLOR=rgb(26, 162, 96)][B][SIZE=6]' +
-					gplayjson.name +
-					'[/SIZE][/B][/COLOR]\n';
+				let title = gplayjson.name
+					? '[COLOR=rgb(26, 162, 96)][B][SIZE=6]' +
+					  gplayjson.name +
+					  '[/SIZE][/B][/COLOR]\n'
+					: '';
 				//* rating *//
-				let rating =
-					"[IMG width='40px']https://i.postimg.cc/g28wfSTs/630px-Green-star-41-108-41-svg.png[/IMG][SIZE=6][B]" +
-					Math.floor(gplayjson.aggregateRating.ratingValue) +
-					'/5[/B]\n';
+				let rating = gplayjson.aggregateRating.ratingValue
+					? "[IMG width='40px']https://i.postimg.cc/g28wfSTs/630px-Green-star-41-108-41-svg.png[/IMG][SIZE=6][B]" +
+					  Math.floor(gplayjson.aggregateRating.ratingValue) +
+					  '/5[/B]\n'
+					: '';
 				//* Amount of Reviews *//
-				let reviewscount =
-					"[IMG width='40px']https://i.postimg.cc/L617X3tq/Webp-net-resizeimage.png[/IMG]" +
-					gplayjson.aggregateRating.ratingCount +
-					'[/SIZE][/CENTER]\n';
+				let reviewscount = gplayjson.aggregateRating.ratingCount
+					? "[IMG width='40px']https://i.postimg.cc/L617X3tq/Webp-net-resizeimage.png[/IMG]" +
+					  gplayjson.aggregateRating.ratingCount +
+					  '[/SIZE][/CENTER]\n'
+					: '';
 				//* Grab SS from images (Only grab 3!) *//
 				var screenshots = [];
 				for (let screen of images) {
@@ -238,41 +239,45 @@ function generateTemplate() {
 					screens +
 					'[/CENTER]\n[hr][/hr]\n';
 				//* App Description *//
-				let description =
-					"[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]App Description[/B][/COLOR][/SIZE][/INDENT]\n[SPOILER='App Description']\n" +
-					gplayjson.description +
-					'\n[/SPOILER]\n[hr][/hr]\n';
-				let dev =
-					'[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]App Details[/B][/COLOR][/SIZE][/INDENT]\n[LIST]\n[*][B]Developer: [/B] ' +
-					upperCase(gplayjson.author.name);
-				let category =
-					'\n[*][B]Category: [/B] ' + upperCase(gplayjson.applicationCategory);
-				let ContentRating =
-					'\n[*][B]Content Rating: [/B] ' + gplayjson.contentRating;
-				let requiredAndroid =
-					'\n[*][B]Required Android Version: [/B] ' +
-					reqAndr[0].nextElementSibling.innerText;
-				let size =
-					'\n[*][B]Size: [/B] ' +
-					siz[0].nextElementSibling.innerText +
-					' (Taken from the Google Play Store)';
-				let LatestPlayStoreVersion =
-					'\n[*][B]Latest Google Play Version: [/B] ' +
-					curVer[0].nextElementSibling.innerText +
-					'\n[/LIST]\n';
+				let description = gplayjson.description
+					? "[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]App Description[/B][/COLOR][/SIZE][/INDENT]\n[SPOILER='App Description']\n" +
+					  gplayjson.description +
+					  '\n[/SPOILER]\n[hr][/hr]\n'
+					: '';
+				let dev = gplayjson.author.name
+					? '[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]App Details[/B][/COLOR][/SIZE][/INDENT]\n[LIST]\n[*][B]Developer: [/B] ' +
+					  upperCase(gplayjson.author.name)
+					: '';
+				let category = gplayjson.applicationCategory
+					? '\n[*][B]Category: [/B] ' + upperCase(gplayjson.applicationCategory)
+					: '';
+				let ContentRating = gplayjson.contentRating
+					? '\n[*][B]Content Rating: [/B] ' + gplayjson.contentRating
+					: '';
+				let requiredAndroid = reqAndr[0].nextElementSibling.innerText
+					? '\n[*][B]Required Android Version: [/B] ' +
+					  reqAndr[0].nextElementSibling.innerText
+					: '';
+				let size = siz[0].nextElementSibling.innerText
+					? '\n[*][B]Size: [/B] ' +
+					  siz[0].nextElementSibling.innerText +
+					  ' (Taken from the Google Play Store)'
+					: '';
+				let LatestPlayStoreVersion = curVer[0].nextElementSibling.innerText
+					? '\n[*][B]Latest Google Play Version: [/B] ' +
+					  curVer[0].nextElementSibling.innerText +
+					  '\n[/LIST]\n'
+					: '';
 				link =
 					'[URL=' +
 					link +
 					"][IMG width='250px']https://i.postimg.cc/mrWtVGwr/image.png[/IMG][/URL]\n[hr][/hr]\n";
 				//* Don't add modinfo line if not needed *//
-				if (modinfo) {
-					modinfo =
-						'[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Mod Info[/B][/COLOR][/SIZE][/INDENT]\n' +
-						modinfo +
-						'[hr][/hr]\n';
-				} else {
-					modinfo = '';
-				}
+				modinfo = modinfo
+					? '[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Mod Info[/B][/COLOR][/SIZE][/INDENT]\n' +
+					  modinfo +
+					  '[hr][/hr]\n'
+					: '';
 				VT =
 					'[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Virustotal[/B][/COLOR][/SIZE][/INDENT]\n[DOWNCLOUD]' +
 					VT +

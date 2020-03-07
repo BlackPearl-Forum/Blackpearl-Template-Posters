@@ -199,17 +199,27 @@ function generateTemplate() {
 					  '[/SIZE][/B][/COLOR]\n'
 					: '';
 				//* rating *//
-				let rating = gplayjson.aggregateRating.ratingValue
-					? "[IMG width='40px']https://i.postimg.cc/g28wfSTs/630px-Green-star-41-108-41-svg.png[/IMG][SIZE=6][B]" +
-					  Math.floor(gplayjson.aggregateRating.ratingValue) +
-					  '/5[/B]\n'
-					: '';
+				try {
+					var rating = gplayjson.aggregateRating.ratingValue
+						? "[IMG width='40px']https://i.postimg.cc/g28wfSTs/630px-Green-star-41-108-41-svg.png[/IMG][SIZE=6][B]" +
+						  Math.floor(gplayjson.aggregateRating.ratingValue) +
+						  '/5[/B]\n'
+						: '';
+				} catch (e) {
+					console.log(e);
+					rating = '';
+				}
 				//* Amount of Reviews *//
-				let reviewscount = gplayjson.aggregateRating.ratingCount
-					? "[IMG width='40px']https://i.postimg.cc/L617X3tq/Webp-net-resizeimage.png[/IMG]" +
-					  gplayjson.aggregateRating.ratingCount +
-					  '[/SIZE][/CENTER]\n'
-					: '';
+				try {
+					var reviewscount = gplayjson.aggregateRating.ratingCount
+						? "[IMG width='40px']https://i.postimg.cc/nV6RDhJ3/Webp-net-resizeimage-002.png[/IMG]" +
+						  gplayjson.aggregateRating.ratingCount +
+						  '[/size]\n'
+						: '';
+				} catch (e) {
+					console.log(e);
+					reviewscount = '';
+				}
 				//* Grab SS from images (Only grab 3!) *//
 				var screenshots = [];
 				for (let screen of images) {
@@ -235,7 +245,7 @@ function generateTemplate() {
 					screens += '[IMG width="300px"]' + ss + '[/IMG]';
 				}
 				screens =
-					'[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Screenshots[/B][/COLOR][/SIZE][/INDENT][CENTER]\n' +
+					'[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Screenshots[/B][/COLOR][/SIZE][/INDENT]\n' +
 					screens +
 					'[/CENTER]\n[hr][/hr]\n';
 				//* App Description *//

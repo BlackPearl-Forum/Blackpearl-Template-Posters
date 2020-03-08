@@ -165,11 +165,11 @@ function generateTemplate() {
 			VT += `[DOWNCLOUD]${vts}[/DOWNCLOUD]\n`;
 		}
 		// Check for pressed buttons
-        mod = mod.checked ? ' [Mod]' : '';
+        	mod = mod.checked ? ' [Mod]' : '';
 		unlocked = unlocked.checked ? ' [Unlocked]' : '';
 		adfree = adfree.checked ? ' [Ad-Free]' : '';
 		premium = premium.checked ? ' [Premium]' : '';
-        lite = lite.checked ? ' [Lite]' : '';
+        	lite = lite.checked ? ' [Lite]' : '';
 		var titleExtra = mod + unlocked + premium + adfree + lite;
 		if (Downcloud.checked) {
 			let ddlsplit = ddl.split(' ');

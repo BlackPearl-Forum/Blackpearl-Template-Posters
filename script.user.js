@@ -351,7 +351,7 @@ function generateTemplate() {
 				VT =
 					'[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Virustotal[/B][/COLOR][/SIZE][/INDENT]\n' +
 					VT +
-					'\n[hr][/hr]\n';
+					'[hr][/hr]\n';
 				ddl =
 					'[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Download Link[/B][/COLOR][/SIZE][/INDENT]\n[CENTER]\n' +
 					ddl +

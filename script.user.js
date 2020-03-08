@@ -60,6 +60,17 @@ HidePosts
 <button class="button--primary button button--icon" id="gmHideTemplate" type="button">Hide</button>
 </div>
 `;
+
+var errPopup = `<div class="overlay-container is-active" name='errorpopup' id="js-XFUniqueId2"><div class="overlay" tabindex="-1" role="alertdialog" aria-hidden="false">
+<div class="overlay-title">
+<a class="overlay-titleCloser js-overlayClose" role="button" tabindex="0" aria-label="Close" onclick="document.getElementsByName('errorpopup')[0].remove();"></a>
+Oops! We ran into some problems.</div>
+<div class="overlay-content">
+<div class="blockMessage">
+<ul>
+errormessages
+</ul>
+</div></div></div></div>`;
 // Run the Main function
 main();
 
@@ -85,6 +96,27 @@ $(document).on('keydown', function(event) {
 	}
 });
 
+// Show Template HTML and hide "Show" button
+function showTemplate() {
+	document.getElementById('showTemplate').style.display = 'none';
+	document.getElementsByName('showDivider')[0].style.display = 'none';
+	$('#ApkGenerator').show();
+}
+
+// Hide Template HTML and unhide "Show" button
+function hideTemplate() {
+	document.getElementById('showTemplate').style.display = 'block';
+	document.getElementsByName('showDivider')[0].style.display = 'block';
+	$('#ApkGenerator').hide();
+}
+
+// Popup for Errors
+function Popup(errors) {
+	let errOutput = errPopup.replace('errormessages', errors);
+	var body = document.getElementsByTagName('Body')[0];
+	body.insertAdjacentHTML('beforeend', errOutput);
+}
+
 // Grab Specific divs
 function filterSize(element) {
 	return element.textContent === 'Size'; // Return div holding text "Size"
@@ -103,20 +135,6 @@ function upperCase(str) {
 		// Return Uppercase for every word in String
 		return t.toUpperCase();
 	});
-}
-
-// Show Template HTML and hide "Show" button
-function showTemplate() {
-	document.getElementById('showTemplate').style.display = 'none';
-	document.getElementsByName('showDivider')[0].style.display = 'none';
-	$('#ApkGenerator').show();
-}
-
-// Hide Template HTML and unhide "Show" button
-function hideTemplate() {
-	document.getElementById('showTemplate').style.display = 'block';
-	document.getElementsByName('showDivider')[0].style.display = 'block';
-	$('#ApkGenerator').hide();
 }
 
 function generateTemplate() {
@@ -147,12 +165,12 @@ function generateTemplate() {
 		document.querySelector('input[value="premium"]')
 	];
 	// Error Messages for required fields
-	if (!link) {
-		alert('Gotta give us a Google Play link at least!');
-	} else if (!ddl) {
-		alert("Uh Oh! You Forgot Your Download Link! That's Pretty Important...");
-	} else if (!VT) {
-		alert("You Don't Have Any VirusTotal? It's Required!");
+	if (!link | !ddl | !VT) {
+		var errors = '';
+		errors += !link ? '<li>No Google Play link Found!</li>' : '';
+		errors += !ddl ? '<li>No Download Link Found!</li>' : '';
+		errors += !VT ? '<li>No Virustotal Found!</li>' : '';
+		Popup(errors);
 	} else {
 		link = link.includes('&hl')
 			? link.replace(/\&.*$/, '&hl=en_US')
@@ -165,11 +183,11 @@ function generateTemplate() {
 			VT += `[DOWNCLOUD]${vts}[/DOWNCLOUD]\n`;
 		}
 		// Check for pressed buttons
-        	mod = mod.checked ? ' [Mod]' : '';
+		mod = mod.checked ? ' [Mod]' : '';
 		unlocked = unlocked.checked ? ' [Unlocked]' : '';
 		adfree = adfree.checked ? ' [Ad-Free]' : '';
 		premium = premium.checked ? ' [Premium]' : '';
-        	lite = lite.checked ? ' [Lite]' : '';
+		lite = lite.checked ? ' [Lite]' : '';
 		var titleExtra = mod + unlocked + premium + adfree + lite;
 		if (Downcloud.checked) {
 			let ddlsplit = ddl.split(' ');

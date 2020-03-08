@@ -61,9 +61,9 @@ HidePosts
 </div>
 `;
 
-var errPopup = `<div class="overlay-container is-active" name='errorpopup' id="js-XFUniqueId2"><div class="overlay" tabindex="-1" role="alertdialog" aria-hidden="false">
+var errPopup = `<div class="overlay-container is-active" name='errorpopup' id="js-XFUniqueId2"><div class="overlay" tabindex="-1" role="alertdialog" id="errBox" aria-hidden="false">
 <div class="overlay-title">
-<a class="overlay-titleCloser js-overlayClose" role="button" tabindex="0" aria-label="Close" onclick="document.getElementsByName('errorpopup')[0].remove();"></a>
+<a class="overlay-titleCloser js-overlayClose" role="button" tabindex="0" aria-label="Close"></a>
 Oops! We ran into some problems.</div>
 <div class="overlay-content">
 <div class="blockMessage">
@@ -86,6 +86,13 @@ function main() {
 	$('#showTemplate').click(() => showTemplate()); // When Show button clicked, run Show function
 	$('#gmGenerate').click(() => generateTemplate()); // When Generate button clicked, run Generate function
 }
+
+// Close Error Popup if overlay clicked
+$(document).click(function (e) {
+    if (!$('#errBox').is(e.target) & $('#js-XFUniqueId2').is(e.target) | $('.js-overlayClose').is(e.target)){
+        document.getElementsByName('errorpopup')[0].remove();
+    }
+})
 
 // Add Hotkey "Escape" to Hide fields
 $(document).on('keydown', function(event) {

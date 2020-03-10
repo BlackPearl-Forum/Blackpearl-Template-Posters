@@ -24,7 +24,8 @@
 main();
 
 const htmlTemplate = `
-<button id="gmShowTemplate" name="templateButton" style="display:none" type="button">Show</button>
+<div id="textareaDivider" name="showDivider" style="display:none">&nbsp;</div>
+<button class="button--primary button button--icon" id="showTemplate" style="display:none" type="button">Show</button>
 <div id="OmdbGenerator">
 <input type="text" id="hiddenIID" value="" style="display:none">
 <div class="ui search" id="omdbSearch">
@@ -35,7 +36,7 @@ const htmlTemplate = `
 <input type="text" id="ytLink" value="" class="input" placeholder="Youtube Trailer Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Youtube Trailer Link'">
 <input type="text" id="ddl" value="" class="input" placeholder="Download Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Download Link'">
 <textarea rows="1" style="width:100%;" class="input" id="mediaInfo" placeholder="Mediainfo" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Mediainfo'"></textarea>
-<div id="textarea_divider">&nbsp;</div>
+<div id="textareaDivider">&nbsp;</div>
 <span>DownCloud</span>
 <label class="switch">
 <input type="checkbox" id="Downcloud" value="Downcloud" checked></input>
@@ -44,23 +45,34 @@ HideReactScore
 <input type="number" id="HideReactScore" min="0" max="100" value="0">
 HidePosts
 <input type="number" id="HidePosts" min="0" max="50" value="0"> <br>
-<div id="textarea_divider">&nbsp;</div>
-<button class="button--primary button button--icon" id="gmGenerate" name="templateButton" type="button">Generate Template</button>
-<button class="button--primary button button--icon" id="gmClearBtn" name="templateButton" type="reset">Clear</button>
-<button class="button--primary button button--icon" id="gmHideTemplate" name="templateButton" type="button">Hide</button>
+<div id="textareaDivider">&nbsp;</div>
+<button class="button--primary button button--icon" id="gmGenerate" type="button">Generate Template</button>
+<button class="button--primary button button--icon" id="gmClearBtn" type="reset">Clear</button>
+<button class="button--primary button button--icon" id="gmHideTemplate" type="button">Hide</button>
 </div>
 `;
 
 const omdbinput = `
-<button id="gmShowTemplate" name="templateButton" style="display:none" type="button">Show</button>
+<button id="gmShowTemplate" style="display:none" type="button">Show</button>
 <div id="OmdbGenerator">
 <label>Enter Your OMDB API Key, Then Click On Save :)</label>
 <input type="text" id="omdbKey" value="" class="input" placeholder="Omdb API Key">
-<button class="button--primary button button--icon" id="gmSaveKey" name="templateButton" type="button">Save Key</button>
-<button class="button--primary button button--icon" id="gmClearBtn" name="templateButton" type="reset">Clear</button>
-<button class="button--primary button button--icon" id="gmHideTemplate" name="templateButton" type="button">Hide</button>
+<button class="button--primary button button--icon" id="gmSaveKey" type="button">Save Key</button>
+<button class="button--primary button button--icon" id="gmClearBtn" type="reset">Clear</button>
+<button class="button--primary button button--icon" id="gmHideTemplate" type="button">Hide</button>
 </div>
 `;
+
+var errPopup = `<div class="overlay-container is-active" name='errorpopup' id="js-XFUniqueId2"><div class="overlay" tabindex="-1" role="alertdialog" id="errBox" aria-hidden="false">
+<div class="overlay-title">
+<a class="overlay-titleCloser js-overlayClose" role="button" tabindex="0" aria-label="Close"></a>
+Oops! We ran into some problems.</div>
+<div class="overlay-content">
+<div class="blockMessage">
+<ul>
+errormessages
+</ul>
+</div></div></div></div>`;
 
 function main() {
 	GM.getValue('APIKEY', 'foo').then(value => {
@@ -72,35 +84,62 @@ function main() {
 			document.getElementById('title').className += 'input';
 		}
 		sectionSearch(APIVALUE);
-		$(document).on('keydown', function(event) {
-			if (event.key == 'Escape') {
-				$('#OmdbGenerator').hide();
-				document.getElementById('gmShowTemplate').style.display = 'block';
-			}
-		});
 		$('#gmHideTemplate').click(() => hideTemplate());
-		$('#gmShowTemplate').click(() => showTemplate());
+		$('#showTemplate').click(() => showTemplate());
 		$('#gmSaveKey').click(() => saveApiKey(APIVALUE, htmlpush));
 		$('#gmGenerate').click(() => generateTemplate(APIVALUE));
 	});
 }
+
+// Close Error Popup if overlay clicked
+$(document).click(function(e) {
+	if (
+		(!$('#errBox').is(e.target) & $('#js-XFUniqueId2').is(e.target)) |
+		$('.js-overlayClose').is(e.target)
+	) {
+		document.getElementsByName('errorpopup')[0].remove();
+	}
+});
+
+$(document).on('keydown', function(event) {
+	if (event.key == 'Escape') {
+		$('#OmdbGenerator').hide();
+		document.getElementById('showTemplate').style.display = 'block';
+		document.getElementsByName('showDivider')[0].style.display = 'block';
+	}
+});
+
 function showTemplate() {
-	document.getElementById('gmShowTemplate').style.display = 'none';
+	document.getElementById('showTemplate').style.display = 'none';
+	document.getElementsByName('showDivider')[0].style.display = 'none';
 	$('#OmdbGenerator').show();
 }
+
 function hideTemplate() {
-	document.getElementById('gmShowTemplate').style.display = 'block';
+	document.getElementById('showTemplate').style.display = 'block';
+	document.getElementsByName('showDivider')[0].style.display = 'block';
 	$('#OmdbGenerator').hide();
 }
+
+// Popup for Errors
+function Popup(errors) {
+	let errOutput = errPopup.replace('errormessages', errors);
+	var body = document.getElementsByTagName('Body')[0];
+	body.insertAdjacentHTML('beforeend', errOutput);
+}
+
 function sectionSearch(APIVALUE) {
 	const tab_url = window.location.href;
-	var section_check = tab_url.match(/\d+/, '');
-	const Movies = '204 183 184 172 173 174 175 176 178 179 180 181 182 202 129';
-	const Series = '208 206 193 194 187 188 189 190 197 198 199 200 203 209 223';
+	var section = tab_url.match(/\d+/, '');
+	section = parseInt(section);
+	const [Movies, Series] = [
+		[129, 172, 173, 174, 175, 176, 178, 179, 180, 181, 182, 183, 184, 202, 204],
+		[187, 188, 189, 190, 193, 194, 197, 198, 199, 200, 203, 206, 208, 209, 223]
+	];
 	var query;
-	if (Series.includes(section_check)) {
+	if (Series.includes(section)) {
 		query = `https://www.omdbapi.com/?apikey=${APIVALUE}&r=JSON&s={query}&type=series`;
-	} else if (Movies.includes(section_check)) {
+	} else if (Movies.includes(section)) {
 		query = `https://www.omdbapi.com/?apikey=${APIVALUE}&r=JSON&s={query}&type=movie`;
 	} else {
 		query = `https://www.omdbapi.com/?apikey=${APIVALUE}&r=JSON&s={query}`;
@@ -177,12 +216,18 @@ function generateTemplate(APIVALUE) {
 			IID = IID.match(/tt\d+/)[0];
 		}
 	}
-	if (!IID) {
-		alert("You Didn't Select A Title or Enter a IMDB ID!");
-	} else if (!ddl) {
-		alert("Uh Oh! You Forgot Your Download Link! That's Pretty Important...");
-	} else if (!MEDIAINFO) {
-		alert("You Don't Have Any Mediainfo? It's Required!");
+	if (!IID | !ddl | !MEDIAINFO) {
+		var errors = '';
+		errors += !IID
+			? "<li>You Didn't Select A Title or Enter a IMDB ID!</li>"
+			: '';
+		errors += !ddl
+			? "<li>You Forgot Your Download Link! That's Pretty Important...!</li>"
+			: '';
+		errors += !MEDIAINFO
+			? "<li>You Don't Have Any Mediainfo? It's Required!</li>"
+			: '';
+		Popup(errors);
 	} else {
 		if (Downcloud.checked) {
 			let ddlsplit = ddl.split(' ');
@@ -222,14 +267,14 @@ function generateTemplate(APIVALUE) {
 				let json = JSON.parse(response.responseText);
 				let poster =
 					json.Poster && json.Poster !== 'N/A'
-						? '[center][img] ' + json.Poster + ' [/img]\n'
+						? '[center][img]' + json.Poster + '[/img]\n'
 						: '';
 				if (json.Title && json.Title !== 'N/A') {
-					var title = '[color=rgb(250, 197, 28)][b][size=6] ' + json.Title;
+					var title = '[color=rgb(250, 197, 28)][b][size=6]' + json.Title;
 				} else {
-					alert(
-						"You Messed Up! Check That You've Entered Something Into The IMDB Field!"
-					);
+					errors =
+						"You Messed Up! Check That You've Entered Something Into The IMDB Field!";
+					Popup(errors);
 				}
 				let year =
 					json.Year && json.Year !== 'N/A'
@@ -308,7 +353,7 @@ function generateTemplate(APIVALUE) {
 							err
 					);
 				} finally {
-					let xf_title_value = document.querySelector("#title").value;
+					let xf_title_value = document.querySelector('#title').value;
 					if (!xf_title_value) {
 						document.getElementById('title').value =
 							json.Title + ' (' + json.Year + ')';
@@ -337,7 +382,7 @@ GM_addStyle(
             color:                  white;                        \
             max-width:              35px;                         \
       }                                                           \
-      #textarea_divider {                                         \
+      #textareaDivider {                                         \
             margin-top:             -11px;                        \
       }                                                           \
       /* Start Rounded sliders Checkboxes */                      \
@@ -408,7 +453,7 @@ GM_addStyle(
             color:                  white;                        \
             max-width:              35px;                         \
       }                                                           \
-      #textarea_divider {                                         \
+      #textareaDivider {                                         \
             margin-top:             -11px;                        \
       }                                                           \
       .switch {                                                   \

@@ -333,6 +333,12 @@ function generateTemplate(APIVALUE) {
 					json.Production && json.Production !== 'N/A'
 						? '[*][B]Production: [/B] ' + json.Production + '\n'
 						: '';
+
+				let tags =
+					json.Genre && json.Genre !== 'N/A'
+					? json.Genre + ','
+					: '';
+
 				MEDIAINFO =
 					"[hr][/hr][indent][size=6][color=rgb(250, 197, 28)][b]Media Info[/b][/color][/size][/indent]\n [spoiler='Click here to view Media Info']\n " +
 					MEDIAINFO +
@@ -347,6 +353,7 @@ function generateTemplate(APIVALUE) {
 				GM_setClipboard(dump);
 				try {
 					document.getElementsByName('message')[0].value = dump;
+					document.getElementsByClassName('select2-search__field')[1].value = tags;
 				} catch (err) {
 					alert(
 						'You should be running this in BBCode Mode. Check the Readme for more information!\n' +

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Blackpearl IMDB
-// @version     3.0.4
+// @version     3.0.5
 // @description Template Maker
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png
@@ -9,13 +9,12 @@
 // @updateURL   https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/raw/Omdb/script.user.js
 // @downloadURL https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/raw/Omdb/script.user.js
 // @include     /^https:\/\/blackpearl\.biz\/forums\/(129|172|173|174|175|176|178|179|180|181|182|183|184|187|188|189|190|193|194|197|198|199|200|203|204|206|207|208|210|223)\/post-thread/
-// @require     https://code.jquery.com/jquery-3.4.1.min.js
+// @require     https://code.jquery.com/jquery-3.5.1.min.js
 // @require     https://code.jquery.com/ui/1.12.1/jquery-ui.js
 // @require     https://raw.githubusercontent.com/Semantic-Org/UI-Search/master/search.js
 // @require     https://raw.githubusercontent.com/Semantic-Org/UI-Api/master/api.js
 // @grant       GM_addStyle
 // @grant       GM_xmlhttpRequest
-// @grant       GM_setClipboard
 // @grant       GM.setValue
 // @grant       GM.getValue
 // @run-at      document-end
@@ -74,8 +73,10 @@ errormessages
 </ul>
 </div></div></div></div>`;
 
+var tagSelect = `<li class="select2-selection__choice" title="tagname"><span class="select2-selection__choice__remove" role="presentation">×</span>tagname</li>`;
+
 function main() {
-	GM.getValue('APIKEY', 'foo').then(value => {
+	GM.getValue('APIKEY', 'foo').then((value) => {
 		var APIVALUE = value;
 		const htmlpush = document.getElementsByTagName('dd')[0];
 		const titlechange = document.getElementById('title');
@@ -92,7 +93,7 @@ function main() {
 }
 
 // Close Error Popup if overlay clicked
-$(document).click(function(e) {
+$(document).click(function (e) {
 	if (
 		(!$('#errBox').is(e.target) & $('#js-XFUniqueId2').is(e.target)) |
 		$('.js-overlayClose').is(e.target)
@@ -101,7 +102,7 @@ $(document).click(function(e) {
 	}
 });
 
-$(document).on('keydown', function(event) {
+$(document).on('keydown', function (event) {
 	if (event.key == 'Escape') {
 		$('#OmdbGenerator').hide();
 		document.getElementById('showTemplate').style.display = 'block';
@@ -128,13 +129,27 @@ function Popup(errors) {
 	body.insertAdjacentHTML('beforeend', errOutput);
 }
 
+// Push Genre Tags to HTML
+function tagsPush(tag) {
+	let tagOutput = tagSelect.replace(/tagname/g, tag);
+	let tagParent = document.getElementsByClassName(
+		'select2-selection__rendered'
+	)[1];
+	let tagParent2 = document.getElementsByName('tokens_select')[0];
+	let option = document.createElement('option');
+	option.text = tag;
+	option.value = tag;
+	tagParent.insertAdjacentHTML('afterbegin', tagOutput);
+	tagParent2.add(option);
+}
+
 function sectionSearch(APIVALUE) {
 	const tab_url = window.location.href;
 	var section = tab_url.match(/\d+/, '');
 	section = parseInt(section);
 	const [Movies, Series] = [
 		[129, 172, 173, 174, 175, 176, 178, 179, 180, 181, 182, 183, 184, 202, 204],
-		[187, 188, 189, 190, 193, 194, 197, 198, 199, 200, 203, 206, 208, 209, 223]
+		[187, 188, 189, 190, 193, 194, 197, 198, 199, 200, 203, 206, 208, 209, 223],
 	];
 	var query;
 	if (Series.includes(section)) {
@@ -148,11 +163,11 @@ function sectionSearch(APIVALUE) {
 		type: 'category',
 		apiSettings: {
 			url: query,
-			onResponse: function(myfunc) {
+			onResponse: function (myfunc) {
 				var response = {
-					results: {}
+					results: {},
 				};
-				$.each(myfunc.Search, function(index, item) {
+				$.each(myfunc.Search, function (index, item) {
 					var category = item.Type.toUpperCase() || 'Unknown',
 						maxResults = 10;
 					if (index >= maxResults) {
@@ -161,33 +176,32 @@ function sectionSearch(APIVALUE) {
 					if (response.results[category] === undefined) {
 						response.results[category] = {
 							name: '~~~~~~~~~~' + category + '~~~~~~~~~~',
-							results: []
+							results: [],
 						};
 					}
 					var Name = item.Title + ' (' + item.Year + ')';
 					response.results[category].results.push({
 						title: Name,
 						description: Name,
-						imdbID: item.imdbID
+						imdbID: item.imdbID,
 					});
 				});
 				return response;
-			}
+			},
 		},
 		fields: {
 			results: 'results',
-			title: 'name'
+			title: 'name',
 		},
-		onSelect: function(response) {
+		onSelect: function (response) {
 			$('#hiddenIID').val(response.imdbID);
 			$('#searchID').val(response.title);
 		},
-		minCharacters: 3
+		minCharacters: 3,
 	});
 }
 
 function saveApiKey(APIVALUE, htmlpush) {
-	console.log('wtf');
 	if (APIVALUE == 'foo') {
 		let omdbKey = $('#omdbKey').val();
 		if (omdbKey) {
@@ -202,7 +216,6 @@ function saveApiKey(APIVALUE, htmlpush) {
 }
 
 function generateTemplate(APIVALUE) {
-	console.log(APIVALUE);
 	var IID = $('#hiddenIID').val();
 	var screenshots = $('#screensLinks').val();
 	var uToob = $('#ytLink').val();
@@ -263,7 +276,7 @@ function generateTemplate(APIVALUE) {
 		GM_xmlhttpRequest({
 			method: 'GET',
 			url: `http://www.omdbapi.com/?apikey=${APIVALUE}&i=${IID}&plot=full&y&r=json`,
-			onload: function(response) {
+			onload: function (response) {
 				let json = JSON.parse(response.responseText);
 				let poster =
 					json.Poster && json.Poster !== 'N/A'
@@ -333,6 +346,7 @@ function generateTemplate(APIVALUE) {
 					json.Production && json.Production !== 'N/A'
 						? '[*][B]Production: [/B] ' + json.Production + '\n'
 						: '';
+				let tags = json.Genre && json.Genre !== 'N/A' ? json.Genre : '';
 				MEDIAINFO =
 					"[hr][/hr][indent][size=6][color=rgb(250, 197, 28)][b]Media Info[/b][/color][/size][/indent]\n [spoiler='Click here to view Media Info']\n " +
 					MEDIAINFO +
@@ -344,9 +358,16 @@ function generateTemplate(APIVALUE) {
 				let dump = `${poster}${title} (${year}${imdbId} ${rating}${imdbvotes}${plot}${trailer}${screen}
 [hr][/hr][indent][size=6][color=rgb(250, 197, 28)][b]Movie Info[/b][/color][/size][/indent]
 [LIST][*]${rated}${genre}${director}${writer}${actors}${released}${runtime}${production}[/LIST]\n${MEDIAINFO}${ddl}`;
-				GM_setClipboard(dump);
 				try {
 					document.getElementsByName('message')[0].value = dump;
+					if (tags) {
+						document.getElementsByName('tags')[0].value = tags;
+						tags = tags.replace(/\,/g, '');
+						tags = tags.split(' ');
+						for (let i = 0; i < tags.length; i++) {
+							tagsPush(tags[i]);
+						}
+					}
 				} catch (err) {
 					alert(
 						'You should be running this in BBCode Mode. Check the Readme for more information!\n' +
@@ -359,7 +380,7 @@ function generateTemplate(APIVALUE) {
 							json.Title + ' (' + json.Year + ')';
 					}
 				}
-			}
+			},
 		});
 	}
 }

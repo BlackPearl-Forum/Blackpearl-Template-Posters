@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Blackpearl Android Template Generator
-// @version     1.0.0
+// @version     1.0.1
 // @description Generates a Template for the Android section of Blackpearl
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png
@@ -9,7 +9,7 @@
 // @updateURL   https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/raw/Android/script.user.js
 // @downloadURL https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/raw/Android/script.user.js
 // @include     /^https:\/\/blackpearl\.biz\/forums\/(94)\/post-thread/
-// @require     https://code.jquery.com/jquery-3.4.1.min.js
+// @require     https://code.jquery.com/jquery-3.5.1.min.js
 // @grant       GM_addStyle
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
@@ -89,13 +89,16 @@ function main() {
 
 // Close Error Popup if overlay clicked
 $(document).click(function (e) {
-    if (!$('#errBox').is(e.target) & $('#js-XFUniqueId2').is(e.target) | $('.js-overlayClose').is(e.target)){
-        document.getElementsByName('errorpopup')[0].remove();
-    }
-})
+	if (
+		(!$('#errBox').is(e.target) & $('#js-XFUniqueId2').is(e.target)) |
+		$('.js-overlayClose').is(e.target)
+	) {
+		document.getElementsByName('errorpopup')[0].remove();
+	}
+});
 
 // Add Hotkey "Escape" to Hide fields
-$(document).on('keydown', function(event) {
+$(document).on('keydown', function (event) {
 	if (event.key == 'Escape') {
 		$('#ApkGenerator').hide();
 		document.getElementById('showTemplate').style.display = 'block';
@@ -138,7 +141,7 @@ function filterReqAndr(element) {
 /*fix word casing*/
 function upperCase(str) {
 	str = str.toLowerCase(); // First make entire string lowercase
-	return str.replace(/(^|\s)\S/g, function(t) {
+	return str.replace(/(^|\s)\S/g, function (t) {
 		// Return Uppercase for every word in String
 		return t.toUpperCase();
 	});
@@ -157,7 +160,7 @@ function generateTemplate() {
 		unlocked,
 		adfree,
 		lite,
-		premium
+		premium,
 	] = [
 		$('#gplaylink').val(),
 		$('#modinfo').val(),
@@ -169,7 +172,7 @@ function generateTemplate() {
 		document.querySelector('input[value="unlocked"]'),
 		document.querySelector('input[value="adfree"]'),
 		document.querySelector('input[value="lite"]'),
-		document.querySelector('input[value="premium"]')
+		document.querySelector('input[value="premium"]'),
 	];
 	// Error Messages for required fields
 	if (!link | !ddl | !VT) {
@@ -216,7 +219,7 @@ function generateTemplate() {
 		GM_xmlhttpRequest({
 			method: 'GET',
 			url: link,
-			onload: function(response) {
+			onload: function (response) {
 				let [page, parser] = [response.responseText, new DOMParser()];
 				let parsedHtml = parser.parseFromString(page, 'text/html');
 				// Grab json from parse
@@ -231,7 +234,7 @@ function generateTemplate() {
 				var [siz, curVer, reqAndr] = [
 					h2.filter(filterSize),
 					h2.filter(filterCurVer),
-					h2.filter(filterReqAndr)
+					h2.filter(filterReqAndr),
 				];
 				// Grab all images & find logo
 				let images = parsedHtml.getElementsByTagName('img');
@@ -313,8 +316,9 @@ function generateTemplate() {
 					  upperCase(gplayjson.author.name)
 					: '';
 				// App Category
+				let appCat = gplayjson.applicationCategory.replace(/\_/g, ' ');
 				let category = gplayjson.applicationCategory
-					? '\n[*][B]Category: [/B] ' + upperCase(gplayjson.applicationCategory)
+					? '\n[*][B]Category: [/B] ' + upperCase(appCat)
 					: '';
 				// Age Content Rating
 				let ContentRating = gplayjson.contentRating
@@ -362,7 +366,7 @@ function generateTemplate() {
 					document.getElementsByName('message')[0].value = dump;
 				} catch (err) {
 					GM_setClipboard(dump);
-					alert(
+					Popup(
 						'You should be running this in BBCode Mode. Check the Readme for more information!\n' +
 							err
 					);
@@ -373,7 +377,7 @@ function generateTemplate() {
 							gplayjson.name + titleExtra;
 					}
 				}
-			}
+			},
 		});
 	}
 }

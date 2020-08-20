@@ -260,7 +260,7 @@ function generateTemplate(APIVALUE) {
 		}
 		if (screenshots) {
 			screenshots = screenshots.split(' ');
-			var screen = `\n[hr][/hr][indent][size=6][color=rgb(250, 197, 28)][b]Screenshots[/b][/color][/size][/indent]\n [Spoiler='screenshots']\n`;
+			var screen = `\n[hr][/hr][indent][size=6][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [Spoiler='screenshots']\n`;
 			for (let ss of screenshots) {
 				screen += `[img]${ss}[/img]`;
 			}
@@ -269,7 +269,7 @@ function generateTemplate(APIVALUE) {
 			screen = '';
 		}
 		if (uToob.match(/[a-z]/)) {
-			var trailer = `\n[hr][/hr][indent][size=6][color=rgb(250, 197, 28)][b]Trailer[/b][/color][/size][/indent]\n ${uToob}`;
+			var trailer = `\n[hr][/hr][indent][size=6][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n ${uToob}`;
 		} else {
 			trailer = '';
 		}
@@ -283,7 +283,7 @@ function generateTemplate(APIVALUE) {
 						? '[center][img]' + json.Poster + '[/img]\n'
 						: '';
 				if (json.Title && json.Title !== 'N/A') {
-					var title = '[color=rgb(250, 197, 28)][b][size=6]' + json.Title;
+					var title = '[forumcolor][b][size=6]' + json.Title;
 				} else {
 					errors =
 						"You Messed Up! Check That You've Entered Something Into The IMDB Field!";
@@ -291,7 +291,7 @@ function generateTemplate(APIVALUE) {
 				}
 				let year =
 					json.Year && json.Year !== 'N/A'
-						? json.Year + ')[/size][/b][/color]\n'
+						? json.Year + ')[/size][/b][/forumcolor]\n'
 						: '';
 				let imdbId =
 					json.imdbID && json.imdbID !== 'N/A'
@@ -311,7 +311,7 @@ function generateTemplate(APIVALUE) {
 						: '';
 				let plot =
 					json.Plot && json.Plot !== 'N/A'
-						? '[hr][/hr][indent][size=6][color=rgb(250, 197, 28)][b]Plot[/b][/color][/size][/indent]\n\n ' +
+						? '[hr][/hr][indent][size=6][forumcolor][b]Plot[/b][/forumcolor][/size][/indent]\n\n ' +
 						  json.Plot
 						: '';
 				let rated =
@@ -348,15 +348,15 @@ function generateTemplate(APIVALUE) {
 						: '';
 				let tags = json.Genre && json.Genre !== 'N/A' ? json.Genre : '';
 				MEDIAINFO =
-					"[hr][/hr][indent][size=6][color=rgb(250, 197, 28)][b]Media Info[/b][/color][/size][/indent]\n [spoiler='Click here to view Media Info']\n " +
+					"[hr][/hr][indent][size=6][forumcolor][b]Media Info[/b][/forumcolor][/size][/indent]\n [spoiler='Click here to view Media Info']\n " +
 					MEDIAINFO +
 					'\n[/spoiler]\n';
 				ddl =
-					'[hr][/hr][center][size=6][color=rgb(250, 197, 28)][b]Download Link[/b][/color][/size]\n' +
+					'[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n' +
 					ddl +
 					'\n[/center]';
 				let dump = `${poster}${title} (${year}${imdbId} ${rating}${imdbvotes}${plot}${trailer}${screen}
-[hr][/hr][indent][size=6][color=rgb(250, 197, 28)][b]Movie Info[/b][/color][/size][/indent]
+[hr][/hr][indent][size=6][forumcolor][b]Movie Info[/b][/forumcolor][/size][/indent]
 [LIST][*]${rated}${genre}${director}${writer}${actors}${released}${runtime}${production}[/LIST]\n${MEDIAINFO}${ddl}`;
 				try {
 					document.getElementsByName('message')[0].value = dump;

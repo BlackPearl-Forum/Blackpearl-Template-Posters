@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Blackpearl IMDB
-// @version     3.0.5
+// @version     3.0.6
 // @description Template Maker
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png

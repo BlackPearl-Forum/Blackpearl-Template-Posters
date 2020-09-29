@@ -42,7 +42,7 @@ To enter multiple download links, ensure there is a space between each of the li
 For example: 
             `downloadlink1 downloadlink2 downloadlink3`
 ### 6.
-Enter your mediainfo. You can get mediainfo locally using [MediaInfo](https://mediaarea.net/en/MediaInfo/Download)(Use View>Text to make life easier) or through a Remote. There are two ways of getting mediainfo remotely. One is at the bottom of [This Post](https://blackpearl.biz/threads/6070/) using Google Colab. The other is using an online tool such as this [Heroku App](https://overbits.herokuapp.com/mediainfo).
+Enter your mediainfo. You can get mediainfo locally using [MediaInfo](https://mediaarea.net/en/MediaInfo/Download)(Use View>Text to make life easier) or through a Remote. There are two ways of getting mediainfo remotely. One is at the bottom of [This Post](https://blackpearl.biz/threads/6085/) using Google Colab. The other is using an online tool such as this [Heroku App](https://overbits.herokuapp.com/mediainfo).
 
 ### 7.
 The Downcloud button is clickable(Either on or off). The only reason you would need to turn it off is if you are posting multiple links or using a [Base64 Encoded String](https://www.base64encode.org/). HideReactScore has a maximum limit of 100 and minimum of 0 (0 will not add it).

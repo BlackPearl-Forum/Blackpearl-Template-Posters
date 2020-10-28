@@ -40,7 +40,7 @@ const htmlTemplate = `
 <label class="switch">
 <input type="checkbox" id="Downcloud" value="Downcloud" checked></input>
 <span class="slider round"></span></label>
-Score
+HideReactScore
 <input type="number" id="HideReactScore" min="0" max="100" value="0">
 HidePosts
 <input type="number" id="HidePosts" min="0" max="50" value="0"> <br>

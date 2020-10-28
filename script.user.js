@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Blackpearl IMDB
-// @version     3.0.6
+// @version     3.0.7
 // @description Template Maker
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png
@@ -40,7 +40,7 @@ const htmlTemplate = `
 <label class="switch">
 <input type="checkbox" id="Downcloud" value="Downcloud" checked></input>
 <span class="slider round"></span></label>
-HideReactScore
+Score
 <input type="number" id="HideReactScore" min="0" max="100" value="0">
 HidePosts
 <input type="number" id="HidePosts" min="0" max="50" value="0"> <br>
@@ -251,7 +251,7 @@ function generateTemplate(APIVALUE) {
 		} else {
 			ddl = ddl.replace(/\ /g, '\n');
 		}
-		ddl = '[HIDEREACT=1,2,3,4,5,6]\n' + ddl + '\n[/HIDEREACT]';
+		ddl = '[HIDEREACT=1,2,3,4,5,6,7,8]\n' + ddl + '\n[/HIDEREACT]';
 		if (hidereactscore !== '0') {
 			ddl = `[HIDEREACTSCORE=${hidereactscore}]` + ddl + '[/HIDEREACTSCORE]';
 		}

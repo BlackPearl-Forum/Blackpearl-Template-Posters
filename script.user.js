@@ -347,7 +347,7 @@ function generateTemplate(APIVALUE) {
 						? '[*][B]Production: [/B] ' + json.Production + '\n'
 						: '';
 				let tags = json.Genre && json.Genre !== 'N/A' ? json.Genre : '';
-				tags += MEDIAINFO.includes("Dolby Vision") ? ", Dolby Vision" : '';
+				if (MEDIAINFO.includes("Dolby Vision")) {tags += ", Dolby Vision";}
 				MEDIAINFO =
 					"[hr][/hr][indent][size=6][forumcolor][b]Media Info[/b][/forumcolor][/size][/indent]\n [spoiler='Click here to view Media Info']\n " +
 					MEDIAINFO +

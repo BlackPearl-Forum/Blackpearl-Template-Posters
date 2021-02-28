@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Blackpearl IMDB
-// @version     3.0.7
+// @version     3.0.8
 // @description Template Maker
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png
@@ -347,6 +347,7 @@ function generateTemplate(APIVALUE) {
 						? '[*][B]Production: [/B] ' + json.Production + '\n'
 						: '';
 				let tags = json.Genre && json.Genre !== 'N/A' ? json.Genre : '';
+				if (MEDIAINFO.includes("Dolby Vision")) {tags += ", Dolby Vision";}
 				MEDIAINFO =
 					"[hr][/hr][indent][size=6][forumcolor][b]Media Info[/b][/forumcolor][/size][/indent]\n [spoiler='Click here to view Media Info']\n " +
 					MEDIAINFO +
@@ -362,8 +363,7 @@ function generateTemplate(APIVALUE) {
 					document.getElementsByName('message')[0].value = dump;
 					if (tags) {
 						document.getElementsByName('tags')[0].value = tags;
-						tags = tags.replace(/\,/g, '');
-						tags = tags.split(' ');
+						tags = tags.split(', ');
 						for (let i = 0; i < tags.length; i++) {
 							tagsPush(tags[i]);
 						}

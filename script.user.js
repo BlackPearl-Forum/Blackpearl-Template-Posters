@@ -1,16 +1,16 @@
 // ==UserScript==
 // @name        Blackpearl IMDB
-// @version     3.0.8
+// @version     3.0.9
 // @description Template Maker
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png
-// @homepage    https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/
-// @supportURL  https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/issues/
-// @updateURL   https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/raw/Omdb/script.user.js
-// @downloadURL https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/raw/Omdb/script.user.js
-// @include     /^https:\/\/blackpearl\.biz\/forums\/(129|172|173|174|175|176|178|179|180|181|182|183|184|187|188|189|190|193|194|197|198|199|200|203|204|206|207|208|210|223)\/post-thread/
-// @require     https://code.jquery.com/jquery-3.5.1.min.js
-// @require     https://code.jquery.com/ui/1.12.1/jquery-ui.js
+// @homepage    https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/
+// @supportURL  https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/issues/
+// @updateURL   https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/raw/Omdb/script.user.js
+// @downloadURL https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/raw/Omdb/script.user.js
+// @include     /^https:\/\/blackpearl\.biz\/forums\/(129|172|173|174|175|176|178|179|180|181|183|184|187|188|189|190|193|194|197|198|199|200|203|204|206|207|208|210|223)\/post-thread/
+// @require     https://code.jquery.com/jquery-3.6.0.min.js
+// @require     https://code.jquery.com/ui/1.12.1/jquery-ui.min.js
 // @require     https://raw.githubusercontent.com/Semantic-Org/UI-Search/master/search.js
 // @require     https://raw.githubusercontent.com/Semantic-Org/UI-Api/master/api.js
 // @grant       GM_addStyle
@@ -18,6 +18,7 @@
 // @grant       GM.setValue
 // @grant       GM.getValue
 // @run-at      document-end
+// @connect     omdbapi.com
 // ==/UserScript==
 
 main();
@@ -374,9 +375,8 @@ function generateTemplate(APIVALUE) {
 							err
 					);
 				} finally {
-					let xf_title_value = document.querySelector('#title').value;
-					if (!xf_title_value) {
-						document.getElementById('title').value =
+					if (!document.getElementsByClassName('js-titleInput')[0].value) {
+						document.getElementsByClassName('js-titleInput')[0].value =
 							json.Title + ' (' + json.Year + ')';
 					}
 				}

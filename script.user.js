@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Blackpearl IMDB
-// @version     3.0.9
+// @version     3.0.10
 // @description Template Maker
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png
@@ -53,7 +53,8 @@ HidePosts
 `;
 
 const omdbinput = `
-<button id="gmShowTemplate" style="display:none" type="button">Show</button>
+<div id="textareaDivider" name="showDivider" style="display:none">&nbsp;</div>
+<button id="showTemplate" style="display:none" class="button--primary button button--icon" type="button">Show</button>
 <div id="OmdbGenerator">
 <label>Enter Your OMDB API Key, Then Click On Save :)</label>
 <input type="text" id="omdbKey" value="" class="input" placeholder="Omdb API Key">

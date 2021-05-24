@@ -212,7 +212,7 @@ function saveApiKey(APIVALUE, htmlpush) {
 			alert("You Didn't Enter Your Key!!");
 		}
 		document.getElementById('OmdbGenerator').remove();
-		document.getElementById('gmShowTemplate').remove();
+		document.getElementById('showTemplate').remove();
 		main();
 	}
 }

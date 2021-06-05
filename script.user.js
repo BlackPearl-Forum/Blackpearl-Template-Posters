@@ -1,16 +1,16 @@
 // ==UserScript==
-// @name        Blackpearl IMDB
-// @version     3.0.10
+// @name        Blackpearl Games
+// @version     1.0.0
 // @description Template Maker
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png
-// @homepage    https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/
-// @supportURL  https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/issues/
-// @updateURL   https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/raw/Omdb/script.user.js
-// @downloadURL https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/raw/Omdb/script.user.js
-// @include     /^https:\/\/blackpearl\.biz\/forums\/(129|172|173|174|175|176|178|179|180|181|183|184|187|188|189|190|193|194|197|198|199|200|203|204|206|207|208|210|223)\/post-thread/
+// @homepage    https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/
+// @supportURL  https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/issues/
+// @updateURL   https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/raw/Games/script.user.js
+// @downloadURL https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/raw/Games/script.user.js
+// @include     /^https:\/\/blackpearl\.biz\/forums\/(96|132)\/post-thread/
 // @require     https://code.jquery.com/jquery-3.6.0.min.js
-// @require     https://code.jquery.com/ui/1.12.1/jquery-ui.min.js
+// @require     https://code.jquery.com/ui/1.12.1/jquery-ui.js
 // @require     https://raw.githubusercontent.com/Semantic-Org/UI-Search/master/search.js
 // @require     https://raw.githubusercontent.com/Semantic-Org/UI-Api/master/api.js
 // @grant       GM_addStyle
@@ -18,7 +18,7 @@
 // @grant       GM.setValue
 // @grant       GM.getValue
 // @run-at      document-end
-// @connect     omdbapi.com
+// @connect     api.rawg.io
 // ==/UserScript==
 
 main();
@@ -26,16 +26,16 @@ main();
 const htmlTemplate = `
 <div id="textareaDivider" name="showDivider" style="display:none">&nbsp;</div>
 <button class="button--primary button button--icon" id="showTemplate" style="display:none" type="button">Show</button>
-<div id="OmdbGenerator">
+<div id="rawgGenerator">
 <input type="text" id="hiddenIID" value="" style="display:none">
-<div class="ui search" id="omdbSearch">
-<input type="text" class="prompt input" id="searchID" placeholder="IMDB ID, Title, or Link"  onfocus="this.placeholder = ''" onblur="this.placeholder = 'IMDB ID, Title, or Link'">
+<div class="ui search" id="rawgSearch">
+<input type="text" class="prompt input" id="searchID" placeholder="Game Title or Rawg.io Link"  onfocus="this.placeholder = ''" onblur="this.placeholder = 'Game Title or Rawg.io Link'">
 <div class="results input" style="display:none"></div>
 </div>
-<input type="text" id="screensLinks" value="" class="input" placeholder="Screenshot Links" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Screenshot Links'">
 <input type="text" id="ytLink" value="" class="input" placeholder="Youtube Trailer Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Youtube Trailer Link'">
+<input type="text" id="info" value="" class="input" placeholder="Crack / Repack Info" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Crack / Repack Info'">
+<input type="text" id="vtLink" value="" class="input" placeholder="VirusTotal Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'VirusTotal Link'">
 <input type="text" id="ddl" value="" class="input" placeholder="Download Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Download Link'">
-<textarea rows="1" style="width:100%;" class="input" id="mediaInfo" placeholder="Mediainfo" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Mediainfo'"></textarea>
 <div id="textareaDivider">&nbsp;</div>
 <span>DownCloud</span>
 <label class="switch">
@@ -52,12 +52,11 @@ HidePosts
 </div>
 `;
 
-const omdbinput = `
-<div id="textareaDivider" name="showDivider" style="display:none">&nbsp;</div>
-<button id="showTemplate" style="display:none" class="button--primary button button--icon" type="button">Show</button>
-<div id="OmdbGenerator">
-<label>Enter Your OMDB API Key, Then Click On Save :)</label>
-<input type="text" id="omdbKey" value="" class="input" placeholder="Omdb API Key">
+const rawginput = `
+<button id="gmShowTemplate" style="display:none" type="button">Show</button>
+<div id="rawgGenerator">
+<label>Enter Your RAWG API Key, Then Click On Save :)</label>
+<input type="text" id="rawgKey" value="" class="input" placeholder="Rawg API Key">
 <button class="button--primary button button--icon" id="gmSaveKey" type="button">Save Key</button>
 <button class="button--primary button button--icon" id="gmClearBtn" type="reset">Clear</button>
 <button class="button--primary button button--icon" id="gmHideTemplate" type="button">Hide</button>
@@ -82,7 +81,7 @@ function main() {
 		var APIVALUE = value;
 		const htmlpush = document.getElementsByTagName('dd')[0];
 		const titlechange = document.getElementById('title');
-		htmlpush.innerHTML += APIVALUE !== 'foo' ? htmlTemplate : omdbinput;
+		htmlpush.innerHTML += APIVALUE !== 'foo' ? htmlTemplate : rawginput;
 		if (titlechange) {
 			document.getElementById('title').className += 'input';
 		}
@@ -106,7 +105,7 @@ $(document).click(function (e) {
 
 $(document).on('keydown', function (event) {
 	if (event.key == 'Escape') {
-		$('#OmdbGenerator').hide();
+		$('#rawgGenerator').hide();
 		document.getElementById('showTemplate').style.display = 'block';
 		document.getElementsByName('showDivider')[0].style.display = 'block';
 	}
@@ -115,19 +114,19 @@ $(document).on('keydown', function (event) {
 function showTemplate() {
 	document.getElementById('showTemplate').style.display = 'none';
 	document.getElementsByName('showDivider')[0].style.display = 'none';
-	$('#OmdbGenerator').show();
+	$('#rawgGenerator').show();
 }
 
 function hideTemplate() {
 	document.getElementById('showTemplate').style.display = 'block';
 	document.getElementsByName('showDivider')[0].style.display = 'block';
-	$('#OmdbGenerator').hide();
+	$('#rawgGenerator').hide();
 }
 
 // Popup for Errors
 function Popup(errors) {
 	let errOutput = errPopup.replace('errormessages', errors);
-	var body = document.getElementsByTagName('Body')[0];
+	let body = document.getElementsByTagName('Body')[0];
 	body.insertAdjacentHTML('beforeend', errOutput);
 }
 
@@ -146,46 +145,27 @@ function tagsPush(tag) {
 }
 
 function sectionSearch(APIVALUE) {
-	const tab_url = window.location.href;
-	var section = tab_url.match(/\d+/, '');
-	section = parseInt(section);
-	const [Movies, Series] = [
-		[129, 172, 173, 174, 175, 176, 178, 179, 180, 181, 182, 183, 184, 202, 204],
-		[187, 188, 189, 190, 193, 194, 197, 198, 199, 200, 203, 206, 208, 209, 223],
-	];
-	var query;
-	if (Series.includes(section)) {
-		query = `https://www.omdbapi.com/?apikey=${APIVALUE}&r=JSON&s={query}&type=series`;
-	} else if (Movies.includes(section)) {
-		query = `https://www.omdbapi.com/?apikey=${APIVALUE}&r=JSON&s={query}&type=movie`;
-	} else {
-		query = `https://www.omdbapi.com/?apikey=${APIVALUE}&r=JSON&s={query}`;
-	}
-	$('#omdbSearch').search({
-		type: 'category',
+	var query = `https://rawg.io/api/games?search={query}&key=${APIVALUE}`;
+	$('#rawgSearch').search({
 		apiSettings: {
 			url: query,
 			onResponse: function (myfunc) {
 				var response = {
-					results: {},
+					results: [],
 				};
-				$.each(myfunc.Search, function (index, item) {
-					var category = item.Type.toUpperCase() || 'Unknown',
-						maxResults = 10;
+				$.each(myfunc.results, function (index, item) {
+					var maxResults = 10;
 					if (index >= maxResults) {
 						return false;
 					}
-					if (response.results[category] === undefined) {
-						response.results[category] = {
-							name: '~~~~~~~~~~' + category + '~~~~~~~~~~',
-							results: [],
-						};
-					}
-					var Name = item.Title + ' (' + item.Year + ')';
-					response.results[category].results.push({
+					let releaseDate = item.released
+						? ' (' + item.released.replace(/\-.*/, '') + ')'
+						: '';
+					var Name = item.name + releaseDate;
+					response.results.push({
 						title: Name,
 						description: Name,
-						imdbID: item.imdbID,
+						rawgID: item.id,
 					});
 				});
 				return response;
@@ -196,7 +176,7 @@ function sectionSearch(APIVALUE) {
 			title: 'name',
 		},
 		onSelect: function (response) {
-			$('#hiddenIID').val(response.imdbID);
+			$('#hiddenIID').val(response.rawgID);
 			$('#searchID').val(response.title);
 		},
 		minCharacters: 3,
@@ -205,42 +185,49 @@ function sectionSearch(APIVALUE) {
 
 function saveApiKey(APIVALUE, htmlpush) {
 	if (APIVALUE == 'foo') {
-		let omdbKey = $('#omdbKey').val();
-		if (omdbKey) {
-			GM.setValue('APIKEY', omdbKey);
+		let rawgKey = $('#rawgKey').val();
+		if (rawgKey) {
+			GM.setValue('APIKEY', rawgKey);
 		} else {
 			alert("You Didn't Enter Your Key!!");
 		}
-		document.getElementById('OmdbGenerator').remove();
-		document.getElementById('showTemplate').remove();
+		document.getElementById('rawgGenerator').remove();
+		document.getElementById('gmShowTemplate').remove();
 		main();
 	}
 }
 
+function httpGet(url) {
+	let xmlHttp = new XMLHttpRequest();
+	xmlHttp.open('GET', url, false);
+	xmlHttp.send(null);
+	return xmlHttp.response;
+}
+
 function generateTemplate(APIVALUE) {
 	var IID = $('#hiddenIID').val();
-	var screenshots = $('#screensLinks').val();
 	var uToob = $('#ytLink').val();
+	var info = $('#info').val();
+	var vtLink = $('#vtLink').val();
 	var ddl = $('#ddl').val();
-	var MEDIAINFO = $('#mediaInfo').val();
 	var hidereactscore = $('#HideReactScore').val();
 	var hideposts = $('#HidePosts').val();
 	if (!IID) {
 		IID = $('#searchID').val();
-		if (IID.includes('imdb')) {
-			IID = IID.match(/tt\d+/)[0];
+		if (IID.includes('rawg')) {
+			IID = IID.match(/(?<=games\/).*(?<!\/)/)[0];
 		}
 	}
-	if (!IID | !ddl | !MEDIAINFO) {
+	if (!IID | !ddl | !vtLink) {
 		var errors = '';
 		errors += !IID
-			? "<li>You Didn't Select A Title or Enter a IMDB ID!</li>"
+			? "<li>You Didn't Select A Title or Enter a Rawg.io Link!</li>"
+			: '';
+		errors += !vtLink
+			? "<li>You Forgot Your VirusTotal Link! That's Pretty Important...!</li>"
 			: '';
 		errors += !ddl
 			? "<li>You Forgot Your Download Link! That's Pretty Important...!</li>"
-			: '';
-		errors += !MEDIAINFO
-			? "<li>You Don't Have Any Mediainfo? It's Required!</li>"
 			: '';
 		Popup(errors);
 	} else {
@@ -260,116 +247,141 @@ function generateTemplate(APIVALUE) {
 		if (hideposts !== '0') {
 			ddl = `[HIDEPOSTS=${hideposts}]` + ddl + '[/HIDEPOSTS]';
 		}
-		if (screenshots) {
-			screenshots = screenshots.split(' ');
-			var screen = `\n[hr][/hr][indent][size=6][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [Spoiler='screenshots']\n`;
-			for (let ss of screenshots) {
-				screen += `[img]${ss}[/img]`;
+
+		var screenshots_url = `https://api.rawg.io/api/games/${IID}/screenshots?key=${APIVALUE}`;
+    	var screenshots = JSON.parse(httpGet(screenshots_url));
+		if (screenshots.count !== 0) {
+			var screen = `[indent][size=6][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [Spoiler='Screenshots']\n`;
+			for (let x in screenshots.results) {
+				var img = screenshots.results[x].image;
+				screen += `[img]${img}[/img]`
 			}
-			screen += `[/Spoiler] \n`;
+			screen += `[/Spoiler][HR][/HR] \n`;
 		} else {
 			screen = '';
 		}
+		
 		if (uToob.match(/[a-z]/)) {
-			var trailer = `\n[hr][/hr][indent][size=6][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n ${uToob}`;
+			var trailer = `\n[indent][size=6][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n ${uToob}`;
 		} else {
 			trailer = '';
 		}
+		let vtLinksplit = vtLink.split(' ');
+		vtLink = '';
+		for (let vts of vtLinksplit) {
+			vtLink += `[DOWNCLOUD]${vts}[/DOWNCLOUD]\n`;
+		}
+
+		if (info.match(/[a-z]/)) {
+			info =
+				`[indent][size=25px][forumcolor][b]Release Infos[/b][/forumcolor][/size][/indent]\n [spoiler='Click here to view Release Info']\n${info}\n[/spoiler]\n[HR][/HR]\n`;
+		} else {
+			info = '';
+		}
+
+		var stores_url = `https://api.rawg.io/api/games/${IID}/stores?key=${APIVALUE}`;
+		var stores = JSON.parse(httpGet(stores_url));
+		var steamReg = /https:\/\/store\.steampowered\.com\/app\/\d{1,7}/;
+		var steamStoreLink = stores.results.find((e) => e.url.match(steamReg));
+		if (steamStoreLink && steamStoreLink.length !== 0) {
+			let steamID = steamStoreLink.url.match(/\d{1,7}/);
+			var steam =
+				'[media=steamstore]' + steamID + '[/media][/center]\n[HR][/HR]\n';
+		} else {
+			var steam = '[/center]\n[HR][/HR]\n';
+		}
 		GM_xmlhttpRequest({
 			method: 'GET',
-			url: `http://www.omdbapi.com/?apikey=${APIVALUE}&i=${IID}&plot=full&y&r=json`,
+			url: `https://api.rawg.io/api/games/${IID}?key=${APIVALUE}`,
 			onload: function (response) {
 				let json = JSON.parse(response.responseText);
-				let poster =
-					json.Poster && json.Poster !== 'N/A'
-						? '[center][img]' + json.Poster + '[/img]\n'
+				let backgroundimage =
+					json.background_image && json.background_image !== ''
+						? '[center][img width="548px"]' + json.background_image + '[/img]\n'
 						: '';
-				if (json.Title && json.Title !== 'N/A') {
-					var title = '[forumcolor][b][size=6]' + json.Title;
+				if (json.name && json.name !== '') {
+					var title = '[forumcolor][b][size=25px]' + json.name;
 				} else {
 					errors =
 						"You Messed Up! Check That You've Entered Something Into The IMDB Field!";
 					Popup(errors);
 				}
 				let year =
-					json.Year && json.Year !== 'N/A'
-						? json.Year + ')[/size][/b][/forumcolor]\n'
-						: '';
-				let imdbId =
-					json.imdbID && json.imdbID !== 'N/A'
-						? '[url=https://www.imdb.com/title/' +
-						  json.imdbID +
-						  '][img]https://i.imgur.com/rcSipDw.png[/img][/url]'
-						: '';
-				let rating =
-					json.imdbRating && json.imdbRating !== 'N/A'
-						? '[size=6][b]' + json.imdbRating + '[/b]/10[/size]\n'
-						: '';
-				let imdbvotes =
-					json.imdbVotes && json.imdbVotes !== 'N/A'
-						? '[size=6][img]https://i.imgur.com/sEpKj3O.png[/img]' +
-						  json.imdbVotes +
-						  '[/size][/center]\n'
-						: '';
-				let plot =
-					json.Plot && json.Plot !== 'N/A'
-						? '[hr][/hr][indent][size=6][forumcolor][b]Plot[/b][/forumcolor][/size][/indent]\n\n ' +
-						  json.Plot
-						: '';
-				let rated =
-					json.Rated && json.Rated !== 'N/A'
-						? '[B]Rating: [/B]' + json.Rated + '\n'
-						: '';
-				let genre =
-					json.Genre && json.Genre !== 'N/A'
-						? '[*][B]Genre: [/B] ' + json.Genre + '\n'
-						: '';
-				let director =
-					json.Director && json.Director !== 'N/A'
-						? '[*][B]Directed By: [/B] ' + json.Director + '\n'
-						: '';
-				let writer =
-					json.Writer && json.Writer !== 'N/A'
-						? '[*][B]Written By: [/B] ' + json.Writer + '\n'
-						: '';
-				let actors =
-					json.Actors && json.Actors !== 'N/A'
-						? '[*][B]Starring: [/B] ' + json.Actors + '\n'
-						: '';
-				let released =
-					json.Released && json.Released !== 'N/A'
-						? '[*][B]Release Date: [/B] ' + json.Released + '\n'
-						: '';
-				let runtime =
-					json.Runtime && json.Runtime !== 'N/A'
-						? '[*][B]Runtime: [/B] ' + json.Runtime + '\n'
-						: '';
-				let production =
-					json.Production && json.Production !== 'N/A'
-						? '[*][B]Production: [/B] ' + json.Production + '\n'
-						: '';
-				let tags = json.Genre && json.Genre !== 'N/A' ? json.Genre : '';
-				if (MEDIAINFO.includes("Dolby Vision")) {tags += ", Dolby Vision";}
-				MEDIAINFO =
-					"[hr][/hr][indent][size=6][forumcolor][b]Media Info[/b][/forumcolor][/size][/indent]\n [spoiler='Click here to view Media Info']\n " +
-					MEDIAINFO +
-					'\n[/spoiler]\n';
+					json.released && json.released !== ''
+						? ' - (' +
+						  json.released.substring(0, 4) +
+						  ')[/size][/b][/forumcolor]\n'
+						: '[/b][/size][/forumcolor][/center]\n[HR][/HR]\n';
+				let description =
+					'[indent][forumcolor][b][size=25px]Description' +
+					'[/size][/b][/forumcolor][/indent]\n' +
+					json.description_raw +
+					'\n[HR][/HR]\n';
+				let ratings =
+					'[indent][forumcolor][b][size=25px]Ratings' +
+					'[/size][/b][/forumcolor][/indent]\n[size=16px]\n[list]\n';
+				if (json.ratings == '') {
+					ratings +=
+						'[*][img width="24px"]' +
+						'https://i.ibb.co/nrdc7M8/noreviews.png[/img]' +
+						'[color=rgb(126, 129, 129)]No reviews[/color]\n';
+				} else {
+					for (let x of json.ratings) {
+						var img;
+						var color;
+						switch (x.title.toString()) {
+							case 'exceptional':
+								img = 'https://i.ibb.co/XZ0sVDf/exceptional.png';
+								color = '(97, 189, 109)';
+								break;
+							case 'recommended':
+								img = 'https://i.ibb.co/g3GKQ6B/recommended.png';
+								color = '(82, 116, 216)';
+								break;
+							case 'meh':
+								img = 'https://i.ibb.co/xG5772d/meh.png';
+								color = '(248, 157, 59)';
+								break;
+							default:
+								img = 'https://i.ibb.co/cQ65F2b/skip.png';
+								color = '(251, 69, 83)';
+						}
+						ratings +=
+							'[*][img width="24px"]' +
+							img +
+							'[/img][color=rgb' +
+							color +
+							']' +
+							x.title.toString() +
+							': ' +
+							x.count.toString() +
+							' (' +
+							x.percent.toString() +
+							'%)[/color]\n';
+					}
+				}
+				ratings +=
+					'[SIZE=12px]Source: https://rawg.io/games/' +
+					IID +
+					'[/SIZE][/LIST]\n[/size]\n[HR][/HR]\n';
+				// info =
+				// 	"[indent][size=25px][forumcolor][b]Release Infos[/b][/forumcolor][/size][/indent]\n [spoiler='Click here to view Release Info']\n " +
+				// 	info +
+				// 	'\n[/spoiler]\n[HR][/HR]\n';
+				vtLink =
+					'[indent][forumcolor][b][size=25px]VirusTotal' +
+					'[/size][/b][/forumcolor][/indent]\n' +
+					vtLink +
+					'\n[HR][/HR]\n';
+
 				ddl =
-					'[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n' +
+					'[center][size=25px][forumcolor][b]Download Link[/b][/forumcolor][/size]\n' +
 					ddl +
 					'\n[/center]';
-				let dump = `${poster}${title} (${year}${imdbId} ${rating}${imdbvotes}${plot}${trailer}${screen}
-[hr][/hr][indent][size=6][forumcolor][b]Movie Info[/b][/forumcolor][/size][/indent]
-[LIST][*]${rated}${genre}${director}${writer}${actors}${released}${runtime}${production}[/LIST]\n${MEDIAINFO}${ddl}`;
+				let dump = `${backgroundimage}${title} ${year} ${steam} ${description}${trailer}${screen}${ratings}${info}
+							${vtLink}${ddl}`;
 				try {
 					document.getElementsByName('message')[0].value = dump;
-					if (tags) {
-						document.getElementsByName('tags')[0].value = tags;
-						tags = tags.split(', ');
-						for (let i = 0; i < tags.length; i++) {
-							tagsPush(tags[i]);
-						}
-					}
 				} catch (err) {
 					alert(
 						'You should be running this in BBCode Mode. Check the Readme for more information!\n' +
@@ -378,7 +390,7 @@ function generateTemplate(APIVALUE) {
 				} finally {
 					if (!document.getElementsByClassName('js-titleInput')[0].value) {
 						document.getElementsByClassName('js-titleInput')[0].value =
-							json.Title + ' (' + json.Year + ')';
+							json.name + ' - (' + json.released + ')';
 					}
 				}
 			},

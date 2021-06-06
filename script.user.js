@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Blackpearl Games
-// @version     1.0.0
+// @version     1.0.1
 // @description Template Maker
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png
@@ -251,18 +251,18 @@ function generateTemplate(APIVALUE) {
 		var screenshots_url = `https://api.rawg.io/api/games/${IID}/screenshots?key=${APIVALUE}`;
     	var screenshots = JSON.parse(httpGet(screenshots_url));
 		if (screenshots.count !== 0) {
-			var screen = `[indent][size=6][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [Spoiler='Screenshots']\n`;
+			var screen = `[indent][size=25px][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [Spoiler='Screenshots']\n`;
 			for (let x in screenshots.results) {
 				var img = screenshots.results[x].image;
 				screen += `[img]${img}[/img]`
 			}
-			screen += `[/Spoiler][HR][/HR] \n`;
+			screen += `[/Spoiler][HR][/HR]\n`;
 		} else {
 			screen = '';
 		}
-		
+
 		if (uToob.match(/[a-z]/)) {
-			var trailer = `\n[indent][size=6][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n ${uToob}`;
+			var trailer = `[indent][size=25px][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n\n${uToob}\n\n[HR][/HR]\n`;
 		} else {
 			trailer = '';
 		}
@@ -274,21 +274,21 @@ function generateTemplate(APIVALUE) {
 
 		if (info.match(/[a-z]/)) {
 			info =
-				`[indent][size=25px][forumcolor][b]Release Infos[/b][/forumcolor][/size][/indent]\n [spoiler='Click here to view Release Info']\n${info}\n[/spoiler]\n[HR][/HR]\n`;
+				`[indent][size=25px][forumcolor][b]Release Infos[/b][/forumcolor][/size][/indent]\n[spoiler='Click here to view Release Info']\n${info}\n[/spoiler]\n[HR][/HR]\n`;
 		} else {
 			info = '';
 		}
 
 		var stores_url = `https://api.rawg.io/api/games/${IID}/stores?key=${APIVALUE}`;
 		var stores = JSON.parse(httpGet(stores_url));
-		var steamReg = /https:\/\/store\.steampowered\.com\/app\/\d{1,7}/;
+		var steamReg = /(https?:\/\/)?store\.steampowered\.com\/app\/\d{1,7}/;
 		var steamStoreLink = stores.results.find((e) => e.url.match(steamReg));
 		if (steamStoreLink && steamStoreLink.length !== 0) {
 			let steamID = steamStoreLink.url.match(/\d{1,7}/);
 			var steam =
 				'[media=steamstore]' + steamID + '[/media][/center]\n[HR][/HR]\n';
 		} else {
-			var steam = '[/center]\n[HR][/HR]\n';
+			steam = '[/center]\n[HR][/HR]\n';
 		}
 		GM_xmlhttpRequest({
 			method: 'GET',
@@ -364,10 +364,7 @@ function generateTemplate(APIVALUE) {
 					'[SIZE=12px]Source: https://rawg.io/games/' +
 					IID +
 					'[/SIZE][/LIST]\n[/size]\n[HR][/HR]\n';
-				// info =
-				// 	"[indent][size=25px][forumcolor][b]Release Infos[/b][/forumcolor][/size][/indent]\n [spoiler='Click here to view Release Info']\n " +
-				// 	info +
-				// 	'\n[/spoiler]\n[HR][/HR]\n';
+				
 				vtLink =
 					'[indent][forumcolor][b][size=25px]VirusTotal' +
 					'[/size][/b][/forumcolor][/indent]\n' +
@@ -378,8 +375,7 @@ function generateTemplate(APIVALUE) {
 					'[center][size=25px][forumcolor][b]Download Link[/b][/forumcolor][/size]\n' +
 					ddl +
 					'\n[/center]';
-				let dump = `${backgroundimage}${title} ${year} ${steam} ${description}${trailer}${screen}${ratings}${info}
-							${vtLink}${ddl}`;
+				let dump = `${backgroundimage}${title} ${year} ${steam} ${description}${trailer}${screen}${ratings}${info}${vtLink}${ddl}`;
 				try {
 					document.getElementsByName('message')[0].value = dump;
 				} catch (err) {

@@ -15,7 +15,6 @@
 // @require     https://raw.githubusercontent.com/Semantic-Org/UI-Api/master/api.js
 // @grant       GM_addStyle
 // @grant       GM_xmlhttpRequest
-// @grant       GM_setClipboard
 // @grant       GM.setValue
 // @grant       GM.getValue
 // @run-at      document-end
@@ -74,7 +73,7 @@ errormessages
 </div></div></div></div>`;
 
 function main() {
-	GM.getValue('DiscogKey', 'foo').then(value => {
+	GM.getValue('DiscogKey', 'foo').then((value) => {
 		const APIVALUE = value;
 		if (APIVALUE !== 'foo') {
 			var temphtml = document.getElementsByTagName('dd')[0];
@@ -83,16 +82,12 @@ function main() {
 			temphtml = document.getElementsByTagName('dd')[0];
 			temphtml.innerHTML += dginput;
 		}
-
-		var titlechange = document.getElementsByName('title')[0];
-		if (titlechange) {
-			titlechange.className += 'input';
-		}
+		let lossless = window.location.href.match(/\d+/, '').includes('88');
 		$('#gmHideTemplate').click(() => hideTemplate());
 		$('#gmShowTemplate').click(() => showTemplate());
 		$('#gmSaveKey').click(() => saveApiKey(APIVALUE));
 		searchDiscog(APIVALUE);
-		$('#gmGenerate').click(() => generateTemplate(APIVALUE, titlechange));
+		$('#gmGenerate').click(() => generateTemplate(APIVALUE, lossless));
 	});
 }
 
@@ -106,7 +101,7 @@ $(document).click(function (e) {
 	}
 });
 
-$(document).on('keydown', function(event) {
+$(document).on('keydown', function (event) {
 	if (event.key == 'Escape') {
 		$('#discogGenerator').hide();
 		document.getElementById('gmShowTemplate').style.display = 'block';
@@ -149,11 +144,11 @@ function searchDiscog(APIVALUE) {
 		type: 'category',
 		apiSettings: {
 			url: `https://api.discogs.com/database/search?q={query}&token=${APIVALUE}`,
-			onResponse: function(myfunc) {
+			onResponse: function (myfunc) {
 				var response = {
-					results: {}
+					results: {},
 				};
-				$.each(myfunc.results, function(index, item) {
+				$.each(myfunc.results, function (index, item) {
 					var category = item.type || 'Unknown',
 						maxResults = 50;
 					if (index >= maxResults) {
@@ -162,55 +157,56 @@ function searchDiscog(APIVALUE) {
 					if (response.results[category] === undefined) {
 						response.results[category] = {
 							name: '~~~~~~~~~~' + category + '~~~~~~~~~~',
-							results: []
+							results: [],
 						};
 					}
 					var Name = item.title + ' (' + item.year + ')';
 					response.results[category].results.push({
 						title: Name,
 						description: Name,
-						master_url: item.master_url
+						master_url: item.master_url,
 					});
 				});
 				delete response.results['release'];
 				delete response.results['label'];
 				delete response.results['artist'];
 				return response;
-			}
+			},
 		},
 		fields: {
 			results: 'results',
-			title: 'name'
+			title: 'name',
 		},
-		onSelect: function(response) {
+		onSelect: function (response) {
 			console.log(response);
 			$('#masterUrl').val(response.master_url);
 		},
-		minCharacters: 3
+		minCharacters: 3,
 	});
 }
 
-function generateTemplate(APIVALUE, titlechange) {
+function generateTemplate(APIVALUE, lossless) {
 	let ddl = $('#ddl').val();
 	let qImgs = $('#qImgs').val();
 	let qText = $('#qText').val();
 	let hideReactScore = $('#HideReactScore').val();
 	let hidePosts = $('#HidePosts').val();
 	let masterUrl = $('#masterUrl').val();
-	if (!masterUrl | !ddl | (!qImgs | !qText)) {
-        var errors = '';
-        errors += !masterUrl
-                ? "<li>You Didn't Select A Result or Enter a URL!</li>"
-                : '';
-        errors += !ddl
-                ? "<li>Uh Oh! You Forgot Your Download Link! That's Pretty Important...</li>"
-                : '';
-        if (window.location.href.match(/\d+/, '').includes('88')){
-            errors += !qImgs && !qText
-            ? "<li>You Didnt Add A Quality / Log Proof</li>"
-            : '';
-            }
-        if (errors){Popup(errors)}
+	if (!masterUrl | !ddl | (lossless & !qImgs & !qText)) {
+		var errors = '';
+		errors += !masterUrl
+			? "<li>You Didn't Select A Result or Enter a URL!</li>"
+			: '';
+		errors += !ddl
+			? "<li>Uh Oh! You Forgot Your Download Link! That's Pretty Important...</li>"
+			: '';
+		if (lossless) {
+			errors +=
+				!qImgs && !qText ? '<li>You Didnt Add A Quality / Log Proof</li>' : '';
+		}
+		if (errors) {
+			Popup(errors);
+		}
 	} else {
 		if (Downcloud.checked) {
 			ddl = '[DOWNCLOUD]' + ddl + '[/DOWNCLOUD]';
@@ -230,7 +226,7 @@ function generateTemplate(APIVALUE, titlechange) {
 		GM_xmlhttpRequest({
 			method: 'GET',
 			url: `${artist_url}?token=${APIVALUE}`,
-			onload: function(response) {
+			onload: function (response) {
 				var artistjson = JSON.parse(response.responseText);
 				let masterUri = albumjson.uri;
 				let artistUri = artistjson.uri.replace('http:', 'https:');
@@ -254,8 +250,8 @@ function generateTemplate(APIVALUE, titlechange) {
 					if (t.duration) {
 						tracks += t.duration + '[/TD][/TR]\n';
 					} else {
-                                    tracks += '[/TR]\n'
-                              }
+						tracks += '[/TR]\n';
+					}
 				}
 				tracks += '[/TABLE]\n[/SPOILER]\n';
 				let styles = albumjson.styles ? '[SIZE=6]' + albumjson.styles[0] : '';
@@ -271,20 +267,22 @@ function generateTemplate(APIVALUE, titlechange) {
 					let memberlist = artistjson.members;
 					var members =
 						'[INDENT][SIZE=6][FORUMCOLOR][B]Artist Details[/B][/FORUMCOLOR][/SIZE][/INDENT]\n[SPOILER="Member List"]\n';
-					if (memberlist.length > 1) {
+					if (memberlist.length >= 1) {
+						members += '[tabs]';
 						for (let ml of memberlist) {
 							members +=
+								'[slide=' +
 								ml.name +
-								'\n[IMG width="150px"]' +
+								']\n[IMG width="150px"]' +
 								ml.thumbnail_url +
-								'[/IMG]\n';
+								'[/IMG][/slide]\n';
 						}
 					}
-					members += '\n[/SPOILER]\n';
+					members += '[/tabs]\n[/SPOILER]\n';
 				} else {
-                    members =
-                        '[INDENT][SIZE=6][FORUMCOLOR][B]Artist Details[/B][/FORUMCOLOR][/SIZE][/INDENT]\n';
-                }
+					members =
+						'[INDENT][SIZE=6][FORUMCOLOR][B]Artist Details[/B][/FORUMCOLOR][/SIZE][/INDENT]\n';
+				}
 				if (artistjson.urls) {
 					let artistslinks = artistjson.urls;
 					var artlink = '[SPOILER="Artist Links"]\n';
@@ -317,7 +315,6 @@ function generateTemplate(APIVALUE, titlechange) {
 						  qText
 						: '';
 				let dump = `${Cover}${artist}${title}${tracknum}${styles} ${genres}${members}${artistinfo}${artlink}${tracks}${quality}${ddl}`;
-				GM_setClipboard(dump);
 				try {
 					document.getElementsByName('message')[0].value = dump;
 				} catch (err) {
@@ -330,7 +327,7 @@ function generateTemplate(APIVALUE, titlechange) {
 						document.getElementsByClassName('js-titleInput')[0].value = name;
 					}
 				}
-			}
+			},
 		});
 	}
 }

@@ -9,7 +9,7 @@
 // @updateURL   https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/raw/Music/script.user.js
 // @downloadURL https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/raw/Music/script.user.js
 // @include     /^https:\/\/blackpearl\.biz\/forums\/(88|89|90|91|163)\/post-thread/
-// @require     https://code.jquery.com/jquery-3.4.1.min.js
+// @require     https://code.jquery.com/jquery-3.6.0.min.js
 // @require     https://code.jquery.com/ui/1.12.1/jquery-ui.js
 // @require     https://raw.githubusercontent.com/Semantic-Org/UI-Search/master/search.js
 // @require     https://raw.githubusercontent.com/Semantic-Org/UI-Api/master/api.js
@@ -19,6 +19,7 @@
 // @grant       GM.setValue
 // @grant       GM.getValue
 // @run-at      document-end
+// @connect     api.discogs.com
 // ==/UserScript==
 
 main();
@@ -325,9 +326,8 @@ function generateTemplate(APIVALUE, titlechange) {
 							err
 					);
 				} finally {
-					let xf_title_value = titlechange.value;
-					if (!xf_title_value) {
-						document.getElementById('title').value = name;
+					if (!document.getElementsByClassName('js-titleInput')[0].value) {
+						document.getElementsByClassName('js-titleInput')[0].value = name;
 					}
 				}
 			}

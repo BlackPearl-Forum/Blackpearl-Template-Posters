@@ -53,13 +53,24 @@ HidePosts
 const dginput = `
 <button id="gmShowTemplate" name="templateButton" style="display:none" type="button">Show</button>
 <div id="discogGenerator">
-<label>Enter Your discorg API Key, Then Click On Save :)</label>
+<label>Enter Your Discog API Key, Then Click On Save :)</label>
 <input type="text" id="dgKey" value="" class="input" placeholder="discorg API Key" onfocus="this.placeholder = ''" onblur="this.placeholder = 'discorg API Key'">
 <button class="button--primary button button--icon" id="gmSaveKey" name="templateButton" type="button">Save Key</button>
 <button class="button--primary button button--icon" id="gmClearBtn" name="templateButton" type="reset">Clear</button>
 <button class="button--primary button button--icon" id="gmHideTemplate" name="templateButton" type="button">Hide</button>
 </div>
 `;
+
+var errPopup = `<div class="overlay-container is-active" name='errorpopup' id="js-XFUniqueId2"><div class="overlay" tabindex="-1" role="alertdialog" id="errBox" aria-hidden="false">
+<div class="overlay-title">
+<a class="overlay-titleCloser js-overlayClose" role="button" tabindex="0" aria-label="Close"></a>
+Oops! We ran into some problems.</div>
+<div class="overlay-content">
+<div class="blockMessage">
+<ul>
+errormessages
+</ul>
+</div></div></div></div>`;
 
 function main() {
 	GM.getValue('DiscogKey', 'foo').then(value => {
@@ -84,6 +95,16 @@ function main() {
 	});
 }
 
+// Close Error Popup if overlay clicked
+$(document).click(function (e) {
+	if (
+		(!$('#errBox').is(e.target) & $('#js-XFUniqueId2').is(e.target)) |
+		$('.js-overlayClose').is(e.target)
+	) {
+		document.getElementsByName('errorpopup')[0].remove();
+	}
+});
+
 $(document).on('keydown', function(event) {
 	if (event.key == 'Escape') {
 		$('#discogGenerator').hide();
@@ -99,6 +120,13 @@ function hideTemplate() {
 function showTemplate() {
 	document.getElementById('gmShowTemplate').style.display = 'none';
 	$('#discogGenerator').show();
+}
+
+// Popup for Errors
+function Popup(errors) {
+	let errOutput = errPopup.replace('errormessages', errors);
+	var body = document.getElementsByTagName('Body')[0];
+	body.insertAdjacentHTML('beforeend', errOutput);
 }
 
 function saveApiKey(APIVALUE) {
@@ -168,10 +196,20 @@ function generateTemplate(APIVALUE, titlechange) {
 	let hideReactScore = $('#HideReactScore').val();
 	let hidePosts = $('#HidePosts').val();
 	let masterUrl = $('#masterUrl').val();
-	if (!masterUrl) {
-		alert("You Didn't Select A Result or Enter a URL!");
-	} else if (!ddl) {
-		alert("Uh Oh! You Forgot Your Download Link! That's Pretty Important...");
+	if (!masterUrl | !ddl | (!qImgs | !qText)) {
+        var errors = '';
+        errors += !masterUrl
+                ? "<li>You Didn't Select A Result or Enter a URL!</li>"
+                : '';
+        errors += !ddl
+                ? "<li>Uh Oh! You Forgot Your Download Link! That's Pretty Important...</li>"
+                : '';
+        if (window.location.href.match(/\d+/, '').includes('88')){
+            errors += !qImgs && !qText
+            ? "<li>You Didnt Add A Quality / Log Proof</li>"
+            : '';
+            }
+        if (errors){Popup(errors)}
 	} else {
 		if (Downcloud.checked) {
 			ddl = '[DOWNCLOUD]' + ddl + '[/DOWNCLOUD]';
@@ -194,21 +232,21 @@ function generateTemplate(APIVALUE, titlechange) {
 			onload: function(response) {
 				var artistjson = JSON.parse(response.responseText);
 				let masterUri = albumjson.uri;
-				let artistUri = artistjson.uri;
+				let artistUri = artistjson.uri.replace('http:', 'https:');
 				let Cover =
 					'[CENTER][IMG width="250px"]' + albumjson.images[0].uri + '[/IMG]\n';
 				let artist =
-					`[COLOR=rgb(44, 171, 162)][B][SIZE=6][URL=${artistUri}]` +
-					albumjson.artists[0].name +
+					`[FORUMCOLOR][B][SIZE=6][URL=${artistUri}]` +
+					albumjson.artists[0].name.replace(/\(\d*\)/g, '') +
 					'[/URL]\n';
 				let title =
 					`[URL=${masterUri}]` +
 					albumjson.title +
-					'[/URL][/SIZE][/B][/COLOR]\n';
+					'[/URL][/SIZE][/B][/FORUMCOLOR]\n';
 				let tracklist = albumjson.tracklist;
 				let tracknum = tracklist.length + ' Tracks\n';
 				let tracks =
-					'[INDENT][SIZE=6][COLOR=rgb(44, 171, 162)][B]Album Details[/B][/COLOR][/SIZE][/INDENT]\n[SPOILER="Track List"]\n[TABLE=collapse]\n[TR]\n[TH]No.[/TH]\n[TH]Track Name[/TH]\n[TH]Track Duration[/TH]\n[/TR]\n';
+					'[INDENT][SIZE=6][FORUMCOLOR][B]Album Details[/B][/FORUMCOLOR][/SIZE][/INDENT]\n[SPOILER="Track List"]\n[TABLE=collapse]\n[TR]\n[TH]No.[/TH]\n[TH]Track Name[/TH]\n[TH]Track Duration[/TH]\n[/TR]\n';
 				for (let t of tracklist) {
 					tracks +=
 						'[TR][TD]' + t.position + '[/TD]\n[TD]' + t.title + '[/TD]\n[TD]';
@@ -231,7 +269,7 @@ function generateTemplate(APIVALUE, titlechange) {
 				if (artistjson.members) {
 					let memberlist = artistjson.members;
 					var members =
-						'[INDENT][SIZE=6][COLOR=rgb(44, 171, 162)][B]Artist Details[/B][/COLOR][/SIZE][/INDENT]\n[SPOILER="Member List"]\n';
+						'[INDENT][SIZE=6][FORUMCOLOR][B]Artist Details[/B][/FORUMCOLOR][/SIZE][/INDENT]\n[SPOILER="Member List"]\n';
 					if (memberlist.length > 1) {
 						for (let ml of memberlist) {
 							members +=
@@ -242,7 +280,10 @@ function generateTemplate(APIVALUE, titlechange) {
 						}
 					}
 					members += '\n[/SPOILER]\n';
-				}
+				} else {
+                    members =
+                        '[INDENT][SIZE=6][FORUMCOLOR][B]Artist Details[/B][/FORUMCOLOR][/SIZE][/INDENT]\n';
+                }
 				if (artistjson.urls) {
 					let artistslinks = artistjson.urls;
 					var artlink = '[SPOILER="Artist Links"]\n';
@@ -252,7 +293,7 @@ function generateTemplate(APIVALUE, titlechange) {
 					artlink += '\n[/SPOILER]\n[hr][/hr]\n';
 				}
 				ddl =
-					'[hr][/hr][center][size=6][color=rgb(44, 171, 162)][b]Download Link[/b][/color][/size]\n' +
+					'[hr][/hr][center][size=6][FORUMCOLOR][b]Download Link[/b][/FORUMCOLOR][/size]\n' +
 					ddl +
 					'\n[/center]';
 				if (qImgs) {
@@ -270,7 +311,7 @@ function generateTemplate(APIVALUE, titlechange) {
 					: '';
 				let quality =
 					qImg || qText
-						? '[hr][/hr][center][size=6][color=rgb(44, 171, 162)][b]Quality Proof[/b][/color][/size]\n' +
+						? '[hr][/hr][center][size=6][FORUMCOLOR][b]Quality Proof[/b][/FORUMCOLOR][/size]\n' +
 						  qImg +
 						  qText
 						: '';

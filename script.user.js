@@ -178,7 +178,6 @@ function searchDiscog(APIVALUE) {
 			title: 'name',
 		},
 		onSelect: function (response) {
-			console.log(response);
 			$('#masterUrl').val(response.master_url);
 		},
 		minCharacters: 3,
@@ -232,14 +231,14 @@ function generateTemplate(APIVALUE, lossless) {
 				let artistUri = artistjson.uri.replace('http:', 'https:');
 				let Cover =
 					'[CENTER][IMG width="250px"]' + albumjson.images[0].uri + '[/IMG]\n';
+				let artistName = albumjson.artists[0].name.replace(/\(\d*\)/g, '');
 				let artist =
-					`[FORUMCOLOR][B][SIZE=6][URL=${artistUri}]` +
-					albumjson.artists[0].name.replace(/\(\d*\)/g, '') +
-					'[/URL]\n';
-				let title =
+					`[FORUMCOLOR][B][SIZE=6][URL=${artistUri}]` + artistName + '[/URL]\n';
+				let album =
 					`[URL=${masterUri}]` +
 					albumjson.title +
 					'[/URL][/SIZE][/B][/FORUMCOLOR]\n';
+				let albumYear = albumjson.year;
 				let tracklist = albumjson.tracklist;
 				let tracknum = tracklist.length + ' Tracks\n';
 				let tracks =
@@ -314,7 +313,7 @@ function generateTemplate(APIVALUE, lossless) {
 						  qImg +
 						  qText
 						: '';
-				let dump = `${Cover}${artist}${title}${tracknum}${styles} ${genres}${members}${artistinfo}${artlink}${tracks}${quality}${ddl}`;
+				let dump = `${Cover}${artist}${album}${tracknum}${styles} ${genres}${members}${artistinfo}${artlink}${tracks}${quality}${ddl}`;
 				try {
 					document.getElementsByName('message')[0].value = dump;
 				} catch (err) {
@@ -324,7 +323,8 @@ function generateTemplate(APIVALUE, lossless) {
 					);
 				} finally {
 					if (!document.getElementsByClassName('js-titleInput')[0].value) {
-						document.getElementsByClassName('js-titleInput')[0].value = name;
+						document.getElementsByClassName('js-titleInput')[0].value =
+							artistName + ' - ' + albumjson.title + ' (' + albumYear + ')';
 					}
 				}
 			},

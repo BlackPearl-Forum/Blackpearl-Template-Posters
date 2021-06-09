@@ -287,7 +287,7 @@ function generateTemplate(APIVALUE, lossless) {
 					let artistslinks = artistjson.urls;
 					var artlink = '[SPOILER="Artist Links"]\n';
 					for (let artistlink of artistslinks) {
-						artlink += artistlink + '\n';
+						artlink += artistlink.replace('http:', 'https:') + '\n';
 					}
 					artlink += '\n[/SPOILER]\n[hr][/hr]\n';
 				}

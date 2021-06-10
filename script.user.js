@@ -75,14 +75,9 @@ errormessages
 function main() {
 	GM.getValue('DiscogKey', 'foo').then((value) => {
 		const APIVALUE = value;
-		if (APIVALUE !== 'foo') {
-			var temphtml = document.getElementsByTagName('dd')[0];
-			temphtml.innerHTML += htmlTemplate;
-		} else {
-			temphtml = document.getElementsByTagName('dd')[0];
-			temphtml.innerHTML += dginput;
-		}
+		const htmlpush = document.getElementsByTagName('dd')[0];
 		let lossless = window.location.href.match(/\d+/, '').includes('88');
+		htmlpush.innerHTML += APIVALUE !== 'foo' ? htmlTemplate : dginput;
 		$('#gmHideTemplate').click(() => hideTemplate());
 		$('#gmShowTemplate').click(() => showTemplate());
 		$('#gmSaveKey').click(() => saveApiKey(APIVALUE));
@@ -186,12 +181,12 @@ function searchDiscog(APIVALUE) {
 
 function generateTemplate(APIVALUE, lossless) {
 	let ddl = $('#ddl').val();
-	let qImgs = $('#qImgs').val();
-	let qText = $('#qText').val();
+	let qualityImages = $('#qImgs').val();
+	let qualityText = $('#qText').val();
 	let hideReactScore = $('#HideReactScore').val();
 	let hidePosts = $('#HidePosts').val();
 	let masterUrl = $('#masterUrl').val();
-	if (!masterUrl | !ddl | (lossless & !qImgs & !qText)) {
+	if (!masterUrl | !ddl | (lossless & !qualityImages & !qualityText)) {
 		var errors = '';
 		errors += !masterUrl
 			? "<li>You Didn't Select A Result or Enter a URL!</li>"
@@ -201,7 +196,9 @@ function generateTemplate(APIVALUE, lossless) {
 			: '';
 		if (lossless) {
 			errors +=
-				!qImgs && !qText ? '<li>You Didnt Add A Quality / Log Proof</li>' : '';
+				!qualityImages && !qualityText
+					? '<li>You Didnt Add A Quality / Log Proof</li>'
+					: '';
 		}
 		if (errors) {
 			Popup(errors);
@@ -299,36 +296,33 @@ function generateTemplate(APIVALUE, lossless) {
 					}
 					members += '[/tabs]\n[/spoiler]\n';
 				}
+				let artistLinks = '';
 				if (artistjson.urls) {
-					var artistLinks = '[spoiler="Artist Links"]\n';
+					artistLinks = '[spoiler="Artist Links"]\n';
 					for (let link of artistjson.urls) {
 						artistLinks += link.replace('http:', 'https:') + '\n';
 					}
 					artistLinks += '\n[/spoiler]\n[hr][/hr]\n';
-				} else {
-					artistLinks = '';
 				}
 				ddl =
 					'[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n' +
 					ddl +
 					'\n[/center]';
-				if (qImgs) {
-					var qImg = '';
-					for (let qi of qImgs.split(' ')) {
-						qImg += `[img width="300"]${qi}[/img]`;
+				let qualityImage = '';
+				if (qualityImages) {
+					for (let qi of qualityImages.split(' ')) {
+						qualityImage += `[img width="300"]${qi}[/img]`;
 					}
-					qImg += '\n';
-				} else {
-					qImg = '';
+					qualityImage += '\n';
 				}
-				qText = qText
-					? '[spoiler="Quality Proof"]' + qText + '[/Spoiler]\n'
+				qualityText = qualityText
+					? '[spoiler="Quality Proof"]' + qualityText + '[/Spoiler]\n'
 					: '';
 				let quality =
-					qImg || qText
+					qualityImage || qualityText
 						? '[hr][/hr][center][size=6][forumcolor][b]Quality Proof[/b][/forumcolor][/size]\n' +
-						  qImg +
-						  qText
+						  qualityImage +
+						  qualityText
 						: '';
 				let dump = `${Cover}${artist}${album}${tracknum}${members}${artistinfo}${artistLinks}${tracks}${albumDetails}${quality}${ddl}`;
 				try {

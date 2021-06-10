@@ -162,9 +162,9 @@ function searchDiscog(APIVALUE) {
 						master_url: item.master_url,
 					});
 				});
-				delete response.results['release'];
-				delete response.results['label'];
-				delete response.results['artist'];
+				delete (response.results.release,
+				response.results.label,
+				response.results.artist);
 				return response;
 			},
 		},
@@ -205,23 +205,22 @@ function generateTemplate(APIVALUE, lossless) {
 		}
 	} else {
 		if (Downcloud.checked) {
-			ddl = '[downcloud]' + ddl + '[/downcloud]';
+			ddl = `[downcloud]${ddl}[/downcloud]`;
 		}
-		ddl = '[hidereact=1,2,3,4,5,6]' + ddl + '[/hidereact]';
+		ddl = `[hidereact=1,2,3,4,5,6]${ddl}[/hidereact]`;
 		if (hideReactScore !== '0') {
-			ddl = `[hidereactscore=${hideReactScore}]` + ddl + '[/hidereactscore]';
+			ddl = `[hidereactscore=${hideReactScore}]${ddl}[/hidereactscore]`;
 		}
 		if (hidePosts !== '0') {
-			ddl = `[hideposts=${hidePosts}]` + ddl + '[/hideposts]';
+			ddl = `[hideposts=${hidePosts}]${ddl}[/hideposts]`;
 		}
 		var xhReq = new XMLHttpRequest();
 		xhReq.open('GET', `${masterUrl}?token=${APIVALUE}`, false);
 		xhReq.send(null);
 		var albumjson = JSON.parse(xhReq.responseText);
-		var artist_url = albumjson.artists[0].resource_url;
 		GM_xmlhttpRequest({
 			method: 'GET',
-			url: `${artist_url}?token=${APIVALUE}`,
+			url: `${albumjson.artists[0].resource_url}?token=${APIVALUE}`,
 			onload: function (response) {
 				var artistjson = JSON.parse(response.responseText);
 				let artistUri = artistjson.uri.replace('http:', 'https:');
@@ -240,38 +239,32 @@ function generateTemplate(APIVALUE, lossless) {
 				let tracknum = `[center][size=6]${albumjson.tracklist.length} Tracks[/size][/center]\n`;
 				let styles = '';
 				if (albumjson.styles) {
-					styles = '[*][b]Style(s): [/b] |';
+					styles = '[*][b]Style(s): [/b] | ';
 					for (let i = 0; i < albumjson.styles.length; i++) {
 						styles +=
 							'[url=https://www.discogs.com/style/' +
 							albumjson.styles[i].replace(' ', '+') +
-							`]${albumjson.styles[i]}[/url]|`;
+							`]${albumjson.styles[i]}[/url] | `;
 					}
 				}
 				let genres = '';
 				if (albumjson.genres) {
-					genres = '[*][b]Genre(s): [/b] |';
+					genres = '[*][b]Genre(s): [/b] | ';
 					for (let i = 0; i < albumjson.genres.length; i++) {
 						genres +=
 							'[url=https://www.discogs.com/genre/' +
 							albumjson.genres[i].replace(' ', '+') +
-							`]${albumjson.genres[i]}[/url]|`;
+							`]${albumjson.genres[i]}[/url] | `;
 					}
 				}
-
+				let albumDetails = `[INDENT][size=6][forumcolor][B]Album Details[/B][/forumcolor][/size][/INDENT]\n[list]\n${styles}${genres}\n[/list]\n`;
 				// TODO: Add more details? ^^^^
-				let albumDetails =
-					'[size=6][b]Album Details[/b][/size][list]\n' +
-					styles +
-					genres +
-					'\n[/list]';
 				let tracks =
-					'[INDENT][size=6][forumcolor][B]Album Details[/B][/forumcolor][/size][/INDENT]\n[spoiler="Track List"]\n[TABLE=collapse]\n[TR]\n[TH]No.[/TH]\n[TH]Track Name[/TH]\n[TH]Track Duration[/TH]\n[/TR]\n';
+					'[spoiler="Track List"]\n[TABLE=collapse]\n[TR]\n[TH]No.[/TH]\n[TH]Track Name[/TH]\n[TH]Track Duration[/TH]\n[/TR]\n';
 				for (let t of albumjson.tracklist) {
-					tracks +=
-						'[TR][TD]' + t.position + '[/TD]\n[TD]' + t.title + '[/TD]\n[TD]';
+					tracks += `[TR][TD]${t.position}[/TD]\n[TD]${t.title}[/TD]\n[TD]`;
 					if (t.duration) {
-						tracks += t.duration + '[/TD]';
+						tracks += `${t.duration}[/TD]`;
 					}
 					tracks += '[/TR]\n';
 				}
@@ -287,12 +280,7 @@ function generateTemplate(APIVALUE, lossless) {
 					let memberlist = artistjson.members;
 					members += '[spoiler="Member List"]\n[tabs]';
 					for (let ml of memberlist) {
-						members +=
-							'[slide=' +
-							ml.name +
-							']\n[IMG width="150px"]' +
-							ml.thumbnail_url +
-							'[/IMG][/slide]\n';
+						members += `[slide=${ml.name}]\n[img width="150px"]${ml.thumbnail_url}[/img][/slide]\n`;
 					}
 					members += '[/tabs]\n[/spoiler]\n';
 				}
@@ -316,15 +304,13 @@ function generateTemplate(APIVALUE, lossless) {
 					qualityImage += '\n';
 				}
 				qualityText = qualityText
-					? '[spoiler="Quality Proof"]' + qualityText + '[/Spoiler]\n'
+					? `[spoiler="Quality Proof"]${qualityText}[/Spoiler]\n`
 					: '';
 				let quality =
 					qualityImage || qualityText
-						? '[hr][/hr][center][size=6][forumcolor][b]Quality Proof[/b][/forumcolor][/size]\n' +
-						  qualityImage +
-						  qualityText
+						? `[hr][/hr][center][size=6][forumcolor][b]Quality Proof[/b][/forumcolor][/size]\n${qualityImage}${qualityText}`
 						: '';
-				let dump = `${Cover}${artist}${album}${tracknum}${members}${artistinfo}${artistLinks}${tracks}${albumDetails}${quality}${ddl}`;
+				let dump = `${Cover}${artist}${album}${tracknum}${members}${artistinfo}${artistLinks}${albumDetails}${tracks}${quality}${ddl}`;
 				try {
 					document.getElementsByName('message')[0].value = dump;
 				} catch (err) {

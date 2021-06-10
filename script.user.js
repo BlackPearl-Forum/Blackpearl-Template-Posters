@@ -259,16 +259,22 @@ function generateTemplate(APIVALUE, lossless) {
 				}
 				let albumDetails = `[INDENT][size=6][forumcolor][B]Album Details[/B][/forumcolor][/size][/INDENT]\n[list]\n${styles}${genres}\n[/list]\n`;
 				// TODO: Add more details? ^^^^
-				let tracks =
-					'[spoiler="Track List"]\n[TABLE=collapse]\n[TR]\n[TH]No.[/TH]\n[TH]Track Name[/TH]\n[TH]Track Duration[/TH]\n[/TR]\n';
-				for (let t of albumjson.tracklist) {
-					tracks += `[TR][TD]${t.position}[/TD]\n[TD]${t.title}[/TD]\n[TD]`;
-					if (t.duration) {
-						tracks += `${t.duration}[/TD]`;
+				let tracks = '';
+				if (albumjson.tracklist) {
+					tracks =
+						'\n[TABLE=collapse]\n[TR]\n[TH]No.[/TH]\n[TH]Track Name[/TH]\n[TH]Track Duration[/TH]\n[/TR]\n';
+					for (let t of albumjson.tracklist) {
+						tracks += `[TR][TD]${t.position}[/TD]\n[TD]${t.title}[/TD]\n`;
+						if (t.duration) {
+							tracks += `[TD]${t.duration}[/TD]`;
+						}
+						tracks += '[/TR]\n';
 					}
-					tracks += '[/TR]\n';
+					if (!albumjson.tracklist[0].duration) {
+						tracks = tracks.replace('[TH]Track Duration[/TH]\n', '');
+					}
+					tracks += '[/TABLE]\n';
 				}
-				tracks += '[/TABLE]\n[/spoiler]\n';
 				let artistinfo = artistjson.profile
 					? '[spoiler="About Artist"]\n' +
 					  artistjson.profile.replace(/\[.=/gm, '').replace(/\]/gm, '') +

@@ -143,14 +143,14 @@ function searchDiscog(APIVALUE) {
 	$('#Discog_search').search({
 		type: 'category',
 		apiSettings: {
-			url: `https://api.discogs.com/database/search?q={query}&token=${APIVALUE}`,
+			url: `https://api.discogs.com/database/search?q={query}&type=master&token=${APIVALUE}`,
 			onResponse: function (myfunc) {
 				var response = {
 					results: {},
 				};
 				$.each(myfunc.results, function (index, item) {
 					var category = item.type || 'Unknown',
-						maxResults = 50;
+						maxResults = 10;
 					if (index >= maxResults) {
 						return false;
 					}
@@ -208,14 +208,14 @@ function generateTemplate(APIVALUE, lossless) {
 		}
 	} else {
 		if (Downcloud.checked) {
-			ddl = '[DOWNCLOUD]' + ddl + '[/DOWNCLOUD]';
+			ddl = '[downcloud]' + ddl + '[/downcloud]';
 		}
-		ddl = '[HIDEREACT=1,2,3,4,5,6]' + ddl + '[/HIDEREACT]';
+		ddl = '[hidereact=1,2,3,4,5,6]' + ddl + '[/hidereact]';
 		if (hideReactScore !== '0') {
-			ddl = `[HIDEREACTSCORE=${hideReactScore}]` + ddl + '[/HIDEREACTSCORE]';
+			ddl = `[hidereactscore=${hideReactScore}]` + ddl + '[/hidereactscore]';
 		}
 		if (hidePosts !== '0') {
-			ddl = `[HIDEPOSTS=${hidePosts}]` + ddl + '[/HIDEPOSTS]';
+			ddl = `[hideposts=${hidePosts}]` + ddl + '[/hideposts]';
 		}
 		var xhReq = new XMLHttpRequest();
 		xhReq.open('GET', `${masterUrl}?token=${APIVALUE}`, false);
@@ -227,93 +227,110 @@ function generateTemplate(APIVALUE, lossless) {
 			url: `${artist_url}?token=${APIVALUE}`,
 			onload: function (response) {
 				var artistjson = JSON.parse(response.responseText);
-				let masterUri = albumjson.uri;
 				let artistUri = artistjson.uri.replace('http:', 'https:');
-				let Cover =
-					'[CENTER][IMG width="250px"]' + albumjson.images[0].uri + '[/IMG]\n';
+				let Cover = albumjson.images
+					? `[center][img width="250px"]${albumjson.images[0].uri}[/img][/center]\n`
+					: '';
 				let artistName = albumjson.artists[0].name.replace(/\(\d*\)/g, '');
 				let artist =
-					`[FORUMCOLOR][B][SIZE=6][URL=${artistUri}]` + artistName + '[/URL]\n';
+					artistName && artistUri
+						? `[center][forumcolor][b][size=6][url=${artistUri}]${artistName}[/url][/size][/b][/forumcolor][/center]\n`
+						: '';
 				let album =
-					`[URL=${masterUri}]` +
-					albumjson.title +
-					'[/URL][/SIZE][/B][/FORUMCOLOR]\n';
-				let albumYear = albumjson.year;
-				let tracklist = albumjson.tracklist;
-				let tracknum = tracklist.length + ' Tracks\n';
+					albumjson.uri && albumjson.title
+						? `[center][forumcolor][b][size=6][url=${albumjson.uri}]${albumjson.title}[/url][/size][/b][/forumcolor][/center]\n`
+						: '';
+				let tracknum = `[center][size=6]${albumjson.tracklist.length} Tracks[/size][/center]\n`;
+				let styles = '';
+				if (albumjson.styles) {
+					styles = '[*][b]Style(s): [/b] |';
+					for (let i = 0; i < albumjson.styles.length; i++) {
+						styles +=
+							'[url=https://www.discogs.com/style/' +
+							albumjson.styles[i].replace(' ', '+') +
+							`]${albumjson.styles[i]}[/url]|`;
+					}
+				}
+				let genres = '';
+				if (albumjson.genres) {
+					genres = '[*][b]Genre(s): [/b] |';
+					for (let i = 0; i < albumjson.genres.length; i++) {
+						genres +=
+							'[url=https://www.discogs.com/genre/' +
+							albumjson.genres[i].replace(' ', '+') +
+							`]${albumjson.genres[i]}[/url]|`;
+					}
+				}
+
+				// TODO: Add more details? ^^^^
+				let albumDetails =
+					'[size=6][b]Album Details[/b][/size][list]\n' +
+					styles +
+					genres +
+					'\n[/list]';
 				let tracks =
-					'[INDENT][SIZE=6][FORUMCOLOR][B]Album Details[/B][/FORUMCOLOR][/SIZE][/INDENT]\n[SPOILER="Track List"]\n[TABLE=collapse]\n[TR]\n[TH]No.[/TH]\n[TH]Track Name[/TH]\n[TH]Track Duration[/TH]\n[/TR]\n';
-				for (let t of tracklist) {
+					'[INDENT][size=6][forumcolor][B]Album Details[/B][/forumcolor][/size][/INDENT]\n[spoiler="Track List"]\n[TABLE=collapse]\n[TR]\n[TH]No.[/TH]\n[TH]Track Name[/TH]\n[TH]Track Duration[/TH]\n[/TR]\n';
+				for (let t of albumjson.tracklist) {
 					tracks +=
 						'[TR][TD]' + t.position + '[/TD]\n[TD]' + t.title + '[/TD]\n[TD]';
 					if (t.duration) {
-						tracks += t.duration + '[/TD][/TR]\n';
-					} else {
-						tracks += '[/TR]\n';
+						tracks += t.duration + '[/TD]';
 					}
+					tracks += '[/TR]\n';
 				}
-				tracks += '[/TABLE]\n[/SPOILER]\n';
-				let styles = albumjson.styles ? '[SIZE=6]' + albumjson.styles[0] : '';
-				let genres = albumjson.genres
-					? albumjson.genres[0] + '[/SIZE][/CENTER]\n'
-					: '';
+				tracks += '[/TABLE]\n[/spoiler]\n';
 				let artistinfo = artistjson.profile
-					? '[SPOILER="About Artist"]\n' +
+					? '[spoiler="About Artist"]\n' +
 					  artistjson.profile.replace(/\[.=/gm, '').replace(/\]/gm, '') +
-					  '\n[/SPOILER]'
+					  '\n[/spoiler]'
 					: '';
+				let members =
+					'[indent][size=6][forumcolor][B]Artist Details[/B][/forumcolor][/size][/indent]\n';
 				if (artistjson.members) {
 					let memberlist = artistjson.members;
-					var members =
-						'[INDENT][SIZE=6][FORUMCOLOR][B]Artist Details[/B][/FORUMCOLOR][/SIZE][/INDENT]\n[SPOILER="Member List"]\n';
-					if (memberlist.length >= 1) {
-						members += '[tabs]';
-						for (let ml of memberlist) {
-							members +=
-								'[slide=' +
-								ml.name +
-								']\n[IMG width="150px"]' +
-								ml.thumbnail_url +
-								'[/IMG][/slide]\n';
-						}
+					members += '[spoiler="Member List"]\n[tabs]';
+					for (let ml of memberlist) {
+						members +=
+							'[slide=' +
+							ml.name +
+							']\n[IMG width="150px"]' +
+							ml.thumbnail_url +
+							'[/IMG][/slide]\n';
 					}
-					members += '[/tabs]\n[/SPOILER]\n';
-				} else {
-					members =
-						'[INDENT][SIZE=6][FORUMCOLOR][B]Artist Details[/B][/FORUMCOLOR][/SIZE][/INDENT]\n';
+					members += '[/tabs]\n[/spoiler]\n';
 				}
 				if (artistjson.urls) {
-					let artistslinks = artistjson.urls;
-					var artlink = '[SPOILER="Artist Links"]\n';
-					for (let artistlink of artistslinks) {
-						artlink += artistlink.replace('http:', 'https:') + '\n';
+					var artistLinks = '[spoiler="Artist Links"]\n';
+					for (let link of artistjson.urls) {
+						artistLinks += link.replace('http:', 'https:') + '\n';
 					}
-					artlink += '\n[/SPOILER]\n[hr][/hr]\n';
+					artistLinks += '\n[/spoiler]\n[hr][/hr]\n';
+				} else {
+					artistLinks = '';
 				}
 				ddl =
-					'[hr][/hr][center][size=6][FORUMCOLOR][b]Download Link[/b][/FORUMCOLOR][/size]\n' +
+					'[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n' +
 					ddl +
 					'\n[/center]';
 				if (qImgs) {
-					let q = qImgs.split(' ');
 					var qImg = '';
-					for (let qi of q) {
+					for (let qi of qImgs.split(' ')) {
 						qImg += `[img width="300"]${qi}[/img]`;
 					}
+					qImg += '\n';
 				} else {
 					qImg = '';
 				}
-				qImg = qImg ? qImg + '\n' : '';
 				qText = qText
-					? '[SPOILER="Quality Proof"]' + qText + '[/Spoiler]\n'
+					? '[spoiler="Quality Proof"]' + qText + '[/Spoiler]\n'
 					: '';
 				let quality =
 					qImg || qText
-						? '[hr][/hr][center][size=6][FORUMCOLOR][b]Quality Proof[/b][/FORUMCOLOR][/size]\n' +
+						? '[hr][/hr][center][size=6][forumcolor][b]Quality Proof[/b][/forumcolor][/size]\n' +
 						  qImg +
 						  qText
 						: '';
-				let dump = `${Cover}${artist}${album}${tracknum}${styles} ${genres}${members}${artistinfo}${artlink}${tracks}${quality}${ddl}`;
+				let dump = `${Cover}${artist}${album}${tracknum}${members}${artistinfo}${artistLinks}${tracks}${albumDetails}${quality}${ddl}`;
 				try {
 					document.getElementsByName('message')[0].value = dump;
 				} catch (err) {
@@ -324,7 +341,12 @@ function generateTemplate(APIVALUE, lossless) {
 				} finally {
 					if (!document.getElementsByClassName('js-titleInput')[0].value) {
 						document.getElementsByClassName('js-titleInput')[0].value =
-							artistName + ' - ' + albumjson.title + ' (' + albumYear + ')';
+							artistName +
+							' - ' +
+							albumjson.title +
+							' (' +
+							albumjson.year +
+							')';
 					}
 				}
 			},

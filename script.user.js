@@ -239,7 +239,7 @@ function generateTemplate(APIVALUE, lossless) {
 				let tracknum = `[center][size=6]${albumjson.tracklist.length} Tracks[/size][/center]\n`;
 				let styles = '';
 				if (albumjson.styles) {
-					styles = '[*][b]Style(s): [/b] | ';
+					styles = '[*][b][forumcolor]Style(s): [/b][/forumcolor] | ';
 					for (let i = 0; i < albumjson.styles.length; i++) {
 						styles +=
 							'[url=https://www.discogs.com/style/' +
@@ -249,7 +249,7 @@ function generateTemplate(APIVALUE, lossless) {
 				}
 				let genres = '';
 				if (albumjson.genres) {
-					genres = '[*][b]Genre(s): [/b] | ';
+					genres = '\n[*][forumcolor][b]Genre(s): [/b][/forumcolor] | ';
 					for (let i = 0; i < albumjson.genres.length; i++) {
 						genres +=
 							'[url=https://www.discogs.com/genre/' +
@@ -257,12 +257,25 @@ function generateTemplate(APIVALUE, lossless) {
 							`]${albumjson.genres[i]}[/url] | `;
 					}
 				}
-				let albumDetails = `[INDENT][size=6][forumcolor][B]Album Details[/B][/forumcolor][/size][/INDENT]\n[list]\n${styles}${genres}\n[/list]\n`;
+				let year = '';
+				if (albumjson.year) {
+					year = '\n[*][forumcolor][b]Release Year: [/b][/forumcolor]' + albumjson.year;
+				}
+				let videos = '';
+				if (albumjson.videos) {
+					videos = '[spoiler="Video(s)"]\n';
+					for (let i = 0; i < albumjson.videos.length; i++) {
+						videos += albumjson.videos[i].uri + '\n';
+					}
+					videos += '[/spoiler]\n';
+				}
+
+				let albumDetails = `[INDENT][size=6][forumcolor][B]Album Details[/B][/forumcolor][/size][/INDENT]\n[list]\n${styles}${genres}${year}\n[/list]\n`;
 				// TODO: Add more details? ^^^^
 				let tracks = '';
 				if (albumjson.tracklist) {
 					tracks =
-						'\n[TABLE=collapse]\n[TR]\n[TH]No.[/TH]\n[TH]Track Name[/TH]\n[TH]Track Duration[/TH]\n[/TR]\n';
+						'\n[spoiler="Track List"]\n[TABLE=collapse]\n[TR]\n[TH]No.[/TH]\n[TH]Track Name[/TH]\n[TH]Track Duration[/TH]\n[/TR]\n';
 					for (let t of albumjson.tracklist) {
 						tracks += `[TR][TD]${t.position}[/TD]\n[TD]${t.title}[/TD]\n`;
 						if (t.duration) {
@@ -273,7 +286,7 @@ function generateTemplate(APIVALUE, lossless) {
 					if (!albumjson.tracklist[0].duration) {
 						tracks = tracks.replace('[TH]Track Duration[/TH]\n', '');
 					}
-					tracks += '[/TABLE]\n';
+					tracks += '[/TABLE]\n[/spoiler]\n';
 				}
 				let artistinfo = artistjson.profile
 					? '[spoiler="About Artist"]\n' +
@@ -316,7 +329,7 @@ function generateTemplate(APIVALUE, lossless) {
 					qualityImage || qualityText
 						? `[hr][/hr][center][size=6][forumcolor][b]Quality Proof[/b][/forumcolor][/size]\n${qualityImage}${qualityText}`
 						: '';
-				let dump = `${Cover}${artist}${album}${tracknum}${members}${artistinfo}${artistLinks}${albumDetails}${tracks}${quality}${ddl}`;
+				let dump = `${Cover}${artist}${album}${tracknum}${members}${artistinfo}${artistLinks}${albumDetails}${tracks}${videos}${quality}${ddl}`;
 				try {
 					document.getElementsByName('message')[0].value = dump;
 				} catch (err) {

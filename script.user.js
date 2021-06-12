@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Blackpearl Games
-// @version     1.0.1
+// @version     1.0.2
 // @description Template Maker
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png
@@ -364,12 +364,16 @@ function generateTemplate(APIVALUE) {
 					'[SIZE=12px]Source: https://rawg.io/games/' +
 					IID +
 					'[/SIZE][/LIST]\n[/size]\n[HR][/HR]\n';
-				
+
 				vtLink =
 					'[indent][forumcolor][b][size=25px]VirusTotal' +
 					'[/size][/b][/forumcolor][/indent]\n' +
 					vtLink +
 					'\n[HR][/HR]\n';
+
+				if (json.genres !== '') {
+					var tags = json.genres;
+				}
 
 				ddl =
 					'[center][size=25px][forumcolor][b]Download Link[/b][/forumcolor][/size]\n' +
@@ -378,6 +382,19 @@ function generateTemplate(APIVALUE) {
 				let dump = `${backgroundimage}${title} ${year} ${steam} ${description}${trailer}${screen}${ratings}${info}${vtLink}${ddl}`;
 				try {
 					document.getElementsByName('message')[0].value = dump;
+					if (tags) {
+						document.getElementsByName('tags')[0].value = tags;
+						for (let x in tags) {
+							var genres = tags[x].name;
+							if (genres == 'Massively Multiplayer') {
+								genres = 'MMO';
+							}
+							if (genres == 'Board Games') {
+								genres = 'Board-Games';
+							}
+							tagsPush(genres);
+						}
+					}
 				} catch (err) {
 					alert(
 						'You should be running this in BBCode Mode. Check the Readme for more information!\n' +

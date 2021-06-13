@@ -35,7 +35,7 @@ For example:
 Next, you'll want to grab the offical trailer of the movie from youtube. Usually Googling the movie name and year will give you the trailer. Paste the Youtube Link into the "Youtube Trailer" Field.
 
 ### 5.
-Enter your download link. Be sure it's one of the accepted file hosts. You can see all the allowed filehosts [HERE](https://blackpearl.biz/faq/#faq10)
+Enter your download link. Be sure it's one of the accepted file hosts. You can see all the allowed filehosts [HERE](https://blackpearl.biz/faq/#q-which-file-hosters-are-accepted-on-the-forum)
 
 To enter multiple download links, ensure there is a space between each of the links.
 
@@ -46,7 +46,7 @@ Enter your mediainfo. You can get mediainfo locally using [MediaInfo](https://me
 
 ### 7.
 The Downcloud button is clickable(Either on or off). The only reason you would need to turn it off is if you are posting multiple links or using a [Base64 Encoded String](https://www.base64encode.org/). HideReactScore has a maximum limit of 100 and minimum of 0 (0 will not add it).
-HidePosts has a maximum limit of 50 and minimum of 0(0 will not add it) You can find more about what each of these do [HERE](https://blackpearl.biz/faq/#faq11).
+HidePosts has a maximum limit of 50 and minimum of 0(0 will not add it) You can find more about what each of these do [HERE](https://blackpearl.biz/help/bb-codes/).
 
 ### 8.
 Once you have set everything up, be sure that you are in BBCode Mode ![](https://i.imgur.com/oX1AzQ4.png) and press the "Generate Template" button and the post will be copied to your clipboard and pasted onto the site. The Title will be filled out with the Name of the Movie or Show and the Year of release. You will have to add all the other required information yourself.

@@ -1,18 +1,18 @@
 // ==UserScript==
 // @name        Blackpearl IMDB
-// @version     3.0.10
+// @version     3.0.11
 // @description Template Maker
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png
 // @homepage    https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/
 // @supportURL  https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/issues/
-// @updateURL   https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/raw/Omdb/script.user.js
-// @downloadURL https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/raw/Omdb/script.user.js
+// @updateURL   https://raw.githubusercontent.com/BlackPearl-Forum/Blackpearl-Template-Posters/Omdb/script.user.js
+// @downloadURL https://raw.githubusercontent.com/BlackPearl-Forum/Blackpearl-Template-Posters/Omdb/script.user.js
 // @include     /^https:\/\/blackpearl\.biz\/forums\/(129|172|173|174|175|176|178|179|180|181|183|184|187|188|189|190|193|194|197|198|199|200|203|204|206|207|208|210|223)\/post-thread/
-// @require     https://code.jquery.com/jquery-3.6.0.min.js
-// @require     https://code.jquery.com/ui/1.12.1/jquery-ui.min.js
-// @require     https://raw.githubusercontent.com/Semantic-Org/UI-Search/master/search.js
-// @require     https://raw.githubusercontent.com/Semantic-Org/UI-Api/master/api.js
+// @require     https://code.jquery.com/jquery-3.6.0.min.js#sha512=894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==
+// @require     https://code.jquery.com/ui/1.12.1/jquery-ui.min.js#sha512=4DaiBX8rsgOoBSNLceQ/IixDF+uUDV0hJrQX/MJ9RwJZCDqbEp0EjIQodGxszPtTpwlenJznR2jkgDWqj4Hs+A==
+// @require     https://raw.githubusercontent.com/Semantic-Org/UI-Search/master/search.min.js#sha512=cYY5gAyJxIK4sLwDYueWWJH9rEdgBNvRaEIGJ6+dQ5vzfoTqHAtUDYrG2rdZTGqACvPS9QRrnzqqRGfrgxO7ug==
+// @require     https://raw.githubusercontent.com/Semantic-Org/UI-Api/master/api.min.js#sha512=Xx3WEY47isjKM7q4XwPXnJ/YGuMbA4Iua+rO3+/cU8/p69YqJNb1NORkJtbQWJyE9ek1i6jrxn/e6RpB6GXf7w==
 // @grant       GM_addStyle
 // @grant       GM_xmlhttpRequest
 // @grant       GM.setValue
@@ -20,6 +20,7 @@
 // @run-at      document-end
 // @connect     omdbapi.com
 // ==/UserScript==
+/* eslint-disable */
 
 main();
 
@@ -146,16 +147,16 @@ function sectionSearch(APIVALUE) {
 	var section = tab_url.match(/\d+/, '');
 	section = parseInt(section);
 	const [Movies, Series] = [
-		[129, 172, 173, 174, 175, 176, 178, 179, 180, 181, 182, 183, 184, 202, 204],
+		[129, 172, 173, 174, 175, 176, 178, 179, 180, 181, 183, 184, 202, 204],
 		[187, 188, 189, 190, 193, 194, 197, 198, 199, 200, 203, 206, 208, 209, 223],
 	];
 	var query;
 	if (Series.includes(section)) {
-		query = `https://www.omdbapi.com/?apikey=${APIVALUE}&r=JSON&s={query}&type=series`;
+		query = `https://www.omdbapi.com/?s={query}&type=series&apikey=${APIVALUE}&r=JSON`;
 	} else if (Movies.includes(section)) {
-		query = `https://www.omdbapi.com/?apikey=${APIVALUE}&r=JSON&s={query}&type=movie`;
+		query = `https://www.omdbapi.com/?s={query}&type=movie&apikey=${APIVALUE}&r=JSON`;
 	} else {
-		query = `https://www.omdbapi.com/?apikey=${APIVALUE}&r=JSON&s={query}`;
+		query = `https://www.omdbapi.com/?s={query}&apikey=${APIVALUE}&r=JSON`;
 	}
 	$('#omdbSearch').search({
 		type: 'category',
@@ -166,14 +167,14 @@ function sectionSearch(APIVALUE) {
 					results: {},
 				};
 				$.each(myfunc.Search, function (index, item) {
-					var category = item.Type.toUpperCase() || 'Unknown',
+					var category = item.Type.replace("movie", "Movies").replace("series",  "TV Shows") || 'Unknown',
 						maxResults = 10;
 					if (index >= maxResults) {
 						return false;
 					}
 					if (response.results[category] === undefined) {
 						response.results[category] = {
-							name: '~~~~~~~~~~' + category + '~~~~~~~~~~',
+							name: category.bold(),
 							results: [],
 						};
 					}
@@ -249,7 +250,7 @@ function generateTemplate(APIVALUE) {
 		} else {
 			ddl = ddl.replace(/\ /g, '\n');
 		}
-		ddl = '[HIDEREACT=1,2,3,4,5,6,7,8]\n' + ddl + '\n[/HIDEREACT]';
+		ddl = '[HIDEREACT=1,2,3,4,5,6,7,8]\n' + ddl + '[/HIDEREACT]';
 		if (hidereactscore !== '0') {
 			ddl = `[HIDEREACTSCORE=${hidereactscore}]` + ddl + '[/HIDEREACTSCORE]';
 		}
@@ -258,30 +259,30 @@ function generateTemplate(APIVALUE) {
 		}
 		if (screenshots) {
 			screenshots = screenshots.split(' ');
-			var screen = `\n[hr][/hr][indent][size=6][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [Spoiler='screenshots']\n`;
+			var screen = `[HR][/HR][INDENT][SIZE=6][FORUMCOLOR][B]Media Screenshots :[/B][/FORUMCOLOR][/SIZE][/INDENT]\n[SPOILER='Media Screenshots']\n[CENTER]`;
 			for (let ss of screenshots) {
-				screen += `[img]${ss}[/img]`;
+				screen += `[IMG]${ss}[/IMG]`;
 			}
-			screen += `[/Spoiler] \n`;
+			screen += `[/CENTER][/SPOILER]\n`;
 		} else {
 			screen = '';
 		}
 		if (uToob.match(/[a-z]/)) {
-			var trailer = `\n[hr][/hr][indent][size=6][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n ${uToob}`;
+			var trailer = `[HR][/HR][INDENT][SIZE=6][FORUMCOLOR][B]Official Trailer :[/B][/FORUMCOLOR][/SIZE][/INDENT]\n[CENTER]${uToob}\n[/CENTER]`;
 		} else {
 			trailer = '';
 		}
 		GM_xmlhttpRequest({
 			method: 'GET',
-			url: `http://www.omdbapi.com/?apikey=${APIVALUE}&i=${IID}&plot=full&y&r=json`,
+			url: `http://www.omdbapi.com/?apikey=${APIVALUE}&i=${IID}&plot=full&r=json`,
 			onload: function (response) {
 				let json = JSON.parse(response.responseText);
 				let poster =
 					json.Poster && json.Poster !== 'N/A'
-						? '[center][img]' + json.Poster + '[/img]\n'
+						? "[CENTER][IMG WIDTH='350px']" + json.Poster.replace(/._V1_SX\d+.jpg/g, '._V1_SX1000.png') + '[/IMG][/CENTER]\n'
 						: '';
 				if (json.Title && json.Title !== 'N/A') {
-					var title = '[forumcolor][b][size=6]' + json.Title;
+					var title = `[CENTER][FORUMCOLOR][B][SIZE=6][URL='https://blackpearl.biz/search/1/?q=${json.imdbID}&o=date']${json.Title}`;
 				} else {
 					errors =
 						"You Messed Up! Check That You've Entered Something Into The IMDB Field!";
@@ -289,74 +290,78 @@ function generateTemplate(APIVALUE) {
 				}
 				let year =
 					json.Year && json.Year !== 'N/A'
-						? json.Year + ')[/size][/b][/forumcolor]\n'
+						? `(${json.Year.replace(/([–]*)$/g, '')})`
 						: '';
 				let imdbId =
 					json.imdbID && json.imdbID !== 'N/A'
-						? '[url=https://www.imdb.com/title/' +
+						? '[URL=https://www.imdb.com/title/' +
 						  json.imdbID +
-						  '][img]https://i.imgur.com/rcSipDw.png[/img][/url]'
+						  "][IMG WIDTH='46px']https://ia.media-imdb.com/images/M/MV5BMTk3ODA4Mjc0NF5BMl5BcG5nXkFtZTgwNDc1MzQ2OTE@.png[/IMG][/URL]"
 						: '';
 				let rating =
 					json.imdbRating && json.imdbRating !== 'N/A'
-						? '[size=6][b]' + json.imdbRating + '[/b]/10[/size]\n'
+						? '[SIZE=6] ' + json.imdbRating + '/10[/SIZE]\n'
 						: '';
 				let imdbvotes =
 					json.imdbVotes && json.imdbVotes !== 'N/A'
-						? '[size=6][img]https://i.imgur.com/sEpKj3O.png[/img]' +
+						? '[IMG]https://i.imgur.com/sEpKj3O.png[/IMG][SIZE=6]' +
 						  json.imdbVotes +
-						  '[/size][/center]\n'
+						  '[/SIZE]'
 						: '';
 				let plot =
 					json.Plot && json.Plot !== 'N/A'
-						? '[hr][/hr][indent][size=6][forumcolor][b]Plot[/b][/forumcolor][/size][/indent]\n\n ' +
-						  json.Plot
+						? '[HR][/HR][INDENT][SIZE=6][FORUMCOLOR][B]Plot Summary :[/B][/FORUMCOLOR][/SIZE]\n\n[JUSTIFY]' +
+						  json.Plot + '[/JUSTIFY][/INDENT]'
 						: '';
 				let rated =
 					json.Rated && json.Rated !== 'N/A'
-						? '[B]Rating: [/B]' + json.Rated + '\n'
+						? '[*][FORUMCOLOR][B]Rating: [/B][/FORUMCOLOR]' + json.Rated + '\n'
 						: '';
 				let genre =
 					json.Genre && json.Genre !== 'N/A'
-						? '[*][B]Genre: [/B] ' + json.Genre + '\n'
+						? '[*][FORUMCOLOR][B]Genre: [/B][/FORUMCOLOR]' + json.Genre + '\n'
 						: '';
 				let director =
 					json.Director && json.Director !== 'N/A'
-						? '[*][B]Directed By: [/B] ' + json.Director + '\n'
+						? '[*][FORUMCOLOR][B]Directed By: [/B][/FORUMCOLOR]' + json.Director + '\n'
 						: '';
 				let writer =
 					json.Writer && json.Writer !== 'N/A'
-						? '[*][B]Written By: [/B] ' + json.Writer + '\n'
+						? '[*][FORUMCOLOR][B]Written By: [/B][/FORUMCOLOR]' + json.Writer + '\n'
 						: '';
 				let actors =
 					json.Actors && json.Actors !== 'N/A'
-						? '[*][B]Starring: [/B] ' + json.Actors + '\n'
+						? '[*][FORUMCOLOR][B]Starring: [/B][/FORUMCOLOR]' + json.Actors + '\n'
 						: '';
 				let released =
 					json.Released && json.Released !== 'N/A'
-						? '[*][B]Release Date: [/B] ' + json.Released + '\n'
+						? '[*][FORUMCOLOR][B]Release Date: [/B][/FORUMCOLOR]' + json.Released + '\n'
 						: '';
 				let runtime =
 					json.Runtime && json.Runtime !== 'N/A'
-						? '[*][B]Runtime: [/B] ' + json.Runtime + '\n'
+						? '[*][FORUMCOLOR][B]Runtime: [/B][/FORUMCOLOR]' + json.Runtime + '\n'
 						: '';
 				let production =
 					json.Production && json.Production !== 'N/A'
-						? '[*][B]Production: [/B] ' + json.Production + '\n'
+						? '[*][FORUMCOLOR][B]Production: [/B][/FORUMCOLOR]' + json.Production + '\n'
 						: '';
 				let tags = json.Genre && json.Genre !== 'N/A' ? json.Genre : '';
-				if (MEDIAINFO.includes("Dolby Vision")) {tags += ", Dolby Vision";}
+				let threadtitle = document.getElementsByClassName('js-titleInput')[0].value
+				if (threadtitle.includes(".DV.") || threadtitle.includes(".DoVi.") || MEDIAINFO.includes("Dolby Vision")) {tags += ", Dolby Vision";}
+				if (threadtitle.includes("HDR10Plus") || threadtitle.includes(".HDR10+.") || MEDIAINFO.includes("HDR10+")) {tags += ", HDR10Plus";}
+				tags = tags.replace(/^([, ]*)/g, '')
 				MEDIAINFO =
-					"[hr][/hr][indent][size=6][forumcolor][b]Media Info[/b][/forumcolor][/size][/indent]\n [spoiler='Click here to view Media Info']\n " +
+					"[HR][/HR][INDENT][SIZE=6][FORUMCOLOR][B]Media Info :[/B][/FORUMCOLOR][/SIZE][/INDENT]\n[SPOILER='Media Info'][CODE TITLE='Media Info']" +
 					MEDIAINFO +
-					'\n[/spoiler]\n';
+					'[/CODE][/SPOILER]\n';
 				ddl =
-					'[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n' +
+					'[HR][/HR][INDENT][SIZE=6][FORUMCOLOR][B]Download Link :[/B][/FORUMCOLOR][/SIZE][/INDENT]\n[CENTER]' +
 					ddl +
-					'\n[/center]';
-				let dump = `${poster}${title} (${year}${imdbId} ${rating}${imdbvotes}${plot}${trailer}${screen}
-[hr][/hr][indent][size=6][forumcolor][b]Movie Info[/b][/forumcolor][/size][/indent]
-[LIST][*]${rated}${genre}${director}${writer}${actors}${released}${runtime}${production}[/LIST]\n${MEDIAINFO}${ddl}`;
+					'[/CENTER]';
+				let dump = `${poster}${title} ${year}[/URL][/SIZE][/B][/FORUMCOLOR]\n${imdbId} ${rating}${imdbvotes}[/CENTER]${plot}\n${trailer}${screen}` +
+					"[HR][/HR][INDENT][SIZE=6][FORUMCOLOR][B]IMDb Info :[/B][/FORUMCOLOR][/SIZE][/INDENT]" +
+					`[LIST]${rated}${genre}${director}${writer}${actors}${released}${runtime}${production}[/LIST]\n${MEDIAINFO}${ddl}`;
+				dump = dump.replace("[HR][/HR][INDENT][SIZE=6][FORUMCOLOR][B]IMDb Info :[/B][/FORUMCOLOR][/SIZE][/INDENT][LIST][/LIST]\n",'')
 				try {
 					document.getElementsByName('message')[0].value = dump;
 					if (tags) {
@@ -372,9 +377,9 @@ function generateTemplate(APIVALUE) {
 							err
 					);
 				} finally {
-					if (!document.getElementsByClassName('js-titleInput')[0].value) {
+					if (!threadtitle) {
 						document.getElementsByClassName('js-titleInput')[0].value =
-							json.Title + ' (' + json.Year + ')';
+							json.Title + ' (' + json.Year.replace(/([–]*)$/g, '') + ')';
 					}
 				}
 			},
@@ -383,148 +388,136 @@ function generateTemplate(APIVALUE) {
 }
 
 GM_addStyle(
-	"                                                         \
-    @media screen and (min-width: 300px) {                        \
-      /* Divide Buttons */                                        \
-      .divider{                                                   \
-            width:                  8px;                          \
-            height:                 auto;                         \
-            display:                inline-block;                 \
-      }                                                           \
-      /* Reactscore & Posts */                                    \
-      input[type=number]{                                         \
-            border-bottom:          2px solid teal;               \
-            border-image: linear-gradient(to right, #11998e,#38ef7d);\
-            border-image-slice:     1;                            \
-            background:             transparent;                  \
-            color:                  white;                        \
-            max-width:              35px;                         \
-      }                                                           \
-      #textareaDivider {                                         \
-            margin-top:             -11px;                        \
-      }                                                           \
-      /* Start Rounded sliders Checkboxes */                      \
-      .switch {                                                   \
-            position:               relative;                     \
-            display:                inline-block;                 \
-            width:                  42px;                         \
-            height:                 17px;                         \
-      }                                                           \
-      .switch input {                                             \
-            opacity:                0;                            \
-            width:                  0;                            \
-            height:                 0;                            \
-      }                                                           \
-      .slider {                                                   \
-            position:               absolute;                     \
-            cursor:                 pointer;                      \
-            top:                    0;                            \
-            left:                   0;                            \
-            right:                  0;                            \
-            bottom:                 0;                            \
-            background-color:       #ccc;                         \
-            -webkit-transition:     .4s;                          \
-            transition:             .4s;                          \
-      }                                                           \
-      .slider:before {                                            \
-            position:               absolute;                     \
-            content:                '';                           \
-            height:                 13px;                         \
-            width:                  13px;                         \
-            left:                   2px;                          \
-            bottom:                 2px;                          \
-            background-color:       #42464D;                      \
-            -webkit-transition:     .4s;                          \
-            transition:             .4s;                          \
-      }                                                           \
-      input:checked + .slider {                                   \
-            background-color:       #4caf50;                      \
-      }                                                           \
-      input:focus + .slider {                                     \
-            box-shadow:             0 0 1px #4caf50;              \
-      }                                                           \
-      input:checked + .slider:before {                            \
-            -webkit-transform:      translateX(26px);             \
-            -ms-transform:          translateX(26px);             \
-            transform:              translateX(26px);             \
-      }                                                           \
-      .slider.round {                                             \
-            border-radius:          34px;                         \
-      }                                                           \
-      .slider.round:before {                                      \
-            border-radius:          50%;                          \
-      }                                                           \
-}                                                                 \
-    @media screen and (min-width: 768px) {                        \
-      /* Divide Buttons */                                        \
-      .divider{                                                   \
-            width:                  15px;                         \
-            height:                 auto;                         \
-            display:                inline-block;                 \
-      }                                                           \
-      /* Reactscore & Posts */                                    \
-      input[type=number]{                                         \
-            border-bottom:          2px solid teal;               \
-            border-image: linear-gradient(to right, #11998e,#38ef7d);\
-            border-image-slice:     1;                            \
-            background:             transparent;                  \
-            color:                  white;                        \
-            max-width:              35px;                         \
-      }                                                           \
-      #textareaDivider {                                         \
-            margin-top:             -11px;                        \
-      }                                                           \
-      .switch {                                                   \
-            position:               relative;                     \
-            display:                inline-block;                 \
-            width:                  42px;                         \
-            height:                 17px;                         \
-      }                                                           \
-      .switch input {                                             \
-            opacity:                0;                            \
-            width:                  0;                            \
-            height:                 0;                            \
-      }                                                           \
-      .slider {                                                   \
-            position:               absolute;                     \
-            cursor:                 pointer;                      \
-            top:                    0;                            \
-            left:                   0;                            \
-            right:                  0;                            \
-            bottom:                 0;                            \
-            background-color:       #ccc;                         \
-            -webkit-transition:     .4s;                          \
-            transition:             .4s;                          \
-      }                                                           \
-      .slider:before {                                            \
-            position:               absolute;                     \
-            content:                '';                           \
-            height:                 13px;                         \
-            width:                  13px;                         \
-            left:                   2px;                          \
-            bottom:                 2px;                          \
-            background-color:       #42464D;                      \
-            -webkit-transition:     .4s;                          \
-            transition:             .4s;                          \
-      }                                                           \
-      input:checked + .slider {                                   \
-            background-color:       #4caf50;                      \
-      }                                                           \
-      input:focus + .slider {                                     \
-            box-shadow:             0 0 1px #4caf50;              \
-      }                                                           \
-      input:checked + .slider:before {                            \
-            -webkit-transform:      translateX(26px);             \
-            -ms-transform:          translateX(26px);             \
-            transform:              translateX(26px);             \
-      }                                                           \
-      /* Rounded sliders */                                       \
-      .slider.round {                                             \
-            border-radius:          34px;                         \
-      }                                                           \
-      .slider.round:before {                                      \
-            border-radius:          50%;                          \
-      }                                                           \
-}                                                                 \
+"                                                                     \
+    @media screen and (min-width: 300px) {                            \
+      /* Reactscore & Posts */                                        \
+      input[type=number]{                                             \
+            border-bottom:          2px solid teal;                   \
+            border-image: linear-gradient(to right, #11998e,#38ef7d); \
+            border-image-slice:     1;                                \
+            background:             transparent;                      \
+            color:                  white;                            \
+            max-width:              35px;                             \
+      }                                                               \
+      #textareaDivider {                                              \
+            margin-top:             -11px;                            \
+      }                                                               \
+      /* Start Rounded sliders Checkboxes */                          \
+      .switch {                                                       \
+            position:               relative;                         \
+            display:                inline-block;                     \
+            width:                  42px;                             \
+            height:                 17px;                             \
+      }                                                               \
+      .switch input {                                                 \
+            opacity:                0;                                \
+            width:                  0;                                \
+            height:                 0;                                \
+      }                                                               \
+      .slider {                                                       \
+            position:               absolute;                         \
+            cursor:                 pointer;                          \
+            top:                    0;                                \
+            left:                   0;                                \
+            right:                  0;                                \
+            bottom:                 0;                                \
+            background-color:       #ccc;                             \
+            -webkit-transition:     .4s;                              \
+            transition:             .4s;                              \
+      }                                                               \
+      .slider:before {                                                \
+            position:               absolute;                         \
+            content:                '';                               \
+            height:                 13px;                             \
+            width:                  13px;                             \
+            left:                   2px;                              \
+            bottom:                 2px;                              \
+            background-color:       #42464D;                          \
+            -webkit-transition:     .4s;                              \
+            transition:             .4s;                              \
+      }                                                               \
+      input:checked + .slider {                                       \
+            background-color:       #4caf50;                          \
+      }                                                               \
+      input:focus + .slider {                                         \
+            box-shadow:             0 0 1px #4caf50;                  \
+      }                                                               \
+      input:checked + .slider:before {                                \
+            -webkit-transform:      translateX(26px);                 \
+            -ms-transform:          translateX(26px);                 \
+            transform:              translateX(26px);                 \
+      }                                                               \
+      .slider.round {                                                 \
+            border-radius:          34px;                             \
+      }                                                               \
+      .slider.round:before {                                          \
+            border-radius:          50%;                              \
+      }                                                               \
+}                                                                     \
+    @media screen and (min-width: 768px) {                            \
+      /* Reactscore & Posts */                                        \
+      input[type=number]{                                             \
+            border-bottom:          2px solid teal;                   \
+            border-image: linear-gradient(to right, #11998e,#38ef7d); \
+            border-image-slice:     1;                                \
+            background:             transparent;                      \
+            color:                  white;                            \
+            max-width:              35px;                             \
+      }                                                               \
+      #textareaDivider {                                              \
+            margin-top:             -11px;                            \
+      }                                                               \
+      .switch {                                                       \
+            position:               relative;                         \
+            display:                inline-block;                     \
+            width:                  42px;                             \
+            height:                 17px;                             \
+      }                                                               \
+      .switch input {                                                 \
+            opacity:                0;                                \
+            width:                  0;                                \
+            height:                 0;                                \
+      }                                                               \
+      .slider {                                                       \
+            position:               absolute;                         \
+            cursor:                 pointer;                          \
+            top:                    0;                                \
+            left:                   0;                                \
+            right:                  0;                                \
+            bottom:                 0;                                \
+            background-color:       #ccc;                             \
+            -webkit-transition:     .4s;                              \
+            transition:             .4s;                              \
+      }                                                               \
+      .slider:before {                                                \
+            position:               absolute;                         \
+            content:                '';                               \
+            height:                 13px;                             \
+            width:                  13px;                             \
+            left:                   2px;                              \
+            bottom:                 2px;                              \
+            background-color:       #42464D;                          \
+            -webkit-transition:     .4s;                              \
+            transition:             .4s;                              \
+      }                                                               \
+      input:checked + .slider {                                       \
+            background-color:       #4caf50;                          \
+      }                                                               \
+      input:focus + .slider {                                         \
+            box-shadow:             0 0 1px #4caf50;                  \
+      }                                                               \
+      input:checked + .slider:before {                                \
+            -webkit-transform:      translateX(26px);                 \
+            -ms-transform:          translateX(26px);                 \
+            transform:              translateX(26px);                 \
+      }                                                               \
+      /* Rounded sliders */                                           \
+      .slider.round {                                                 \
+            border-radius:          34px;                             \
+      }                                                               \
+      .slider.round:before {                                          \
+            border-radius:          50%;                              \
+      }                                                               \
+}                                                                     \
 "
 );

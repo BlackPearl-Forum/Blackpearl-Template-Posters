@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Blackpearl Games
-// @version     1.0.2
+// @version     1.0.3
 // @description Template Maker
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png
@@ -33,7 +33,7 @@ const htmlTemplate = `
 <div class="results input" style="display:none"></div>
 </div>
 <input type="text" id="ytLink" value="" class="input" placeholder="Youtube Trailer Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Youtube Trailer Link'">
-<input type="text" id="info" value="" class="input" placeholder="Crack / Repack Info" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Crack / Repack Info'">
+<textarea rows="1" style="width:100%;" id="info" value="" class="input" placeholder="Crack / Repack Info" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Crack / Repack Info'"></textarea>
 <input type="text" id="vtLink" value="" class="input" placeholder="VirusTotal Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'VirusTotal Link'">
 <input type="text" id="ddl" value="" class="input" placeholder="Download Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Download Link'">
 <div id="textareaDivider">&nbsp;</div>
@@ -311,7 +311,7 @@ function generateTemplate(APIVALUE) {
 						? ' - (' +
 						  json.released.substring(0, 4) +
 						  ')[/size][/b][/forumcolor]\n'
-						: '[/b][/size][/forumcolor][/center]\n[HR][/HR]\n';
+						: '[/b][/size][/forumcolor]\n[HR][/HR]\n';
 				let description =
 					'[indent][forumcolor][b][size=25px]Description' +
 					'[/size][/b][/forumcolor][/indent]\n' +

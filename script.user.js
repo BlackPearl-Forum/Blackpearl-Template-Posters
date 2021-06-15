@@ -247,153 +247,150 @@ function generateTemplate(APIVALUE) {
 			? "<li>You Don't Have Any Mediainfo? It's Required!</li>"
 			: '';
 		Popup(errors);
-	} else {
-		if (Downcloud.checked) {
-			let ddlsplit = ddl.split(' ');
-			ddl = '';
-			for (let dls of ddlsplit) {
-				ddl += `[downcloud]${dls}[/downcloud]\n`;
-			}
-		} else {
-			ddl = ddl.replace(/\ /g, '\n');
-		}
-		ddl = `[hidereact=1,2,3,4,5,6,7,8]\n${ddl.replace(
-			/\n+$/,
-			''
-		)}\n[/hidereact]`;
-		if (hidereactscore !== '0') {
-			ddl = `[hidereactscore=${hidereactscore}]${ddl}[/hidereactscore]`;
-		}
-		if (hideposts !== '0') {
-			ddl = `[hideposts=${hideposts}]${ddl}[/hideposts]`;
-		}
-		if (screenshots) {
-			screenshots = screenshots.split(' ');
-			var screen = `\n[hr][/hr][indent][size=6][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [spoiler='screenshots']\n`;
-			for (let ss of screenshots) {
-				screen += `[img]${ss}[/img]`;
-			}
-			screen += `[/spoiler]`;
-		} else {
-			screen = '';
-		}
-		var trailer = youtubeLink.match(/[a-z]/)
-			? `\n[hr][/hr][indent][size=6][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n ${youtubeLink}`
-			: '';
-		GM_xmlhttpRequest({
-			method: 'GET',
-			url: `http://www.omdbapi.com/?apikey=${APIVALUE}&i=${imdbID}&plot=full&y&r=json`,
-			onload: function (response) {
-				try {
-					var json = JSON.parse(response.responseText);
-				} catch (e) {
-					let errors =
-						'<li>Something Messed Up! Check The OMDB Error Below.</li>';
-					errors += `<li>${response.responseText.match(/(?<=Error":").*(?="})/)[0]}</li>`;
-					Popup(errors);
-					return;
-				}
-				let poster =
-					json.Poster && json.Poster !== 'N/A'
-						? `[center][img width='350px']${json.Poster.replace(
-								/._V1_SX\d+.jpg/g,
-								'._V1_SX1000.png'
-						  )}[/img]\n`
-						: '';
-				if (json.Title && json.Title !== 'N/A') {
-					var title = `[forumcolor][b][size=6][url='https://blackpearl.biz/search/1/?q=${imdbID}&o=date']${json.Title}`;
-				} else {
-					let errors =
-						'<li>Something Messed Up! Check The OMDB Error Below.</li>';
-					errors += `<li>${json.Error}</li>`;
-					Popup(errors);
-					return;
-				}
-				let year =
-					json.Year && json.Year !== 'N/A'
-						? ` (${json.Year})[/url][/size][/b][/forumcolor]\n`
-						: '';
-				let imdbId =
-					json.imdbID && json.imdbID !== 'N/A'
-						? `[url=https://www.imdb.com/title/${json.imdbID}][img width='46px']https://i.imgur.com/KO5Twbs.png[/img][/url]`
-						: '';
-				let rating =
-					json.imdbRating && json.imdbRating !== 'N/A'
-						? `[size=6][b]${json.imdbRating}[/b]/10[/size]\n`
-						: '';
-				let imdbvotes =
-					json.imdbVotes && json.imdbVotes !== 'N/A'
-						? `[img]https://i.imgur.com/sEpKj3O.png[/img][size=6]${json.imdbVotes}[/size][/center]\n`
-						: '';
-				let plot =
-					json.Plot && json.Plot !== 'N/A'
-						? `[hr][/hr][indent][size=6][forumcolor][b]Plot[/b][/forumcolor][/size][/indent]\n\n${json.Plot}`
-						: '';
-				let movieInfo = '';
-				if (json.Rated && json.Rated !== 'N/A') {
-					movieInfo += `[*][B]Rating: [/B] ${json.Rated}\n`;
-				}
-				if (json.Genre && json.Genre !== 'N/A') {
-					movieInfo += `[*][B]Genre: [/B] ${json.Genre}\n`;
-				}
-				if (json.Director && json.Director !== 'N/A') {
-					movieInfo += `[*][B]Directed By: [/B] ${json.Director}\n`;
-				}
-				if (json.Writer && json.Writer !== 'N/A') {
-					movieInfo += `[*][B]Written By: [/B] ${json.Writer}\n`;
-				}
-				if (json.Actors && json.Actors !== 'N/A') {
-					movieInfo += `[*][B]Starring: [/B] ${json.Actors}\n`;
-				}
-				if (json.Released && json.Released !== 'N/A') {
-					movieInfo += `[*][B]Release Date: [/B] ${json.Released}\n`;
-				}
-				if (json.Runtime && json.Runtime !== 'N/A') {
-					movieInfo += `[*][B]Runtime: [/B] ${json.Runtime}\n`;
-				}
-				if (json.Production && json.Production !== 'N/A') {
-					movieInfo += `[*][B]Production: [/B] ${json.Production}\n`;
-				}
-				movieInfo = movieInfo
-					? `\n[hr][/hr][indent][size=6][forumcolor][b]Movie Info[/b][/forumcolor][/size][/indent]\n[LIST]${movieInfo}[/LIST]\n`
-					: '';
-				let tags = json.Genre && json.Genre !== 'N/A' ? json.Genre : '';
-				if (MediaInfo.includes('Dolby Vision')) {
-					tags += ', Dolby Vision';
-				}
-				MediaInfo =
-					'[hr][/hr][indent][size=6][forumcolor][b]Media Info[/b][/forumcolor][/size][/indent]\n' +
-					`[spoiler='Click here to view Media Info']\n${MediaInfo}\n[/spoiler]\n`;
-				ddl = `[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${ddl}\n[/center]`;
-				let dump = `${poster}${title}${year}${imdbId} ${rating}${imdbvotes}${plot}${trailer}${screen}${movieInfo}${MediaInfo}${ddl}`;
-				try {
-					document.getElementsByName('message')[0].value = dump;
-				} catch (err) {
-					removeAllChildNodes(
-						document.getElementsByClassName('fr-element fr-view')[0]
-					);
-					let p = document.createElement('p');
-					p.innerText = dump;
-					document
-						.getElementsByClassName('fr-element fr-view')[0]
-						.appendChild(p);
-				} finally {
-					if (tags) {
-						document.getElementsByName('tags')[0].value = tags;
-						tags = tags.split(', ');
-						for (let i = 0; i < tags.length; i++) {
-							tagsPush(tags[i]);
-						}
-					}
-					if (!document.getElementsByClassName('js-titleInput')[0].value) {
-						document.getElementsByClassName(
-							'js-titleInput'
-						)[0].value = `${json.Title} (${json.Year})`;
-					}
-				}
-			},
-		});
+		return;
 	}
+	if (Downcloud.checked) {
+		let ddlsplit = ddl.split(' ');
+		ddl = '';
+		for (let dls of ddlsplit) {
+			ddl += `[downcloud]${dls}[/downcloud]\n`;
+		}
+	} else {
+		ddl = ddl.replace(/\ /g, '\n');
+	}
+	ddl = `[hidereact=1,2,3,4,5,6,7,8]\n${ddl.replace(/\n+$/, '')}\n[/hidereact]`;
+	if (hidereactscore !== '0') {
+		ddl = `[hidereactscore=${hidereactscore}]${ddl}[/hidereactscore]`;
+	}
+	if (hideposts !== '0') {
+		ddl = `[hideposts=${hideposts}]${ddl}[/hideposts]`;
+	}
+	if (screenshots) {
+		screenshots = screenshots.split(' ');
+		var screen = `\n[hr][/hr][indent][size=6][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [spoiler='screenshots']\n`;
+		for (let ss of screenshots) {
+			screen += `[img]${ss}[/img]`;
+		}
+		screen += `[/spoiler]`;
+	} else {
+		screen = '';
+	}
+	var trailer = youtubeLink.match(/[a-z]/)
+		? `\n[hr][/hr][indent][size=6][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n ${youtubeLink}`
+		: '';
+	GM_xmlhttpRequest({
+		method: 'GET',
+		url: `http://www.omdbapi.com/?apikey=${APIVALUE}&i=${imdbID}&plot=full&y&r=json`,
+		onload: function (response) {
+			try {
+				var json = JSON.parse(response.responseText);
+			} catch (e) {
+				let errors =
+					'<li>Something Messed Up! Check The OMDB Error Below.</li>';
+				errors += `<li>${
+					response.responseText.match(/(?<=Error":").*(?="})/)[0]
+				}</li>`;
+				Popup(errors);
+				return;
+			}
+			let poster =
+				json.Poster && json.Poster !== 'N/A'
+					? `[center][img width='350px']${json.Poster.replace(
+							/._V1_SX\d+.jpg/g,
+							'._V1_SX1000.png'
+					  )}[/img]\n`
+					: '';
+			if (json.Title && json.Title !== 'N/A') {
+				var title = `[forumcolor][b][size=6][url='https://blackpearl.biz/search/1/?q=${imdbID}&o=date']${json.Title}`;
+			} else {
+				let errors =
+					'<li>Something Messed Up! Check The OMDB Error Below.</li>';
+				errors += `<li>${json.Error}</li>`;
+				Popup(errors);
+				return;
+			}
+			let year =
+				json.Year && json.Year !== 'N/A'
+					? ` (${json.Year})[/url][/size][/b][/forumcolor]\n`
+					: '';
+			let imdbId =
+				json.imdbID && json.imdbID !== 'N/A'
+					? `[url=https://www.imdb.com/title/${json.imdbID}][img width='46px']https://i.imgur.com/KO5Twbs.png[/img][/url]`
+					: '';
+			let rating =
+				json.imdbRating && json.imdbRating !== 'N/A'
+					? `[size=6][b]${json.imdbRating}[/b]/10[/size]\n`
+					: '';
+			let imdbvotes =
+				json.imdbVotes && json.imdbVotes !== 'N/A'
+					? `[img]https://i.imgur.com/sEpKj3O.png[/img][size=6]${json.imdbVotes}[/size][/center]\n`
+					: '';
+			let plot =
+				json.Plot && json.Plot !== 'N/A'
+					? `[hr][/hr][indent][size=6][forumcolor][b]Plot[/b][/forumcolor][/size][/indent]\n\n${json.Plot}`
+					: '';
+			let movieInfo = '';
+			if (json.Rated && json.Rated !== 'N/A') {
+				movieInfo += `[*][B]Rating: [/B] ${json.Rated}\n`;
+			}
+			if (json.Genre && json.Genre !== 'N/A') {
+				movieInfo += `[*][B]Genre: [/B] ${json.Genre}\n`;
+			}
+			if (json.Director && json.Director !== 'N/A') {
+				movieInfo += `[*][B]Directed By: [/B] ${json.Director}\n`;
+			}
+			if (json.Writer && json.Writer !== 'N/A') {
+				movieInfo += `[*][B]Written By: [/B] ${json.Writer}\n`;
+			}
+			if (json.Actors && json.Actors !== 'N/A') {
+				movieInfo += `[*][B]Starring: [/B] ${json.Actors}\n`;
+			}
+			if (json.Released && json.Released !== 'N/A') {
+				movieInfo += `[*][B]Release Date: [/B] ${json.Released}\n`;
+			}
+			if (json.Runtime && json.Runtime !== 'N/A') {
+				movieInfo += `[*][B]Runtime: [/B] ${json.Runtime}\n`;
+			}
+			if (json.Production && json.Production !== 'N/A') {
+				movieInfo += `[*][B]Production: [/B] ${json.Production}\n`;
+			}
+			movieInfo = movieInfo
+				? `\n[hr][/hr][indent][size=6][forumcolor][b]Movie Info[/b][/forumcolor][/size][/indent]\n[LIST]${movieInfo}[/LIST]\n`
+				: '';
+			let tags = json.Genre && json.Genre !== 'N/A' ? json.Genre : '';
+			if (MediaInfo.includes('Dolby Vision')) {
+				tags += ', Dolby Vision';
+			}
+			MediaInfo =
+				'[hr][/hr][indent][size=6][forumcolor][b]Media Info[/b][/forumcolor][/size][/indent]\n' +
+				`[spoiler='Click here to view Media Info']\n${MediaInfo}\n[/spoiler]\n`;
+			ddl = `[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${ddl}\n[/center]`;
+			let dump = `${poster}${title}${year}${imdbId} ${rating}${imdbvotes}${plot}${trailer}${screen}${movieInfo}${MediaInfo}${ddl}`;
+			try {
+				document.getElementsByName('message')[0].value = dump;
+			} catch (err) {
+				removeAllChildNodes(
+					document.getElementsByClassName('fr-element fr-view')[0]
+				);
+				let p = document.createElement('p');
+				p.innerText = dump;
+				document.getElementsByClassName('fr-element fr-view')[0].appendChild(p);
+			} finally {
+				if (tags) {
+					document.getElementsByName('tags')[0].value = tags;
+					tags = tags.split(', ');
+					for (let i = 0; i < tags.length; i++) {
+						tagsPush(tags[i]);
+					}
+				}
+				if (!document.getElementsByClassName('js-titleInput')[0].value) {
+					document.getElementsByClassName(
+						'js-titleInput'
+					)[0].value = `${json.Title} (${json.Year})`;
+				}
+			}
+		},
+	});
 }
 
 GM_addStyle(

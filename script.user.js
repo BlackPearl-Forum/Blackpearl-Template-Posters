@@ -146,7 +146,7 @@ function sectionSearch(APIVALUE) {
 	var section = tab_url.match(/\d+/, '');
 	section = parseInt(section);
 	const [Movies, Series] = [
-		[129, 172, 173, 174, 175, 176, 178, 179, 180, 181, 182, 183, 184, 202, 204],
+		[129, 172, 173, 174, 175, 176, 178, 179, 180, 181, 183, 184, 202, 204],
 		[187, 188, 189, 190, 193, 194, 197, 198, 199, 200, 203, 206, 208, 209, 223],
 	];
 	var query;
@@ -166,7 +166,11 @@ function sectionSearch(APIVALUE) {
 					results: {},
 				};
 				$.each(myfunc.Search, function (index, item) {
-					var category = item.Type.toUpperCase() || 'Unknown',
+					var category =
+							item.Type.replace('movie', 'Movies').replace(
+								'series',
+								'TV Shows'
+							) || 'Unknown',
 						maxResults = 10;
 					if (index >= maxResults) {
 						return false;
@@ -278,10 +282,14 @@ function generateTemplate(APIVALUE) {
 				let json = JSON.parse(response.responseText);
 				let poster =
 					json.Poster && json.Poster !== 'N/A'
-						? '[center][img]' + json.Poster + '[/img]\n'
+						? '[center][img]' +
+						  json.Poster.replace(/._V1_SX\d+.jpg/g, '._V1_SX1000.png') +
+						  '[/img]\n'
 						: '';
 				if (json.Title && json.Title !== 'N/A') {
-					var title = '[forumcolor][b][size=6]' + json.Title;
+					var title =
+						'[forumcolor][b][size=6]' +
+						`[url='https://blackpearl.biz/search/1/?q=${IID}&o=date']${json.Title}`;
 				} else {
 					errors =
 						"You Messed Up! Check That You've Entered Something Into The IMDB Field!";
@@ -289,13 +297,13 @@ function generateTemplate(APIVALUE) {
 				}
 				let year =
 					json.Year && json.Year !== 'N/A'
-						? json.Year + ')[/size][/b][/forumcolor]\n'
+						? json.Year + ')[/url][/size][/b][/forumcolor]\n'
 						: '';
 				let imdbId =
 					json.imdbID && json.imdbID !== 'N/A'
 						? '[url=https://www.imdb.com/title/' +
 						  json.imdbID +
-						  '][img]https://i.imgur.com/rcSipDw.png[/img][/url]'
+						  "][img width='46px']https://i.imgur.com/KO5Twbs.png[/img][/url]"
 						: '';
 				let rating =
 					json.imdbRating && json.imdbRating !== 'N/A'
@@ -303,7 +311,7 @@ function generateTemplate(APIVALUE) {
 						: '';
 				let imdbvotes =
 					json.imdbVotes && json.imdbVotes !== 'N/A'
-						? '[size=6][img]https://i.imgur.com/sEpKj3O.png[/img]' +
+						? '[img]https://i.imgur.com/sEpKj3O.png[/img][size=6]' +
 						  json.imdbVotes +
 						  '[/size][/center]\n'
 						: '';
@@ -345,7 +353,9 @@ function generateTemplate(APIVALUE) {
 						? '[*][B]Production: [/B] ' + json.Production + '\n'
 						: '';
 				let tags = json.Genre && json.Genre !== 'N/A' ? json.Genre : '';
-				if (MEDIAINFO.includes("Dolby Vision")) {tags += ", Dolby Vision";}
+				if (MEDIAINFO.includes('Dolby Vision')) {
+					tags += ', Dolby Vision';
+				}
 				MEDIAINFO =
 					"[hr][/hr][indent][size=6][forumcolor][b]Media Info[/b][/forumcolor][/size][/indent]\n [spoiler='Click here to view Media Info']\n " +
 					MEDIAINFO +
@@ -385,12 +395,6 @@ function generateTemplate(APIVALUE) {
 GM_addStyle(
 	"                                                         \
     @media screen and (min-width: 300px) {                        \
-      /* Divide Buttons */                                        \
-      .divider{                                                   \
-            width:                  8px;                          \
-            height:                 auto;                         \
-            display:                inline-block;                 \
-      }                                                           \
       /* Reactscore & Posts */                                    \
       input[type=number]{                                         \
             border-bottom:          2px solid teal;               \
@@ -400,7 +404,7 @@ GM_addStyle(
             color:                  white;                        \
             max-width:              35px;                         \
       }                                                           \
-      #textareaDivider {                                         \
+      #textareaDivider {                                          \
             margin-top:             -11px;                        \
       }                                                           \
       /* Start Rounded sliders Checkboxes */                      \
@@ -456,12 +460,6 @@ GM_addStyle(
       }                                                           \
 }                                                                 \
     @media screen and (min-width: 768px) {                        \
-      /* Divide Buttons */                                        \
-      .divider{                                                   \
-            width:                  15px;                         \
-            height:                 auto;                         \
-            display:                inline-block;                 \
-      }                                                           \
       /* Reactscore & Posts */                                    \
       input[type=number]{                                         \
             border-bottom:          2px solid teal;               \
@@ -471,7 +469,7 @@ GM_addStyle(
             color:                  white;                        \
             max-width:              35px;                         \
       }                                                           \
-      #textareaDivider {                                         \
+      #textareaDivider {                                          \
             margin-top:             -11px;                        \
       }                                                           \
       .switch {                                                   \

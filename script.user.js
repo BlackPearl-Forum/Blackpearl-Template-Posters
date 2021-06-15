@@ -298,10 +298,13 @@ function generateTemplate(APIVALUE) {
 					? `[center][img width='350px']${json.Poster.replace(
 							/._V1_SX\d+.jpg/g,
 							'._V1_SX1000.png'
-					  )}[/img]\n`
+					  )}[/img][/center]\n`
 					: '';
 			if (json.Title && json.Title !== 'N/A') {
-				var title = `[forumcolor][b][size=6][url='https://blackpearl.biz/search/1/?q=${imdbID}&o=date']${json.Title}`;
+				var title =
+                    json.Title && json.Title !== 'N/A'
+                    ? json.Title
+                    : '';
 			} else {
 				let errors =
 					'<li>Something Messed Up! Check The OMDB Error Below.</li>';
@@ -310,20 +313,21 @@ function generateTemplate(APIVALUE) {
 				return;
 			}
 			let year =
-				json.Year && json.Year !== 'N/A'
-					? ` (${json.Year})[/url][/size][/b][/forumcolor]\n`
-					: '';
+                json.Year && json.Year !== 'N/A'
+                ? ` (${json.Year})`
+                : '';
+            let fullName = `[center][forumcolor][b][size=6][url='https://blackpearl.biz/search/1/?q=${imdbID}&o=date']${title}${year}[/url][/size][/b][/forumcolor][/center]`;
 			let imdbId =
 				json.imdbID && json.imdbID !== 'N/A'
-					? `[url=https://www.imdb.com/title/${json.imdbID}][img width='46px']https://i.imgur.com/KO5Twbs.png[/img][/url]`
+					? `[center][url=https://www.imdb.com/title/${json.imdbID}][img width='46px']https://i.imgur.com/KO5Twbs.png[/img][/url][/center]`
 					: '';
 			let rating =
 				json.imdbRating && json.imdbRating !== 'N/A'
-					? `[size=6][b]${json.imdbRating}[/b]/10[/size]\n`
+					? `[center][size=6][b]${json.imdbRating}[/b]/10[/size][/center]\n`
 					: '';
 			let imdbvotes =
 				json.imdbVotes && json.imdbVotes !== 'N/A'
-					? `[img]https://i.imgur.com/sEpKj3O.png[/img][size=6]${json.imdbVotes}[/size][/center]\n`
+					? `[center][img]https://i.imgur.com/sEpKj3O.png[/img][size=6]${json.imdbVotes}[/size][/center]\n`
 					: '';
 			let plot =
 				json.Plot && json.Plot !== 'N/A'
@@ -365,7 +369,7 @@ function generateTemplate(APIVALUE) {
 				'[hr][/hr][indent][size=6][forumcolor][b]Media Info[/b][/forumcolor][/size][/indent]\n' +
 				`[spoiler='Click here to view Media Info']\n${MediaInfo}\n[/spoiler]\n`;
 			ddl = `[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${ddl}\n[/center]`;
-			let dump = `${poster}${title}${year}${imdbId} ${rating}${imdbvotes}${plot}${trailer}${screen}${movieInfo}${MediaInfo}${ddl}`;
+			let dump = `${poster}${fullName}${imdbId} ${rating}${imdbvotes}${plot}${trailer}${screen}${movieInfo}${MediaInfo}${ddl}`;
 			try {
 				document.getElementsByName('message')[0].value = dump;
 			} catch (err) {

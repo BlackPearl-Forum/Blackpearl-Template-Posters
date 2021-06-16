@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Blackpearl Games
-// @version     1.0.3
+// @version     1.0.4
 // @description Template Maker
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png
@@ -74,8 +74,6 @@ errormessages
 </ul>
 </div></div></div></div>`;
 
-var tagSelect = `<li class="select2-selection__choice" title="tagname"><span class="select2-selection__choice__remove" role="presentation">×</span>tagname</li>`;
-
 function main() {
 	GM.getValue('APIKEY', 'foo').then((value) => {
 		var APIVALUE = value;
@@ -128,20 +126,6 @@ function Popup(errors) {
 	let errOutput = errPopup.replace('errormessages', errors);
 	let body = document.getElementsByTagName('Body')[0];
 	body.insertAdjacentHTML('beforeend', errOutput);
-}
-
-// Push Genre Tags to HTML
-function tagsPush(tag) {
-	let tagOutput = tagSelect.replace(/tagname/g, tag);
-	let tagParent = document.getElementsByClassName(
-		'select2-selection__rendered'
-	)[1];
-	let tagParent2 = document.getElementsByName('tokens_select')[0];
-	let option = document.createElement('option');
-	option.text = tag;
-	option.value = tag;
-	tagParent.insertAdjacentHTML('afterbegin', tagOutput);
-	tagParent2.add(option);
 }
 
 function sectionSearch(APIVALUE) {
@@ -370,11 +354,7 @@ function generateTemplate(APIVALUE) {
 					'[/size][/b][/forumcolor][/indent]\n' +
 					vtLink +
 					'\n[HR][/HR]\n';
-
-				if (json.genres !== '') {
-					var tags = json.genres;
-				}
-
+				
 				ddl =
 					'[center][size=25px][forumcolor][b]Download Link[/b][/forumcolor][/size]\n' +
 					ddl +
@@ -382,19 +362,6 @@ function generateTemplate(APIVALUE) {
 				let dump = `${backgroundimage}${title} ${year} ${steam} ${description}${trailer}${screen}${ratings}${info}${vtLink}${ddl}`;
 				try {
 					document.getElementsByName('message')[0].value = dump;
-					if (tags) {
-						document.getElementsByName('tags')[0].value = tags;
-						for (let x in tags) {
-							var genres = tags[x].name;
-							if (genres == 'Massively Multiplayer') {
-								genres = 'MMO';
-							}
-							if (genres == 'Board Games') {
-								genres = 'Board-Games';
-							}
-							tagsPush(genres);
-						}
-					}
 				} catch (err) {
 					alert(
 						'You should be running this in BBCode Mode. Check the Readme for more information!\n' +

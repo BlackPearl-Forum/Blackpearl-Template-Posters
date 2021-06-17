@@ -56,8 +56,8 @@ const omdbinput = `
 <div id="textareaDivider" name="showDivider" style="display:none">&nbsp;</div>
 <button id="showTemplate" style="display:none" class="button--primary button button--icon" type="button">Show</button>
 <div id="OmdbGenerator">
-<label>Enter Your OMDB API Key, Then Click On Save :)</label>
-<input type="text" id="omdbKey" value="" class="input" placeholder="Omdb API Key">
+<input type="text" id="omdbKey" value="" class="input" placeholder="Enter Your Omdb API Key & Click Save">
+<div id="textareaDivider">&nbsp;</div>
 <button class="button--primary button button--icon" id="gmSaveKey" type="button">Save Key</button>
 <button class="button--primary button button--icon" id="gmClearBtn" type="reset">Clear</button>
 <button class="button--primary button button--icon" id="gmHideTemplate" type="button">Hide</button>

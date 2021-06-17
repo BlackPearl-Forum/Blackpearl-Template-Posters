@@ -253,7 +253,9 @@ function generateTemplate(APIVALUE) {
 		let ddlsplit = ddl.split(' ');
 		ddl = '';
 		for (let dls of ddlsplit) {
-			ddl += `[downcloud]${dls}[/downcloud]\n`;
+			if (dls) {
+				ddl += `[downcloud]${dls}[/downcloud]\n`;
+			}
 		}
 	} else {
 		ddl = ddl.replace(/\ /g, '\n');

@@ -300,7 +300,7 @@ function generateTemplate(APIVALUE) {
 							'._V1_SX1000.png'
 					  )}[/img][/center]\n`
 					: '';
-			if (json.Title && json.Title !== 'N/A') {
+			if (json.Title) {
 				var title =
                     json.Title && json.Title !== 'N/A'
                     ? json.Title
@@ -317,10 +317,11 @@ function generateTemplate(APIVALUE) {
                 ? ` (${json.Year})`
                 : '';
             let fullName = `[center][forumcolor][b][size=6][url='https://blackpearl.biz/search/1/?q=${imdbID}&o=date']${title}${year}[/url][/size][/b][/forumcolor][/center]`;
-			let imdbId =
+			imdbID =
 				json.imdbID && json.imdbID !== 'N/A'
 					? `[center][url=https://www.imdb.com/title/${json.imdbID}][img width='46px']https://i.imgur.com/KO5Twbs.png[/img][/url][/center]`
 					: '';
+
 			let rating =
 				json.imdbRating && json.imdbRating !== 'N/A'
 					? `[center][size=6][b]${json.imdbRating}[/b]/10[/size][/center]\n`
@@ -352,12 +353,16 @@ function generateTemplate(APIVALUE) {
 			if (json.Released && json.Released !== 'N/A') {
 				movieInfo += `[*][B]Release Date: [/B] ${json.Released}\n`;
 			}
+            if (json.Awards && json.Awards !== 'N/A') {
+                movieInfo += `[*][B]Awards: [/B] ${json.Awards}\n`;
+            }
 			if (json.Runtime && json.Runtime !== 'N/A') {
 				movieInfo += `[*][B]Runtime: [/B] ${json.Runtime}\n`;
 			}
 			if (json.Production && json.Production !== 'N/A') {
 				movieInfo += `[*][B]Production: [/B] ${json.Production}\n`;
 			}
+
 			movieInfo = movieInfo
 				? `\n[hr][/hr][indent][size=6][forumcolor][b]Movie Info[/b][/forumcolor][/size][/indent]\n[LIST]${movieInfo}[/LIST]\n`
 				: '';
@@ -365,6 +370,7 @@ function generateTemplate(APIVALUE) {
 			if (MediaInfo.includes('Dolby Vision')) {
 				tags += ', Dolby Vision';
 			}
+            tags = tags.replace(/^([, ]*)/g, '')
 			MediaInfo =
 				'[hr][/hr][indent][size=6][forumcolor][b]Media Info[/b][/forumcolor][/size][/indent]\n' +
 				`[spoiler='Click here to view Media Info']\n${MediaInfo}\n[/spoiler]\n`;

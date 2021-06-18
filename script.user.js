@@ -72,17 +72,17 @@ errormessages
 </ul>
 </div></div></div></div>`;
 
-function main() {
+function Main() {
 	GM.getValue('DiscogKey', 'foo').then((value) => {
 		const APIVALUE = value;
 		const htmlpush = document.getElementsByTagName('dd')[0];
 		let lossless = window.location.href.match(/\d+/, '').includes('88');
 		htmlpush.innerHTML += APIVALUE !== 'foo' ? htmlTemplate : dginput;
-		$('#gmHideTemplate').click(() => hideTemplate());
-		$('#gmShowTemplate').click(() => showTemplate());
-		$('#gmSaveKey').click(() => saveApiKey(APIVALUE));
-		searchDiscog(APIVALUE);
-		$('#gmGenerate').click(() => generateTemplate(APIVALUE, lossless));
+		$('#gmHideTemplate').click(() => HideTemplate());
+		$('#gmShowTemplate').click(() => ShowTemplate());
+		$('#gmSaveKey').click(() => SaveApiKey(APIVALUE));
+		SearchDiscog(APIVALUE);
+		$('#gmGenerate').click(() => GenerateTemplate(APIVALUE, lossless));
 	});
 }
 
@@ -103,12 +103,12 @@ $(document).on('keydown', function (event) {
 	}
 });
 
-function hideTemplate() {
+function HideTemplate() {
 	document.getElementById('gmShowTemplate').style.display = 'block';
 	$('#discogGenerator').hide();
 }
 
-function showTemplate() {
+function ShowTemplate() {
 	document.getElementById('gmShowTemplate').style.display = 'none';
 	$('#discogGenerator').show();
 }
@@ -120,7 +120,7 @@ function Popup(errors) {
 	body.insertAdjacentHTML('beforeend', errOutput);
 }
 
-function saveApiKey(APIVALUE) {
+function SaveApiKey(APIVALUE) {
 	if (APIVALUE == 'foo') {
 		let discogKey = $('#dgKey').val();
 		if (discogKey) {
@@ -134,7 +134,7 @@ function saveApiKey(APIVALUE) {
 	}
 }
 
-function searchDiscog(APIVALUE) {
+function SearchDiscog(APIVALUE) {
 	$('#Discog_search').search({
 		type: 'category',
 		apiSettings: {
@@ -179,7 +179,29 @@ function searchDiscog(APIVALUE) {
 	});
 }
 
-function generateTemplate(APIVALUE, lossless) {
+function DownloadLinkHandler() {
+	if (Downcloud.checked) {
+		let ddlSplit = downloadLinks.split(' ');
+		downloadLinks = '';
+		for (let singleLink of ddlSplit) {
+			if (singleLink) {
+				downloadLinks += `[downcloud]${singleLink}[/downcloud]\n`;
+			}
+		}
+	} else {
+		downloadLinks = downloadLinks.replace(/\ /g, '\n');
+	}
+	downloadLinks = `[hidereact=1,2,3,4,5,6]${downloadLinks}[/hidereact]`;
+	if (hideReactScore !== '0') {
+		downloadLinks = `[hidereactscore=${hideReactScore}]${downloadLinks}[/hidereactscore]`;
+	}
+	if (hidePosts !== '0') {
+		downloadLinks = `[hideposts=${hidePosts}]${downloadLinks}[/hideposts]`;
+	}
+	return downloadLinks
+}
+
+function GenerateTemplate(APIVALUE, lossless) {
 	let downloadLinks = $('#ddl').val();
 	let qualityImages = $('#qImgs').val();
 	let qualityText = $('#qText').val();
@@ -205,24 +227,7 @@ function generateTemplate(APIVALUE, lossless) {
 		}
 		return
 	}
-	if (Downcloud.checked) {
-		let ddlSplit = downloadLinks.split(' ');
-		downloadLinks = '';
-		for (let singleLink of ddlSplit) {
-			if (singleLink) {
-				downloadLinks += `[downcloud]${singleLink}[/downcloud]\n`;
-			}
-		}
-	} else {
-		downloadLinks = downloadLinks.replace(/\ /g, '\n');
-	}
-	downloadLinks = `[hidereact=1,2,3,4,5,6]${downloadLinks}[/hidereact]`;
-	if (hideReactScore !== '0') {
-		downloadLinks = `[hidereactscore=${hideReactScore}]${downloadLinks}[/hidereactscore]`;
-	}
-	if (hidePosts !== '0') {
-		downloadLinks = `[hideposts=${hidePosts}]${downloadLinks}[/hideposts]`;
-	}
+	downloadLinks = DownloadLinkHandler(downloadLinks)
 	var xhReq = new XMLHttpRequest();
 	xhReq.open('GET', `${masterUrl}?token=${APIVALUE}`, false);
 	xhReq.send(null);

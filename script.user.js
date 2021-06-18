@@ -179,6 +179,12 @@ function SearchDiscog(APIVALUE) {
 	});
 }
 
+function RemoveAllChildNodes(parent) {
+	while (parent.firstChild) {
+		parent.removeChild(parent.firstChild);
+	}
+}
+
 function DownloadLinkHandler(downloadLinks) {
 	if (Downcloud.checked) {
 		let ddlSplit = downloadLinks.split(' ');
@@ -339,10 +345,12 @@ function GenerateTemplate(APIVALUE, lossless) {
 			try {
 				document.getElementsByName('message')[0].value = dump;
 			} catch (err) {
-				alert(
-					'You should be running this in BBCode Mode. Check the Readme for more information!\n' +
-					err
+				removeAllChildNodes(
+					document.getElementsByClassName('fr-element fr-view')[0]
 				);
+				let p = document.createElement('p');
+				p.innerText = dump;
+				document.getElementsByClassName('fr-element fr-view')[0].appendChild(p);
 			} finally {
 				if (!document.getElementsByClassName('js-titleInput')[0].value) {
 					document.getElementsByClassName('js-titleInput')[0].value =

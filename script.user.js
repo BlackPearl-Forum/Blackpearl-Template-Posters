@@ -206,7 +206,15 @@ function generateTemplate(APIVALUE, lossless) {
 		return
 	}
 	if (Downcloud.checked) {
-		downloadLinks = `[downcloud]${downloadLinks}[/downcloud]`;
+		let ddlSplit = downloadLinks.split(' ');
+		downloadLinks = '';
+		for (let singleLink of ddlSplit) {
+			if (singleLink) {
+				downloadLinks += `[downcloud]${singleLink}[/downcloud]\n`;
+			}
+		}
+	} else {
+		downloadLinks = downloadLinks.replace(/\ /g, '\n');
 	}
 	downloadLinks = `[hidereact=1,2,3,4,5,6]${downloadLinks}[/hidereact]`;
 	if (hideReactScore !== '0') {

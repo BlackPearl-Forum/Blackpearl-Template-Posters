@@ -122,9 +122,9 @@ function Popup(errors) {
 
 function saveApiKey(APIVALUE) {
 	if (APIVALUE == 'foo') {
-		let dgKey = $('#dgKey').val();
-		if (dgKey) {
-			GM.setValue('DiscogKey', dgKey);
+		let discogKey = $('#dgKey').val();
+		if (discogKey) {
+			GM.setValue('DiscogKey', discogKey);
 		} else {
 			alert("You Didn't Enter Your Key!!");
 		}
@@ -180,18 +180,18 @@ function searchDiscog(APIVALUE) {
 }
 
 function generateTemplate(APIVALUE, lossless) {
-	let ddl = $('#ddl').val();
+	let downloadLinks = $('#ddl').val();
 	let qualityImages = $('#qImgs').val();
 	let qualityText = $('#qText').val();
 	let hideReactScore = $('#HideReactScore').val();
 	let hidePosts = $('#HidePosts').val();
 	let masterUrl = $('#masterUrl').val();
-	if (!masterUrl | !ddl | (lossless & !qualityImages & !qualityText)) {
+	if (!masterUrl | !downloadLinks | (lossless & !qualityImages & !qualityText)) {
 		var errors = '';
 		errors += !masterUrl
 			? "<li>You Didn't Select A Result or Enter a URL!</li>"
 			: '';
-		errors += !ddl
+		errors += !downloadLinks
 			? "<li>Uh Oh! You Forgot Your Download Link! That's Pretty Important...</li>"
 			: '';
 		if (lossless) {
@@ -206,14 +206,14 @@ function generateTemplate(APIVALUE, lossless) {
 		return
 	}
 	if (Downcloud.checked) {
-		ddl = `[downcloud]${ddl}[/downcloud]`;
+		downloadLinks = `[downcloud]${downloadLinks}[/downcloud]`;
 	}
-	ddl = `[hidereact=1,2,3,4,5,6]${ddl}[/hidereact]`;
+	downloadLinks = `[hidereact=1,2,3,4,5,6]${downloadLinks}[/hidereact]`;
 	if (hideReactScore !== '0') {
-		ddl = `[hidereactscore=${hideReactScore}]${ddl}[/hidereactscore]`;
+		downloadLinks = `[hidereactscore=${hideReactScore}]${downloadLinks}[/hidereactscore]`;
 	}
 	if (hidePosts !== '0') {
-		ddl = `[hideposts=${hidePosts}]${ddl}[/hideposts]`;
+		downloadLinks = `[hideposts=${hidePosts}]${downloadLinks}[/hideposts]`;
 	}
 	var xhReq = new XMLHttpRequest();
 	xhReq.open('GET', `${masterUrl}?token=${APIVALUE}`, false);
@@ -306,8 +306,8 @@ function generateTemplate(APIVALUE, lossless) {
 				}
 				artistLinks += '\n[/spoiler]\n[hr][/hr]\n';
 			}
-			ddl =
-				`[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${ddl}\n[/center]`;
+			downloadLinks =
+				`[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`;
 			let qualityImage = '';
 			if (qualityImages) {
 				for (let qi of qualityImages.split(' ')) {
@@ -322,7 +322,7 @@ function generateTemplate(APIVALUE, lossless) {
 				qualityImage || qualityText
 					? `[hr][/hr][center][size=6][forumcolor][b]Quality Proof[/b][/forumcolor][/size]\n${qualityImage}${qualityText}`
 					: '';
-			let dump = `${Cover}${artist}${album}${tracknum}${members}${artistinfo}${artistLinks}${albumDetails}${tracks}${videos}${quality}${ddl}`;
+			let dump = `${Cover}${artist}${album}${tracknum}${members}${artistinfo}${artistLinks}${albumDetails}${tracks}${videos}${quality}${downloadLinks}`;
 			try {
 				document.getElementsByName('message')[0].value = dump;
 			} catch (err) {

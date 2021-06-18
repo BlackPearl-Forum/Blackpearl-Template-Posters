@@ -243,9 +243,7 @@ function generateTemplate(APIVALUE, lossless) {
 				styles = '[*][b][forumcolor]Style(s): [/b][/forumcolor] | ';
 				for (let i = 0; i < albumjson.styles.length; i++) {
 					styles +=
-						'[url=https://www.discogs.com/style/' +
-						albumjson.styles[i].replace(' ', '+') +
-						`]${albumjson.styles[i]}[/url] | `;
+						`[url=https://www.discogs.com/style/${albumjson.styles[i].replace(' ', '+')}]${albumjson.styles[i]}[/url] | `;
 				}
 			}
 			let genres = '';
@@ -253,14 +251,12 @@ function generateTemplate(APIVALUE, lossless) {
 				genres = '\n[*][forumcolor][b]Genre(s): [/b][/forumcolor] | ';
 				for (let i = 0; i < albumjson.genres.length; i++) {
 					genres +=
-						'[url=https://www.discogs.com/genre/' +
-						albumjson.genres[i].replace(' ', '+') +
-						`]${albumjson.genres[i]}[/url] | `;
+						`[url=https://www.discogs.com/genre/${albumjson.genres[i].replace(' ', '+')}]${albumjson.genres[i]}[/url] | `;
 				}
 			}
 			let year = '';
 			if (albumjson.year) {
-				year = '\n[*][forumcolor][b]Release Year: [/b][/forumcolor]' + albumjson.year;
+				year = `\n[*][forumcolor][b]Release Year: [/b][/forumcolor]${albumjson.year}`;
 			}
 			let videos = '';
 			if (albumjson.videos) {
@@ -290,9 +286,7 @@ function generateTemplate(APIVALUE, lossless) {
 				tracks += '[/TABLE]\n[/spoiler]\n';
 			}
 			let artistinfo = artistjson.profile
-				? '[spoiler="About Artist"]\n' +
-				artistjson.profile.replace(/\[.=/gm, '').replace(/\]/gm, '') +
-				'\n[/spoiler]'
+				? `[spoiler="About Artist"]\n${artistjson.profile.replace(/\[.=/gm, '').replace(/\]/gm, '')}\n[/spoiler]`
 				: '';
 			let members =
 				'[indent][size=6][forumcolor][B]Artist Details[/B][/forumcolor][/size][/indent]\n';
@@ -313,9 +307,7 @@ function generateTemplate(APIVALUE, lossless) {
 				artistLinks += '\n[/spoiler]\n[hr][/hr]\n';
 			}
 			ddl =
-				'[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n' +
-				ddl +
-				'\n[/center]';
+				`[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${ddl}\n[/center]`;
 			let qualityImage = '';
 			if (qualityImages) {
 				for (let qi of qualityImages.split(' ')) {
@@ -341,12 +333,7 @@ function generateTemplate(APIVALUE, lossless) {
 			} finally {
 				if (!document.getElementsByClassName('js-titleInput')[0].value) {
 					document.getElementsByClassName('js-titleInput')[0].value =
-						artistName +
-						' - ' +
-						albumjson.title +
-						' (' +
-						albumjson.year +
-						')';
+						`${artistName} - ${albumjson.title} (${albumjson.year})`;
 				}
 			}
 		},

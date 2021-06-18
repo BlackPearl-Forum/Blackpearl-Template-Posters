@@ -179,7 +179,7 @@ function SearchDiscog(APIVALUE) {
 	});
 }
 
-function DownloadLinkHandler() {
+function DownloadLinkHandler(downloadLinks) {
 	if (Downcloud.checked) {
 		let ddlSplit = downloadLinks.split(' ');
 		downloadLinks = '';

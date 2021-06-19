@@ -163,18 +163,18 @@ function generateTemplate() {
 		lite,
 		premium,
 	] = [
-		$('#gplaylink').val(),
-		$('#modinfo').val(),
-		$('#virustotal').val(),
-		$('#ddl').val(),
-		$('#HideReactScore').val(),
-		$('#HidePosts').val(),
-		document.querySelector('input[value="mod"]'),
-		document.querySelector('input[value="unlocked"]'),
-		document.querySelector('input[value="adfree"]'),
-		document.querySelector('input[value="lite"]'),
-		document.querySelector('input[value="premium"]'),
-	];
+			$('#gplaylink').val(),
+			$('#modinfo').val(),
+			$('#virustotal').val(),
+			$('#ddl').val(),
+			$('#HideReactScore').val(),
+			$('#HidePosts').val(),
+			document.querySelector('input[value="mod"]'),
+			document.querySelector('input[value="unlocked"]'),
+			document.querySelector('input[value="adfree"]'),
+			document.querySelector('input[value="lite"]'),
+			document.querySelector('input[value="premium"]'),
+		];
 	// Error Messages for required fields
 	if (!link | !ddl | !VT) {
 		var errors = '';
@@ -209,12 +209,12 @@ function generateTemplate() {
 		} else {
 			ddl = ddl.replace(/\ /g, '\n');
 		}
-		ddl = '[HIDEREACT=1,2,3,4,5,6]\n' + ddl + '\n[/HIDEREACT]';
+		ddl = `[HIDEREACT=1,2,3,4,5,6]\n${ddl}\n[/HIDEREACT]`;
 		if (hidereactscore !== '0') {
-			ddl = `[HIDEREACTSCORE=${hidereactscore}]` + ddl + '[/HIDEREACTSCORE]';
+			ddl = `[HIDEREACTSCORE=${hidereactscore}]${ddl}[/HIDEREACTSCORE]`;
 		}
 		if (hideposts !== '0') {
-			ddl = `[HIDEPOSTS=${hideposts}]` + ddl + '[/HIDEPOSTS]';
+			ddl = `[HIDEPOSTS=${hideposts}]${ddl}[/HIDEPOSTS]`;
 		}
 		// Get GPS page & details for post
 		GM_xmlhttpRequest({
@@ -243,37 +243,27 @@ function generateTemplate() {
 					let logoattr = logoimg.alt;
 					if (logoattr == 'Cover art') {
 						var logo =
-							"[CENTER][IMG width='100px']" +
-							logoimg.srcset.replace('-rw', '').replace(' 2x', '') +
-							'[/IMG]\n';
+							`[CENTER][IMG width='100px']${logoimg.srcset.replace('-rw', '').replace(' 2x', '')}[/IMG]\n`;
 					}
 				}
 				// App Name
 				let title = gplayjson.name
-					? '[COLOR=rgb(26, 162, 96)][B][SIZE=6]' +
-					  gplayjson.name +
-					  '[/SIZE][/B][/COLOR]\n'
+					? `[COLOR=rgb(26, 162, 96)][B][SIZE=6]${gplayjson.name}[/SIZE][/B][/COLOR]\n`
 					: '';
 				// Review Star Rating
 				try {
 					var rating = gplayjson.aggregateRating.ratingValue
-						? "[IMG width='40px']https://i.postimg.cc/g28wfSTs/630px-Green-star-41-108-41-svg.png[/IMG][SIZE=6][B]" +
-						  Math.floor(gplayjson.aggregateRating.ratingValue) +
-						  '/5[/B]\n'
+						? `[IMG width='40px']https://i.postimg.cc/g28wfSTs/630px-Green-star-41-108-41-svg.png[/IMG][SIZE=6][B]${Math.floor(gplayjson.aggregateRating.ratingValue)}/5[/B]\n`
 						: '';
 				} catch (e) {
-					console.log(e);
 					rating = '';
 				}
 				// Amount of Reviews
 				try {
 					var reviewscount = gplayjson.aggregateRating.ratingCount
-						? "[IMG width='40px']https://i.postimg.cc/nV6RDhJ3/Webp-net-resizeimage-002.png[/IMG]" +
-						  gplayjson.aggregateRating.ratingCount +
-						  '[/size]\n'
+						? `[IMG width='40px']https://i.postimg.cc/nV6RDhJ3/Webp-net-resizeimage-002.png[/IMG]${gplayjson.aggregateRating.ratingCount}[/size]\n`
 						: '';
 				} catch (e) {
-					console.log(e);
 					reviewscount = '';
 				}
 				// Grab SS from images (Only grab 3!)
@@ -288,7 +278,7 @@ function generateTemplate() {
 						} else {
 							screenshots.push(
 								screen.dataset.srcset.replace('-rw', '').replace(' 2x', '') +
-									'\n'
+								'\n'
 							);
 						}
 					}
@@ -298,69 +288,51 @@ function generateTemplate() {
 				}
 				var screens = '';
 				for (let ss of screenshots) {
-					screens += '[IMG width="300px"]' + ss + '[/IMG]';
+					screens += `[IMG width="300px"]${ss}[/IMG]`;
 				}
 				screens =
-					'[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Screenshots[/B][/COLOR][/SIZE][/INDENT]\n' +
-					screens +
-					'[/CENTER]\n[hr][/hr]\n';
+					`[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Screenshots[/B][/COLOR][/SIZE][/INDENT]\n${screens}[/CENTER]\n[hr][/hr]\n`;
 				// Grab App Details from Play Store HTML parse
 				// App Description
 				let description = gplayjson.description
-					? "[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]App Description[/B][/COLOR][/SIZE][/INDENT]\n[SPOILER='App Description']\n" +
-					  gplayjson.description +
-					  '\n[/SPOILER]\n[hr][/hr]\n'
+					? `[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]App Description[/B][/COLOR][/SIZE][/INDENT]\n[SPOILER='App Description']\n${gplayjson.description}\n[/SPOILER]\n[hr][/hr]\n`
 					: '';
 				// Developer Name
 				let dev = gplayjson.author.name
-					? '[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]App Details[/B][/COLOR][/SIZE][/INDENT]\n[LIST]\n[*][B]Developer: [/B] ' +
-					  upperCase(gplayjson.author.name)
+					? `[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]App Details[/B][/COLOR][/SIZE][/INDENT]\n[LIST]\n[*][B]Developer: [/B] ${upperCase(gplayjson.author.name)}`
 					: '';
 				// App Category
 				let appCat = gplayjson.applicationCategory.replace(/\_/g, ' ');
 				let category = gplayjson.applicationCategory
-					? '\n[*][B]Category: [/B] ' + upperCase(appCat)
+					? `\n[*][B]Category: [/B] ${upperCase(appCat)}`
 					: '';
 				// Age Content Rating
 				let ContentRating = gplayjson.contentRating
-					? '\n[*][B]Content Rating: [/B] ' + gplayjson.contentRating
+					? `\n[*][B]Content Rating: [/B] ${gplayjson.contentRating}`
 					: '';
 				// Required Android Version
 				let requiredAndroid = reqAndr[0].nextElementSibling.innerText
-					? '\n[*][B]Required Android Version: [/B] ' +
-					  reqAndr[0].nextElementSibling.innerText
+					? `\n[*][B]Required Android Version: [/B] ${reqAndr[0].nextElementSibling.innerText}`
 					: '';
 				// App Size
 				let size = siz[0].nextElementSibling.innerText
-					? '\n[*][B]Size: [/B] ' +
-					  siz[0].nextElementSibling.innerText +
-					  ' (Taken from the Google Play Store)'
+					? `\n[*][B]Size: [/B] ${siz[0].nextElementSibling.innerText} (Taken from the Google Play Store)`
 					: '';
 				// Latest Version from the Playstore
 				let LatestPlayStoreVersion = curVer[0].nextElementSibling.innerText
-					? '\n[*][B]Latest Google Play Version: [/B] ' +
-					  curVer[0].nextElementSibling.innerText +
-					  '\n[/LIST]\n'
+					? `\n[*][B]Latest Google Play Version: [/B] ${curVer[0].nextElementSibling.innerText}\n[/LIST]\n`
 					: '';
 				// Add BBCode for "Get this on Google Play Store"
 				link =
-					'[URL=' +
-					link +
-					"][IMG width='250px']https://i.postimg.cc/mrWtVGwr/image.png[/IMG][/URL]\n[hr][/hr]\n";
+					`[URL=${link}][IMG width='250px']https://i.postimg.cc/mrWtVGwr/image.png[/IMG][/URL]\n[hr][/hr]\n`;
 				// Don't add modinfo line if not needed
 				modinfo = modinfo
-					? '[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Mod Info[/B][/COLOR][/SIZE][/INDENT]\n' +
-					  modinfo +
-					  '[hr][/hr]\n'
+					? `[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Mod Info[/B][/COLOR][/SIZE][/INDENT]\n${modinfo}[hr][/hr]\n`
 					: '';
 				VT =
-					'[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Virustotal[/B][/COLOR][/SIZE][/INDENT]\n' +
-					VT +
-					'[hr][/hr]\n';
+					`[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Virustotal[/B][/COLOR][/SIZE][/INDENT]\n${VT}[hr][/hr]\n`;
 				ddl =
-					'[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Download Link[/B][/COLOR][/SIZE][/INDENT]\n[CENTER]\n' +
-					ddl +
-					'\n[/CENTER]';
+					`[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Download Link[/B][/COLOR][/SIZE][/INDENT]\n[CENTER]\n${ddl}\n[/CENTER]`;
 				let dump = `${logo}${title}${rating}${reviewscount}${screens}${description}${dev}${category}${ContentRating}${requiredAndroid}${size}${LatestPlayStoreVersion}${link}${modinfo}${VT}${ddl}`;
 				// Try to paste to page. Alert user if using wrong mode
 				try {
@@ -369,12 +341,12 @@ function generateTemplate() {
 					GM_setClipboard(dump);
 					Popup(
 						'You should be running this in BBCode Mode. Check the Readme for more information!\n' +
-							err
+						err
 					);
 				} finally {
 					if (!document.getElementsByClassName('js-titleInput')[0].value) {
 						document.getElementsByClassName('js-titleInput')[0].value =
-							gplayjson.name + titleExtra;
+							`${gplayjson.name}${titleExtra}`;
 					}
 				}
 			},

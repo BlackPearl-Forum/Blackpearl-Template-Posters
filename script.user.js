@@ -138,13 +138,18 @@ function filterReqAndr(element) {
 	return element.textContent === 'Requires Android'; // Return div holding text "Requires Android"
 }
 
-/*fix word casing*/
+// fix word casing
 function upperCase(str) {
 	str = str.toLowerCase(); // First make entire string lowercase
 	return str.replace(/(^|\s)\S/g, function (t) {
-		// Return Uppercase for every word in String
-		return t.toUpperCase();
+		return t.toUpperCase(); // Return Uppercase for every word in String
 	});
+}
+
+function RemoveAllChildNodes(parent) {
+	while (parent.firstChild) {
+		parent.removeChild(parent.firstChild);
+	}
 }
 
 function generateTemplate() {
@@ -253,7 +258,7 @@ function generateTemplate() {
 					  gplayjson.name +
 					  '[/SIZE][/B][/COLOR]\n'
 					: '';
-				//Review Star Rating
+				// Review Star Rating
 				try {
 					var rating = gplayjson.aggregateRating.ratingValue
 						? "[IMG width='40px']https://i.postimg.cc/g28wfSTs/630px-Green-star-41-108-41-svg.png[/IMG][SIZE=6][B]" +

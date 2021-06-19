@@ -130,7 +130,7 @@ function SaveApiKey(APIVALUE) {
 		}
 		document.getElementById('discogGenerator').remove();
 		document.getElementById('gmShowTemplate').remove();
-		main();
+		Main();
 	}
 }
 

@@ -186,6 +186,7 @@ function RemoveAllChildNodes(parent) {
 }
 
 function DownloadLinkHandler(downloadLinks) {
+	let [hideReactScore, hidePosts] = [$('#HideReactScore').val(), $('#HidePosts').val()];
 	if (Downcloud.checked) {
 		let ddlSplit = downloadLinks.split(' ');
 		downloadLinks = '';
@@ -207,13 +208,8 @@ function DownloadLinkHandler(downloadLinks) {
 	return downloadLinks
 }
 
-function GenerateTemplate(APIVALUE, lossless) {
-	let downloadLinks = $('#ddl').val();
-	let qualityImages = $('#qImgs').val();
-	let qualityText = $('#qText').val();
-	let hideReactScore = $('#HideReactScore').val();
-	let hidePosts = $('#HidePosts').val();
-	let masterUrl = $('#masterUrl').val();
+function GenerateTemplate(APIVALUE, lossless, masterUrl) {
+	let [downloadLinks, qualityImages, qualityText] = [$('#ddl').val(), $('#qImgs').val(), $('#qText').val(), $('#masterUrl').val()];
 	if (!masterUrl | !downloadLinks | (lossless & !qualityImages & !qualityText)) {
 		var errors = '';
 		errors += !masterUrl

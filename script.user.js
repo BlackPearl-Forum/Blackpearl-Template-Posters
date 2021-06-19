@@ -5,11 +5,11 @@
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png
 // @homepage    https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/tree/Android
-// @supportURL  https://github.com/BlackPearl-Forum/Blackpearl-Template-Poster/issues/
+// @supportURL  https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/issues/
 // @updateURL   https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/raw/Android/script.user.js
 // @downloadURL https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/raw/Android/script.user.js
 // @include     /^https:\/\/blackpearl\.biz\/forums\/(94)\/post-thread/
-// @require     https://code.jquery.com/jquery-3.5.1.min.js
+// @require     https://code.jquery.com/jquery-3.6.0.min.js
 // @grant       GM_addStyle
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard

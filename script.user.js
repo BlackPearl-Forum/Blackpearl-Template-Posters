@@ -221,26 +221,52 @@ function saveApiKey(APIVALUE) {
 	}
 }
 
+function DownloadLinkHandler(downloadLinks) {
+	let [hideReactScore, hidePosts] = [
+		$('#HideReactScore').val(),
+		$('#HidePosts').val(),
+	];
+	if (Downcloud.checked) {
+		let ddlSplit = downloadLinks.split(' ');
+		downloadLinks = '';
+		for (let singleLink of ddlSplit) {
+			if (singleLink) {
+				downloadLinks += `[downcloud]${singleLink}[/downcloud]\n`;
+			}
+		}
+	} else {
+		downloadLinks = downloadLinks.replace(/\ /g, '\n');
+	}
+	downloadLinks = `[hidereact=1,2,3,4,5,6]${downloadLinks}[/hidereact]`;
+	if (hideReactScore !== '0') {
+		downloadLinks = `[hidereactscore=${hideReactScore}]${downloadLinks}[/hidereactscore]`;
+	}
+	if (hidePosts !== '0') {
+		downloadLinks = `[hideposts=${hidePosts}]${downloadLinks}[/hideposts]`;
+	}
+	return downloadLinks;
+}
+
 function generateTemplate(APIVALUE) {
-	var imdbID = $('#hiddenIID').val();
-	var screenshots = $('#screensLinks').val();
-	var youtubeLink = $('#ytLink').val();
-	var ddl = $('#ddl').val();
-	var MediaInfo = $('#mediaInfo').val();
-	var hidereactscore = $('#HideReactScore').val();
-	var hideposts = $('#HidePosts').val();
+	var [imdbID, screenshots, youtubeLink, downloadLinks, MediaInfo] = [
+		$('#hiddenIID').val(),
+		$('#screensLinks').val(),
+		$('#ytLink').val(),
+		$('#ddl').val(),
+		$('#mediaInfo').val(),
+	];
 	if (!imdbID) {
 		imdbID = $('#searchID').val();
 		if (imdbID.includes('imdb')) {
 			imdbID = imdbID.match(/tt\d+/)[0];
 		}
 	}
-	if (!imdbID | !ddl | !MediaInfo) {
+	if (!imdbID | !downloadLinks | !MediaInfo) {
 		let errors = '';
 		errors += !imdbID
 			? "<li>You Didn't Select A Title or Enter a IMDB ID!</li>"
 			: '';
-		errors += !ddl
+		errors += !downloadLinks
 			? "<li>You Forgot Your Download Link! That's Pretty Important...!</li>"
 			: '';
 		errors += !MediaInfo
@@ -249,24 +275,7 @@ function generateTemplate(APIVALUE) {
 		Popup(errors);
 		return;
 	}
-	if (Downcloud.checked) {
-		let ddlsplit = ddl.split(' ');
-		ddl = '';
-		for (let dls of ddlsplit) {
-			if (dls) {
-				ddl += `[downcloud]${dls}[/downcloud]\n`;
-			}
-		}
-	} else {
-		ddl = ddl.replace(/\ /g, '\n');
-	}
-	ddl = `[hidereact=1,2,3,4,5,6,7,8]\n${ddl.replace(/\n+$/, '')}\n[/hidereact]`;
-	if (hidereactscore !== '0') {
-		ddl = `[hidereactscore=${hidereactscore}]${ddl}[/hidereactscore]`;
-	}
-	if (hideposts !== '0') {
-		ddl = `[hideposts=${hideposts}]${ddl}[/hideposts]`;
-	}
+	downloadLinks = DownloadLinkHandler(downloadLinks);
 	if (screenshots) {
 		screenshots = screenshots.split(' ');
 		var screen = `\n[hr][/hr][indent][size=6][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [spoiler='screenshots']\n`;
@@ -369,8 +378,8 @@ function generateTemplate(APIVALUE) {
 			MediaInfo =
 				'[hr][/hr][indent][size=6][forumcolor][b]Media Info[/b][/forumcolor][/size][/indent]\n' +
 				`[spoiler='Click here to view Media Info']\n${MediaInfo}\n[/spoiler]\n`;
-			ddl = `[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${ddl}\n[/center]`;
-			let dump = `${poster}${fullName}${imdbID} ${rating}${imdbvotes}${plot}${trailer}${screen}${movieInfo}${MediaInfo}${ddl}`;
+			downloadLinks = `[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`;
+			let dump = `${poster}${fullName}${imdbID} ${rating}${imdbvotes}${plot}${trailer}${screen}${movieInfo}${MediaInfo}${downloadLinks}`;
 			try {
 				document.getElementsByName('message')[0].value = dump;
 			} catch (err) {

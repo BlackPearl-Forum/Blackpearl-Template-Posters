@@ -139,9 +139,9 @@ function SectionSearch(APIVALUE) {
 						return false;
 					}
 					let releaseDate = item.released
-						? ' (' + item.released.replace(/\-.*/, '') + ')'
+						? ` (${item.released.replace(/\-.*/, '')})`
 						: '';
-					var Name = item.name + releaseDate;
+					var Name = `${item.name}${releaseDate}`;
 					response.results.push({
 						title: Name,
 						description: Name,
@@ -266,7 +266,7 @@ function GenerateTemplate(APIVALUE) {
 		if (steamStoreLink && steamStoreLink.length !== 0) {
 			let steamID = steamStoreLink.url.match(/\d{1,7}/);
 			var steam =
-				'[media=steamstore]' + steamID + '[/media][/center]\n[HR][/HR]\n';
+				`[media=steamstore]${steamID}[/media][/center]\n[HR][/HR]\n`;
 		} else {
 			steam = '[/center]\n[HR][/HR]\n';
 		}
@@ -277,34 +277,26 @@ function GenerateTemplate(APIVALUE) {
 				let json = JSON.parse(response.responseText);
 				let backgroundimage =
 					json.background_image && json.background_image !== ''
-						? '[center][img width="548px"]' + json.background_image + '[/img]\n'
+						? `[center][img width="548px"]${json.background_image}[/img]\n`
 						: '';
 				if (json.name && json.name !== '') {
-					var title = '[forumcolor][b][size=25px]' + json.name;
+					var title = `[forumcolor][b][size=25px]${json.name}`;
 				} else {
 					errors =
-						"You Messed Up! Check That You've Entered Something Into The IMDB Field!";
+						"You Messed Up! Check That You've Entered Something Into The IMDB Field!"; // TODO: Update with latest error handling for this
 					Popup(errors);
 				}
 				let year =
 					json.released && json.released !== ''
-						? ' - (' +
-						  json.released.substring(0, 4) +
-						  ')[/size][/b][/forumcolor]\n'
+						? ` - (${json.released.substring(0, 4)})[/size][/b][/forumcolor]\n`
 						: '[/b][/size][/forumcolor]\n[HR][/HR]\n';
 				let description =
-					'[indent][forumcolor][b][size=25px]Description' +
-					'[/size][/b][/forumcolor][/indent]\n' +
-					json.description_raw +
-					'\n[HR][/HR]\n';
+					`[indent][forumcolor][b][size=25px]Description[/size][/b][/forumcolor][/indent]\n${json.description_raw}\n[HR][/HR]\n`;
 				let ratings =
-					'[indent][forumcolor][b][size=25px]Ratings' +
-					'[/size][/b][/forumcolor][/indent]\n[size=16px]\n[list]\n';
+					'[indent][forumcolor][b][size=25px]Ratings[/size][/b][/forumcolor][/indent]\n[size=16px]\n[list]\n';
 				if (json.ratings == '') {
 					ratings +=
-						'[*][img width="24px"]' +
-						'https://i.ibb.co/nrdc7M8/noreviews.png[/img]' +
-						'[color=rgb(126, 129, 129)]No reviews[/color]\n';
+						'[*][img width="24px"]https://i.ibb.co/nrdc7M8/noreviews.png[/img][color=rgb(126, 129, 129)]No reviews[/color]\n';
 				} else {
 					for (let x of json.ratings) {
 						var img;
@@ -327,34 +319,17 @@ function GenerateTemplate(APIVALUE) {
 								color = '(251, 69, 83)';
 						}
 						ratings +=
-							'[*][img width="24px"]' +
-							img +
-							'[/img][color=rgb' +
-							color +
-							']' +
-							x.title.toString() +
-							': ' +
-							x.count.toString() +
-							' (' +
-							x.percent.toString() +
-							'%)[/color]\n';
+							`[*][img width="24px"]${img}[/img][color=rgb${color}]${x.title.toString()}: ${x.count.toString()} (${x.percent.toString()}%)[/color]\n`;
 					}
 				}
 				ratings +=
-					'[SIZE=12px]Source: https://rawg.io/games/' +
-					IID +
-					'[/SIZE][/LIST]\n[/size]\n[HR][/HR]\n';
+					`[SIZE=12px]Source: https://rawg.io/games/${IID}[/SIZE][/LIST]\n[/size]\n[HR][/HR]\n`;
 
 				vtLink =
-					'[indent][forumcolor][b][size=25px]VirusTotal' +
-					'[/size][/b][/forumcolor][/indent]\n' +
-					vtLink +
-					'\n[HR][/HR]\n';
+					`[indent][forumcolor][b][size=25px]VirusTotal[/size][/b][/forumcolor][/indent]\n${vtLink}\n[HR][/HR]\n`;
 				
 				ddl =
-					'[center][size=25px][forumcolor][b]Download Link[/b][/forumcolor][/size]\n' +
-					ddl +
-					'\n[/center]';
+					`[center][size=25px][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${ddl}\n[/center]`;
 				let dump = `${backgroundimage}${title} ${year} ${steam} ${description}${trailer}${screen}${ratings}${info}${vtLink}${ddl}`;
 				try {
 					document.getElementsByName('message')[0].value = dump;
@@ -366,7 +341,7 @@ function GenerateTemplate(APIVALUE) {
 				} finally {
 					if (!document.getElementsByClassName('js-titleInput')[0].value) {
 						document.getElementsByClassName('js-titleInput')[0].value =
-							json.name + ' - (' + json.released + ')';
+							`${json.name} - (${json.released})`;
 					}
 				}
 			},

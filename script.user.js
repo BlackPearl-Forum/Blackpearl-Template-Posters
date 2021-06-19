@@ -78,10 +78,6 @@ main();
 function main() {
 	var temphtml = document.getElementsByTagName('dd')[0]; // Grab div under the inputs
 	temphtml.innerHTML += htmlTemplate; // Place our HTML under the inputs
-	var titlechange = document.getElementsByName('title')[0]; // Grab "Title" bar from HTML
-	if (titlechange) {
-		titlechange.className += 'input'; // Change title to less boldness using different class
-	}
 	$('#gmHideTemplate').click(() => hideTemplate()); // When Hide button clicked, run hide function
 	$('#showTemplate').click(() => showTemplate()); // When Show button clicked, run Show function
 	$('#gmGenerate').click(() => generateTemplate()); // When Generate button clicked, run Generate function
@@ -376,9 +372,8 @@ function generateTemplate() {
 							err
 					);
 				} finally {
-					let xf_title_value = document.getElementById('title').value;
-					if (!xf_title_value) {
-						document.getElementById('title').value =
+					if (!document.getElementsByClassName('js-titleInput')[0].value) {
+						document.getElementsByClassName('js-titleInput')[0].value =
 							gplayjson.name + titleExtra;
 					}
 				}

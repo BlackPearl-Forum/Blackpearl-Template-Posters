@@ -21,7 +21,7 @@
 // @connect     api.rawg.io
 // ==/UserScript==
 
-main();
+Main();
 
 const htmlTemplate = `
 <div id="textareaDivider" name="showDivider" style="display:none">&nbsp;</div>
@@ -74,7 +74,7 @@ errormessages
 </ul>
 </div></div></div></div>`;
 
-function main() {
+function Main() {
 	GM.getValue('APIKEY', 'foo').then((value) => {
 		var APIVALUE = value;
 		const htmlpush = document.getElementsByTagName('dd')[0];
@@ -83,11 +83,11 @@ function main() {
 		if (titlechange) {
 			document.getElementById('title').className += 'input';
 		}
-		sectionSearch(APIVALUE);
-		$('#gmHideTemplate').click(() => hideTemplate());
-		$('#showTemplate').click(() => showTemplate());
-		$('#gmSaveKey').click(() => saveApiKey(APIVALUE, htmlpush));
-		$('#gmGenerate').click(() => generateTemplate(APIVALUE));
+		SectionSearch(APIVALUE);
+		$('#gmHideTemplate').click(() => HideTemplate());
+		$('#showTemplate').click(() => ShowTemplate());
+		$('#gmSaveKey').click(() => SaveApiKey(APIVALUE, htmlpush));
+		$('#gmGenerate').click(() => GenerateTemplate(APIVALUE));
 	});
 }
 
@@ -109,13 +109,13 @@ $(document).on('keydown', function (event) {
 	}
 });
 
-function showTemplate() {
+function ShowTemplate() {
 	document.getElementById('showTemplate').style.display = 'none';
 	document.getElementsByName('showDivider')[0].style.display = 'none';
 	$('#rawgGenerator').show();
 }
 
-function hideTemplate() {
+function HideTemplate() {
 	document.getElementById('showTemplate').style.display = 'block';
 	document.getElementsByName('showDivider')[0].style.display = 'block';
 	$('#rawgGenerator').hide();
@@ -128,7 +128,7 @@ function Popup(errors) {
 	body.insertAdjacentHTML('beforeend', errOutput);
 }
 
-function sectionSearch(APIVALUE) {
+function SectionSearch(APIVALUE) {
 	var query = `https://rawg.io/api/games?search={query}&key=${APIVALUE}`;
 	$('#rawgSearch').search({
 		apiSettings: {
@@ -167,7 +167,7 @@ function sectionSearch(APIVALUE) {
 	});
 }
 
-function saveApiKey(APIVALUE, htmlpush) {
+function SaveApiKey(APIVALUE, htmlpush) {
 	if (APIVALUE == 'foo') {
 		let rawgKey = $('#rawgKey').val();
 		if (rawgKey) {
@@ -177,18 +177,18 @@ function saveApiKey(APIVALUE, htmlpush) {
 		}
 		document.getElementById('rawgGenerator').remove();
 		document.getElementById('gmShowTemplate').remove();
-		main();
+		Main();
 	}
 }
 
-function httpGet(url) {
+function HttpGet(url) {
 	let xmlHttp = new XMLHttpRequest();
 	xmlHttp.open('GET', url, false);
 	xmlHttp.send(null);
 	return xmlHttp.response;
 }
 
-function generateTemplate(APIVALUE) {
+function GenerateTemplate(APIVALUE) {
 	var IID = $('#hiddenIID').val();
 	var uToob = $('#ytLink').val();
 	var info = $('#info').val();
@@ -233,7 +233,7 @@ function generateTemplate(APIVALUE) {
 		}
 
 		var screenshots_url = `https://api.rawg.io/api/games/${IID}/screenshots?key=${APIVALUE}`;
-    	var screenshots = JSON.parse(httpGet(screenshots_url));
+    	var screenshots = JSON.parse(HttpGet(screenshots_url));
 		if (screenshots.count !== 0) {
 			var screen = `[indent][size=25px][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [Spoiler='Screenshots']\n`;
 			for (let x in screenshots.results) {
@@ -264,7 +264,7 @@ function generateTemplate(APIVALUE) {
 		}
 
 		var stores_url = `https://api.rawg.io/api/games/${IID}/stores?key=${APIVALUE}`;
-		var stores = JSON.parse(httpGet(stores_url));
+		var stores = JSON.parse(HttpGet(stores_url));
 		var steamReg = /(https?:\/\/)?store\.steampowered\.com\/app\/\d{1,7}/;
 		var steamStoreLink = stores.results.find((e) => e.url.match(steamReg));
 		if (steamStoreLink && steamStoreLink.length !== 0) {

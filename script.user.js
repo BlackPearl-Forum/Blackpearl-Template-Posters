@@ -176,15 +176,13 @@ function ScreenshotHandler(images) {
     for (let screen of images) {
         let screenattr = screen.alt;
         if (screenattr == 'Screenshot Image') {
-            let imageSize = screen.width > '200' ? '[img width="500px"]' : '[img width="300px"]';
             if (!screen.dataset | !screen.dataset.srcset) {
                 playStoreImages.push(
-                    imageSize + screen.srcset.replace('-rw', '').replace(' 2x', '') + '[/img]'
+                    `[img width="300px"]${screen.srcset.replace('-rw', '').replace(' 2x', '')}[/img]`
                 );
             } else {
                 playStoreImages.push(
-                    imageSize + screen.dataset.srcset.replace('-rw', '').replace(' 2x', '') +
-                    '[/img]'
+                    `[img width="300px"]${screen.dataset.srcset.replace('-rw', '').replace(' 2x', '')}[/img]`
                 );
             }
         }

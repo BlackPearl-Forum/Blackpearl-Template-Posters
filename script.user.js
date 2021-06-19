@@ -149,6 +149,7 @@ function RemoveAllChildNodes(parent) {
 }
 
 function DownloadLinkHandler(downloadLinks) {
+    let [hideReactScore, hidePosts] = [$('#HideReactScore').val(), $('#HidePosts').val()]
     if (Downcloud.checked) {
         let ddlSplit = downloadLinks.split(' ');
         downloadLinks = '';
@@ -170,33 +171,46 @@ function DownloadLinkHandler(downloadLinks) {
     return downloadLinks
 }
 
+function ScreenshotHandler(images) {
+    var playStoreImages = [];
+    for (let screen of images) {
+        let screenattr = screen.alt;
+        if (screenattr == 'Screenshot Image') {
+            let imageSize = screen.width > '200' ? '[img width="500px"]' : '[img width="300px"]';
+            if (!screen.dataset | !screen.dataset.srcset) {
+                playStoreImages.push(
+                    imageSize + screen.srcset.replace('-rw', '').replace(' 2x', '') + '[/img]'
+                );
+            } else {
+                playStoreImages.push(
+                    imageSize + screen.dataset.srcset.replace('-rw', '').replace(' 2x', '') +
+                    '[/img]'
+                );
+            }
+        }
+        if (playStoreImages.length == '3') {
+			playStoreImages = playStoreImages.join('')
+            break;
+        }
+    }
+    playStoreImages =
+        `[indent][size=6][color=rgb(26, 162, 96)][B]Screenshots[/B][/color][/size][/indent]\n${playStoreImages}[/center]\n[hr][/hr]\n`;
+    return playStoreImages;
+}
+
 function generateTemplate() {
     // Create variables from HTML
-    let [
-        playStoreLink,
-        modInfo,
-        virustotalLinks,
-        downloadLinks,
-        hidereactscore,
-        hideposts,
-        mod,
-        unlocked,
-        adfree,
-        lite,
-        premium,
-    ] = [
-            $('#gplaylink').val(),
-            $('#modinfo').val(),
-            $('#virustotal').val(),
-            $('#ddl').val(),
-            $('#HideReactScore').val(),
-            $('#HidePosts').val(),
-            document.querySelector('input[value="mod"]'),
-            document.querySelector('input[value="unlocked"]'),
-            document.querySelector('input[value="adfree"]'),
-            document.querySelector('input[value="lite"]'),
-            document.querySelector('input[value="premium"]'),
-        ];
+    let [playStoreLink, modInfo, virustotalLinks, downloadLinks, mod, unlocked, adfree, lite, premium] = [
+        $('#gplaylink').val(),
+        $('#modinfo').val(),
+        $('#virustotal').val(),
+        $('#ddl').val(),
+        document.querySelector('input[value="mod"]').checked ? ' [Mod]' : '',
+        document.querySelector('input[value="unlocked"]').checked ? ' [Unlocked]' : '',
+        document.querySelector('input[value="adfree"]').checked ? ' [Ad-Free]' : '',
+        document.querySelector('input[value="lite"]').checked ? ' [Lite]' : '',
+        document.querySelector('input[value="premium"]').checked ? ' [Premium]' : '',
+    ];
     // Error Messages for required fields
     if (!playStoreLink | !downloadLinks | !virustotalLinks) {
         var errors = '';
@@ -215,12 +229,6 @@ function generateTemplate() {
         for (let splitLink of virustotalSplit) {
             virustotalLinks += `[downcloud]${splitLink}[/downcloud]\n`;
         }
-        // Check for pressed buttons
-        mod = mod.checked ? ' [Mod]' : '';
-        unlocked = unlocked.checked ? ' [Unlocked]' : '';
-        adfree = adfree.checked ? ' [Ad-Free]' : '';
-        premium = premium.checked ? ' [Premium]' : '';
-        lite = lite.checked ? ' [Lite]' : '';
         var titleExtra = mod + unlocked + premium + adfree + lite;
         downloadLinks = DownloadLinkHandler(downloadLinks)
         // Get GPS page & details for post
@@ -253,6 +261,7 @@ function generateTemplate() {
                             `[center][img width='100px']${logoImage.srcset.replace('-rw', '').replace(' 2x', '')}[/img]\n`;
                     }
                 }
+                let playStoreImages = ScreenshotHandler(images)
                 // App Name
                 let title = gplayjson.name
                     ? `[color=rgb(26, 162, 96)][B][size=6]${gplayjson.name}[/size][/B][/color]\n`
@@ -273,32 +282,7 @@ function generateTemplate() {
                 } catch (e) {
                     reviewscount = '';
                 }
-                // Grab SS from images (Only grab 3!)
-                var playStoreImages = [];
-                for (let screen of images) {
-                    let screenattr = screen.alt;
-                    if (screenattr == 'Screenshot Image') {
-                        if (!screen.dataset | !screen.dataset.srcset) {
-                            playStoreImages.push(
-                                screen.srcset.replace('-rw', '').replace(' 2x', '') + '\n'
-                            );
-                        } else {
-                            playStoreImages.push(
-                                screen.dataset.srcset.replace('-rw', '').replace(' 2x', '') +
-                                '\n'
-                            );
-                        }
-                    }
-                    if (playStoreImages.length == '3') {
-                        break;
-                    }
-                }
-                let screenshots = '';
-                for (let ss of playStoreImages) {
-                    screenshots += `[img width="300px"]${ss}[/img]`;
-                }
-                playStoreImages =
-                    `[indent][size=6][color=rgb(26, 162, 96)][B]Screenshots[/B][/color][/size][/indent]\n${screenshots}[/center]\n[hr][/hr]\n`;
+
                 // Grab App Details from Play Store HTML parse
                 // App Description
                 let appDescription = gplayjson.description
@@ -334,7 +318,7 @@ function generateTemplate() {
                     `[indent][size=6][color=rgb(26, 162, 96)][B]Virustotal[/B][/color][/size][/indent]\n${virustotalLinks}[hr][/hr]\n`;
                 downloadLinks =
                     `[indent][size=6][color=rgb(26, 162, 96)][B]Download Link[/B][/color][/size][/indent]\n[center]\n${downloadLinks}\n[/center]`;
-                let bbcode = `${logo}${title}${rating}${reviewscount}${playStoreImages}${appDescription}${developerName}${playStoreCategory}${ContentRating}${requiredAndroid}${appSize}${playStoreVersion}${playStoreLink}${modInfo}${virustotalLinks}${downloadLinks}`;
+                let bbcode = `${logo}${title}${rating}${reviewscount}${playStoreImages}${appDescription}${developerName}${playStoreCategory}${ContentRating}${requiredVersion}${appSize}${playStoreVersion}${playStoreLink}${modInfo}${virustotalLinks}${downloadLinks}`;
                 try {
                     document.getElementsByName('message')[0].value = bbcode;
                 } catch (err) {

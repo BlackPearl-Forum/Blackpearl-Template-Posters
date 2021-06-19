@@ -147,13 +147,35 @@ function RemoveAllChildNodes(parent) {
     }
 }
 
+function DownloadLinkHandler(downloadLinks) {
+	if (Downcloud.checked) {
+		let ddlSplit = downloadLinks.split(' ');
+		downloadLinks = '';
+		for (let singleLink of ddlSplit) {
+			if (singleLink) {
+				downloadLinks += `[downcloud]${singleLink}[/downcloud]\n`;
+			}
+		}
+	} else {
+		downloadLinks = downloadLinks.replace(/\ /g, '\n');
+	}
+	downloadLinks = `[hidereact=1,2,3,4,5,6]${downloadLinks.replace(/\n+$/, '')}[/hidereact]`;
+	if (hideReactScore !== '0') {
+		downloadLinks = `[hidereactscore=${hideReactScore}]${downloadLinks}[/hidereactscore]`;
+	}
+	if (hidePosts !== '0') {
+		downloadLinks = `[hideposts=${hidePosts}]${downloadLinks}[/hideposts]`;
+	}
+	return downloadLinks
+}
+
 function generateTemplate() {
     // Create variables from HTML
     let [
         link,
         modinfo,
         VT,
-        ddl,
+        downloadLinks,
         hidereactscore,
         hideposts,
         mod,
@@ -175,10 +197,10 @@ function generateTemplate() {
             document.querySelector('input[value="premium"]'),
         ];
     // Error Messages for required fields
-    if (!link | !ddl | !VT) {
+    if (!link | !downloadLinks | !VT) {
         var errors = '';
         errors += !link ? '<li>No Google Play link Found!</li>' : '';
-        errors += !ddl ? '<li>No Download Link Found!</li>' : '';
+        errors += !downloadLinks ? '<li>No Download Link Found!</li>' : '';
         errors += !VT ? '<li>No Virustotal Found!</li>' : '';
         Popup(errors);
     } else {
@@ -199,22 +221,7 @@ function generateTemplate() {
         premium = premium.checked ? ' [Premium]' : '';
         lite = lite.checked ? ' [Lite]' : '';
         var titleExtra = mod + unlocked + premium + adfree + lite;
-        if (Downcloud.checked) {
-            let ddlsplit = ddl.split(' ');
-            ddl = '';
-            for (var dls of ddlsplit) {
-                ddl += `[DOWNCLOUD]${dls}[/DOWNCLOUD]\n`;
-            }
-        } else {
-            ddl = ddl.replace(/\ /g, '\n');
-        }
-        ddl = `[HIDEREACT=1,2,3,4,5,6]\n${ddl}\n[/HIDEREACT]`;
-        if (hidereactscore !== '0') {
-            ddl = `[HIDEREACTSCORE=${hidereactscore}]${ddl}[/HIDEREACTSCORE]`;
-        }
-        if (hideposts !== '0') {
-            ddl = `[HIDEPOSTS=${hideposts}]${ddl}[/HIDEPOSTS]`;
-        }
+		downloadLinks = DownloadLinkHandler(downloadLinks)
         // Get GPS page & details for post
         GM_xmlhttpRequest({
             method: 'GET',
@@ -330,9 +337,9 @@ function generateTemplate() {
                     : '';
                 VT =
                     `[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Virustotal[/B][/COLOR][/SIZE][/INDENT]\n${VT}[hr][/hr]\n`;
-                ddl =
-                    `[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Download Link[/B][/COLOR][/SIZE][/INDENT]\n[CENTER]\n${ddl}\n[/CENTER]`;
-                let dump = `${logo}${title}${rating}${reviewscount}${screens}${description}${dev}${category}${ContentRating}${requiredAndroid}${size}${LatestPlayStoreVersion}${link}${modinfo}${VT}${ddl}`;
+                downloadLinks =
+                    `[INDENT][SIZE=6][COLOR=rgb(26, 162, 96)][B]Download Link[/B][/COLOR][/SIZE][/INDENT]\n[CENTER]\n${downloadLinks}\n[/CENTER]`;
+                let dump = `${logo}${title}${rating}${reviewscount}${screens}${description}${dev}${category}${ContentRating}${requiredAndroid}${size}${LatestPlayStoreVersion}${link}${modinfo}${VT}${downloadLinks}`;
                 // Try to paste to page. Alert user if using wrong mode
                 try {
                     document.getElementsByName('message')[0].value = dump;

@@ -21,7 +21,7 @@
 // @connect     api.discogs.com
 // ==/UserScript==
 
-main();
+Main();
 
 const htmlTemplate = `
 <button id="gmShowTemplate" name="templateButton" style="display:none" type="button">Show</button>

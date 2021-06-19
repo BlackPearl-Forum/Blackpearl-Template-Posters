@@ -220,20 +220,22 @@ function HttpGet(url) {
 }
 
 function GenerateTemplate(APIVALUE) {
-	var IID = $('#hiddenIID').val();
-	var uToob = $('#ytLink').val();
-	var info = $('#info').val();
-	var vtLink = $('#vtLink').val();
-	var downloadLinks = $('#ddl').val();
-	if (!IID) {
-		IID = $('#searchID').val();
-		if (IID.includes('rawg')) {
-			IID = IID.match(/(?<=games\/).*(?<!\/)/)[0];
+	var [rawgGameID, youtubeLink, releaseInfo, virustotalLinks, downloadLinks] = [
+		$('#hiddenIID').val(),
+		$('#ytLink').val(),
+		$('#info').val(),
+		$('#vtLink').val(),
+		$('#ddl').val(),
+	];
+	if (!rawgGameID) {
+		rawgGameID = $('#searchID').val();
+		if (rawgGameID.includes('rawg')) {
+			rawgGameID = rawgGameID.match(/(?<=games\/).*(?<!\/)/)[0];
 		}
 	}
-	if (!IID | !downloadLinks | !vtLink) {
+	if (!rawgGameID | !downloadLinks | !vtLink) {
 		var errors = '';
-		errors += !IID
+		errors += !rawgGameID
 			? "<li>You Didn't Select A Title or Enter a Rawg.io Link!</li>"
 			: '';
 		errors += !vtLink
@@ -246,8 +248,8 @@ function GenerateTemplate(APIVALUE) {
 		return;
 	}
 	downloadLinks = DownloadLinkHandler(downloadLinks);
-	var screenshots_url = `https://api.rawg.io/api/games/${IID}/screenshots?key=${APIVALUE}`;
-	var screenshots = JSON.parse(HttpGet(screenshots_url));
+	let screenshotsURL = `https://api.rawg.io/api/games/${rawgGameID}/screenshots?key=${APIVALUE}`;
+	var screenshots = JSON.parse(HttpGet(screenshotsURL));
 	if (screenshots.count !== 0) {
 		var screen = `[indent][size=25px][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [Spoiler='Screenshots']\n`;
 		for (let x in screenshots.results) {
@@ -258,26 +260,19 @@ function GenerateTemplate(APIVALUE) {
 	} else {
 		screen = '';
 	}
-
-	if (uToob.match(/[a-z]/)) {
-		var trailer = `[indent][size=25px][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n\n${uToob}\n\n[HR][/HR]\n`;
-	} else {
-		trailer = '';
+	var trailer = youtubeLink.match(/[a-z]/)
+		? `[indent][size=25px][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n\n${youtubeLink}\n\n[HR][/HR]\n`
+		: '';
+	let virustotalSplit = virustotalLinks.split(' ');
+	virustotalLinks = '';
+	for (let vts of virustotalSplit) {
+		virustotalLinks += `[DOWNCLOUD]${vts}[/DOWNCLOUD]\n`;
 	}
-	let vtLinksplit = vtLink.split(' ');
-	vtLink = '';
-	for (let vts of vtLinksplit) {
-		vtLink += `[DOWNCLOUD]${vts}[/DOWNCLOUD]\n`;
-	}
-
-	if (info.match(/[a-z]/)) {
-		info = `[indent][size=25px][forumcolor][b]Release Infos[/b][/forumcolor][/size][/indent]\n[spoiler='Click here to view Release Info']\n${info}\n[/spoiler]\n[HR][/HR]\n`;
-	} else {
-		info = '';
-	}
-
-	var stores_url = `https://api.rawg.io/api/games/${IID}/stores?key=${APIVALUE}`;
-	var stores = JSON.parse(HttpGet(stores_url));
+	releaseInfo = releaseInfo.match(/[a-z]/)
+		? `[indent][size=25px][forumcolor][b]Release Infos[/b][/forumcolor][/size][/indent]\n[spoiler='Click here to view Release Info']\n${releaseInfo}\n[/spoiler]\n[HR][/HR]\n`
+		: '';
+	var storesURL = `https://api.rawg.io/api/games/${rawgGameID}/stores?key=${APIVALUE}`;
+	var stores = JSON.parse(HttpGet(storesURL));
 	var steamReg = /(https?:\/\/)?store\.steampowered\.com\/app\/\d{1,7}/;
 	var steamStoreLink = stores.results.find((e) => e.url.match(steamReg));
 	if (steamStoreLink && steamStoreLink.length !== 0) {
@@ -288,7 +283,7 @@ function GenerateTemplate(APIVALUE) {
 	}
 	GM_xmlhttpRequest({
 		method: 'GET',
-		url: `https://api.rawg.io/api/games/${IID}?key=${APIVALUE}`,
+		url: `https://api.rawg.io/api/games/${rawgGameID}?key=${APIVALUE}`,
 		onload: function (response) {
 			let json = JSON.parse(response.responseText);
 			let backgroundimage =
@@ -336,12 +331,10 @@ function GenerateTemplate(APIVALUE) {
 					ratings += `[*][img width="24px"]${img}[/img][color=rgb${color}]${x.title.toString()}: ${x.count.toString()} (${x.percent.toString()}%)[/color]\n`;
 				}
 			}
-			ratings += `[SIZE=12px]Source: https://rawg.io/games/${IID}[/SIZE][/LIST]\n[/size]\n[HR][/HR]\n`;
-
-			vtLink = `[indent][forumcolor][b][size=25px]VirusTotal[/size][/b][/forumcolor][/indent]\n${vtLink}\n[HR][/HR]\n`;
-
+			ratings += `[SIZE=12px]Source: https://rawg.io/games/${rawgGameID}[/SIZE][/LIST]\n[/size]\n[HR][/HR]\n`;
+			virustotalLinks = `[indent][forumcolor][b][size=25px]VirusTotal[/size][/b][/forumcolor][/indent]\n${virustotalLinks}\n[HR][/HR]\n`;
 			downloadLinks = `[center][size=25px][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`;
-			let dump = `${backgroundimage}${title} ${year} ${steam} ${description}${trailer}${screen}${ratings}${info}${vtLink}${downloadLinks}`;
+			let dump = `${backgroundimage}${title} ${year} ${steam} ${description}${trailer}${screen}${ratings}${releaseInfo}${virustotalLinks}${downloadLinks}`;
 			try {
 				document.getElementsByName('message')[0].value = dump;
 			} catch (err) {

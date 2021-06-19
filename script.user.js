@@ -237,121 +237,121 @@ function GenerateTemplate(APIVALUE) {
 			? "<li>You Forgot Your Download Link! That's Pretty Important...!</li>"
 			: '';
 		Popup(errors);
-	} else {
-		downloadLinks = DownloadLinkHandler(downloadLinks);
-		var screenshots_url = `https://api.rawg.io/api/games/${IID}/screenshots?key=${APIVALUE}`;
-		var screenshots = JSON.parse(HttpGet(screenshots_url));
-		if (screenshots.count !== 0) {
-			var screen = `[indent][size=25px][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [Spoiler='Screenshots']\n`;
-			for (let x in screenshots.results) {
-				var img = screenshots.results[x].image;
-				screen += `[img]${img}[/img]`;
-			}
-			screen += `[/Spoiler][HR][/HR]\n`;
-		} else {
-			screen = '';
-		}
-
-		if (uToob.match(/[a-z]/)) {
-			var trailer = `[indent][size=25px][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n\n${uToob}\n\n[HR][/HR]\n`;
-		} else {
-			trailer = '';
-		}
-		let vtLinksplit = vtLink.split(' ');
-		vtLink = '';
-		for (let vts of vtLinksplit) {
-			vtLink += `[DOWNCLOUD]${vts}[/DOWNCLOUD]\n`;
-		}
-
-		if (info.match(/[a-z]/)) {
-			info = `[indent][size=25px][forumcolor][b]Release Infos[/b][/forumcolor][/size][/indent]\n[spoiler='Click here to view Release Info']\n${info}\n[/spoiler]\n[HR][/HR]\n`;
-		} else {
-			info = '';
-		}
-
-		var stores_url = `https://api.rawg.io/api/games/${IID}/stores?key=${APIVALUE}`;
-		var stores = JSON.parse(HttpGet(stores_url));
-		var steamReg = /(https?:\/\/)?store\.steampowered\.com\/app\/\d{1,7}/;
-		var steamStoreLink = stores.results.find((e) => e.url.match(steamReg));
-		if (steamStoreLink && steamStoreLink.length !== 0) {
-			let steamID = steamStoreLink.url.match(/\d{1,7}/);
-			var steam = `[media=steamstore]${steamID}[/media][/center]\n[HR][/HR]\n`;
-		} else {
-			steam = '[/center]\n[HR][/HR]\n';
-		}
-		GM_xmlhttpRequest({
-			method: 'GET',
-			url: `https://api.rawg.io/api/games/${IID}?key=${APIVALUE}`,
-			onload: function (response) {
-				let json = JSON.parse(response.responseText);
-				let backgroundimage =
-					json.background_image && json.background_image !== ''
-						? `[center][img width="548px"]${json.background_image}[/img]\n`
-						: '';
-				if (json.name && json.name !== '') {
-					var title = `[forumcolor][b][size=25px]${json.name}`;
-				} else {
-					errors =
-						"You Messed Up! Check That You've Entered Something Into The IMDB Field!"; // TODO: Update with latest error handling for this
-					Popup(errors);
-				}
-				let year =
-					json.released && json.released !== ''
-						? ` - (${json.released.substring(0, 4)})[/size][/b][/forumcolor]\n`
-						: '[/b][/size][/forumcolor]\n[HR][/HR]\n';
-				let description = `[indent][forumcolor][b][size=25px]Description[/size][/b][/forumcolor][/indent]\n${json.description_raw}\n[HR][/HR]\n`;
-				let ratings =
-					'[indent][forumcolor][b][size=25px]Ratings[/size][/b][/forumcolor][/indent]\n[size=16px]\n[list]\n';
-				if (json.ratings == '') {
-					ratings +=
-						'[*][img width="24px"]https://i.ibb.co/nrdc7M8/noreviews.png[/img][color=rgb(126, 129, 129)]No reviews[/color]\n';
-				} else {
-					for (let x of json.ratings) {
-						var img;
-						var color;
-						switch (x.title.toString()) {
-							case 'exceptional':
-								img = 'https://i.ibb.co/XZ0sVDf/exceptional.png';
-								color = '(97, 189, 109)';
-								break;
-							case 'recommended':
-								img = 'https://i.ibb.co/g3GKQ6B/recommended.png';
-								color = '(82, 116, 216)';
-								break;
-							case 'meh':
-								img = 'https://i.ibb.co/xG5772d/meh.png';
-								color = '(248, 157, 59)';
-								break;
-							default:
-								img = 'https://i.ibb.co/cQ65F2b/skip.png';
-								color = '(251, 69, 83)';
-						}
-						ratings += `[*][img width="24px"]${img}[/img][color=rgb${color}]${x.title.toString()}: ${x.count.toString()} (${x.percent.toString()}%)[/color]\n`;
-					}
-				}
-				ratings += `[SIZE=12px]Source: https://rawg.io/games/${IID}[/SIZE][/LIST]\n[/size]\n[HR][/HR]\n`;
-
-				vtLink = `[indent][forumcolor][b][size=25px]VirusTotal[/size][/b][/forumcolor][/indent]\n${vtLink}\n[HR][/HR]\n`;
-
-				downloadLinks = `[center][size=25px][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`;
-				let dump = `${backgroundimage}${title} ${year} ${steam} ${description}${trailer}${screen}${ratings}${info}${vtLink}${downloadLinks}`;
-				try {
-					document.getElementsByName('message')[0].value = dump;
-				} catch (err) {
-					alert(
-						'You should be running this in BBCode Mode. Check the Readme for more information!\n' +
-							err
-					);
-				} finally {
-					if (!document.getElementsByClassName('js-titleInput')[0].value) {
-						document.getElementsByClassName(
-							'js-titleInput'
-						)[0].value = `${json.name} - (${json.released})`;
-					}
-				}
-			},
-		});
+		return;
 	}
+	downloadLinks = DownloadLinkHandler(downloadLinks);
+	var screenshots_url = `https://api.rawg.io/api/games/${IID}/screenshots?key=${APIVALUE}`;
+	var screenshots = JSON.parse(HttpGet(screenshots_url));
+	if (screenshots.count !== 0) {
+		var screen = `[indent][size=25px][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [Spoiler='Screenshots']\n`;
+		for (let x in screenshots.results) {
+			var img = screenshots.results[x].image;
+			screen += `[img]${img}[/img]`;
+		}
+		screen += `[/Spoiler][HR][/HR]\n`;
+	} else {
+		screen = '';
+	}
+
+	if (uToob.match(/[a-z]/)) {
+		var trailer = `[indent][size=25px][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n\n${uToob}\n\n[HR][/HR]\n`;
+	} else {
+		trailer = '';
+	}
+	let vtLinksplit = vtLink.split(' ');
+	vtLink = '';
+	for (let vts of vtLinksplit) {
+		vtLink += `[DOWNCLOUD]${vts}[/DOWNCLOUD]\n`;
+	}
+
+	if (info.match(/[a-z]/)) {
+		info = `[indent][size=25px][forumcolor][b]Release Infos[/b][/forumcolor][/size][/indent]\n[spoiler='Click here to view Release Info']\n${info}\n[/spoiler]\n[HR][/HR]\n`;
+	} else {
+		info = '';
+	}
+
+	var stores_url = `https://api.rawg.io/api/games/${IID}/stores?key=${APIVALUE}`;
+	var stores = JSON.parse(HttpGet(stores_url));
+	var steamReg = /(https?:\/\/)?store\.steampowered\.com\/app\/\d{1,7}/;
+	var steamStoreLink = stores.results.find((e) => e.url.match(steamReg));
+	if (steamStoreLink && steamStoreLink.length !== 0) {
+		let steamID = steamStoreLink.url.match(/\d{1,7}/);
+		var steam = `[media=steamstore]${steamID}[/media][/center]\n[HR][/HR]\n`;
+	} else {
+		steam = '[/center]\n[HR][/HR]\n';
+	}
+	GM_xmlhttpRequest({
+		method: 'GET',
+		url: `https://api.rawg.io/api/games/${IID}?key=${APIVALUE}`,
+		onload: function (response) {
+			let json = JSON.parse(response.responseText);
+			let backgroundimage =
+				json.background_image && json.background_image !== ''
+					? `[center][img width="548px"]${json.background_image}[/img]\n`
+					: '';
+			if (json.name && json.name !== '') {
+				var title = `[forumcolor][b][size=25px]${json.name}`;
+			} else {
+				errors =
+					"You Messed Up! Check That You've Entered Something Into The IMDB Field!"; // TODO: Update with latest error handling for this
+				Popup(errors);
+			}
+			let year =
+				json.released && json.released !== ''
+					? ` - (${json.released.substring(0, 4)})[/size][/b][/forumcolor]\n`
+					: '[/b][/size][/forumcolor]\n[HR][/HR]\n';
+			let description = `[indent][forumcolor][b][size=25px]Description[/size][/b][/forumcolor][/indent]\n${json.description_raw}\n[HR][/HR]\n`;
+			let ratings =
+				'[indent][forumcolor][b][size=25px]Ratings[/size][/b][/forumcolor][/indent]\n[size=16px]\n[list]\n';
+			if (json.ratings == '') {
+				ratings +=
+					'[*][img width="24px"]https://i.ibb.co/nrdc7M8/noreviews.png[/img][color=rgb(126, 129, 129)]No reviews[/color]\n';
+			} else {
+				for (let x of json.ratings) {
+					var img;
+					var color;
+					switch (x.title.toString()) {
+						case 'exceptional':
+							img = 'https://i.ibb.co/XZ0sVDf/exceptional.png';
+							color = '(97, 189, 109)';
+							break;
+						case 'recommended':
+							img = 'https://i.ibb.co/g3GKQ6B/recommended.png';
+							color = '(82, 116, 216)';
+							break;
+						case 'meh':
+							img = 'https://i.ibb.co/xG5772d/meh.png';
+							color = '(248, 157, 59)';
+							break;
+						default:
+							img = 'https://i.ibb.co/cQ65F2b/skip.png';
+							color = '(251, 69, 83)';
+					}
+					ratings += `[*][img width="24px"]${img}[/img][color=rgb${color}]${x.title.toString()}: ${x.count.toString()} (${x.percent.toString()}%)[/color]\n`;
+				}
+			}
+			ratings += `[SIZE=12px]Source: https://rawg.io/games/${IID}[/SIZE][/LIST]\n[/size]\n[HR][/HR]\n`;
+
+			vtLink = `[indent][forumcolor][b][size=25px]VirusTotal[/size][/b][/forumcolor][/indent]\n${vtLink}\n[HR][/HR]\n`;
+
+			downloadLinks = `[center][size=25px][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`;
+			let dump = `${backgroundimage}${title} ${year} ${steam} ${description}${trailer}${screen}${ratings}${info}${vtLink}${downloadLinks}`;
+			try {
+				document.getElementsByName('message')[0].value = dump;
+			} catch (err) {
+				alert(
+					'You should be running this in BBCode Mode. Check the Readme for more information!\n' +
+						err
+				);
+			} finally {
+				if (!document.getElementsByClassName('js-titleInput')[0].value) {
+					document.getElementsByClassName(
+						'js-titleInput'
+					)[0].value = `${json.name} - (${json.released})`;
+				}
+			}
+		},
+	});
 }
 
 GM_addStyle(

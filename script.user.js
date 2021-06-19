@@ -189,7 +189,7 @@ function ScreenshotHandler(images) {
             }
         }
         if (playStoreImages.length == '3') {
-			playStoreImages = playStoreImages.join('')
+            playStoreImages = playStoreImages.join('')
             break;
         }
     }

@@ -177,6 +177,35 @@ function SaveApiKey(APIVALUE, htmlpush) {
 	}
 }
 
+function DownloadLinkHandler(downloadLinks) {
+	let [hideReactScore, hidePosts] = [
+		$('#HideReactScore').val(),
+		$('#HidePosts').val(),
+	];
+	if (Downcloud.checked) {
+		let ddlSplit = downloadLinks.split(' ');
+		downloadLinks = '';
+		for (let singleLink of ddlSplit) {
+			if (singleLink) {
+				downloadLinks += `[downcloud]${singleLink}[/downcloud]\n`;
+			}
+		}
+	} else {
+		downloadLinks = downloadLinks.replace(/\ /g, '\n');
+	}
+	downloadLinks = `[hidereact=1,2,3,4,5,6]${downloadLinks.replace(
+		/\n+$/,
+		''
+	)}[/hidereact]`;
+	if (hideReactScore !== '0') {
+		downloadLinks = `[hidereactscore=${hideReactScore}]${downloadLinks}[/hidereactscore]`;
+	}
+	if (hidePosts !== '0') {
+		downloadLinks = `[hideposts=${hidePosts}]${downloadLinks}[/hideposts]`;
+	}
+	return downloadLinks;
+}
+
 function HttpGet(url) {
 	let xmlHttp = new XMLHttpRequest();
 	xmlHttp.open('GET', url, false);
@@ -189,16 +218,14 @@ function GenerateTemplate(APIVALUE) {
 	var uToob = $('#ytLink').val();
 	var info = $('#info').val();
 	var vtLink = $('#vtLink').val();
-	var ddl = $('#ddl').val();
-	var hidereactscore = $('#HideReactScore').val();
-	var hideposts = $('#HidePosts').val();
+	var downloadLinks = $('#ddl').val();
 	if (!IID) {
 		IID = $('#searchID').val();
 		if (IID.includes('rawg')) {
 			IID = IID.match(/(?<=games\/).*(?<!\/)/)[0];
 		}
 	}
-	if (!IID | !ddl | !vtLink) {
+	if (!IID | !downloadLinks | !vtLink) {
 		var errors = '';
 		errors += !IID
 			? "<li>You Didn't Select A Title or Enter a Rawg.io Link!</li>"
@@ -206,35 +233,19 @@ function GenerateTemplate(APIVALUE) {
 		errors += !vtLink
 			? "<li>You Forgot Your VirusTotal Link! That's Pretty Important...!</li>"
 			: '';
-		errors += !ddl
+		errors += !downloadLinks
 			? "<li>You Forgot Your Download Link! That's Pretty Important...!</li>"
 			: '';
 		Popup(errors);
 	} else {
-		if (Downcloud.checked) {
-			let ddlsplit = ddl.split(' ');
-			ddl = '';
-			for (let dls of ddlsplit) {
-				ddl += `[DOWNCLOUD]${dls}[/DOWNCLOUD]\n`;
-			}
-		} else {
-			ddl = ddl.replace(/\ /g, '\n');
-		}
-		ddl = '[HIDEREACT=1,2,3,4,5,6,7,8]\n' + ddl + '\n[/HIDEREACT]';
-		if (hidereactscore !== '0') {
-			ddl = `[HIDEREACTSCORE=${hidereactscore}]` + ddl + '[/HIDEREACTSCORE]';
-		}
-		if (hideposts !== '0') {
-			ddl = `[HIDEPOSTS=${hideposts}]` + ddl + '[/HIDEPOSTS]';
-		}
-
+		downloadLinks = DownloadLinkHandler(downloadLinks);
 		var screenshots_url = `https://api.rawg.io/api/games/${IID}/screenshots?key=${APIVALUE}`;
-    	var screenshots = JSON.parse(HttpGet(screenshots_url));
+		var screenshots = JSON.parse(HttpGet(screenshots_url));
 		if (screenshots.count !== 0) {
 			var screen = `[indent][size=25px][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [Spoiler='Screenshots']\n`;
 			for (let x in screenshots.results) {
 				var img = screenshots.results[x].image;
-				screen += `[img]${img}[/img]`
+				screen += `[img]${img}[/img]`;
 			}
 			screen += `[/Spoiler][HR][/HR]\n`;
 		} else {
@@ -253,8 +264,7 @@ function GenerateTemplate(APIVALUE) {
 		}
 
 		if (info.match(/[a-z]/)) {
-			info =
-				`[indent][size=25px][forumcolor][b]Release Infos[/b][/forumcolor][/size][/indent]\n[spoiler='Click here to view Release Info']\n${info}\n[/spoiler]\n[HR][/HR]\n`;
+			info = `[indent][size=25px][forumcolor][b]Release Infos[/b][/forumcolor][/size][/indent]\n[spoiler='Click here to view Release Info']\n${info}\n[/spoiler]\n[HR][/HR]\n`;
 		} else {
 			info = '';
 		}
@@ -265,8 +275,7 @@ function GenerateTemplate(APIVALUE) {
 		var steamStoreLink = stores.results.find((e) => e.url.match(steamReg));
 		if (steamStoreLink && steamStoreLink.length !== 0) {
 			let steamID = steamStoreLink.url.match(/\d{1,7}/);
-			var steam =
-				`[media=steamstore]${steamID}[/media][/center]\n[HR][/HR]\n`;
+			var steam = `[media=steamstore]${steamID}[/media][/center]\n[HR][/HR]\n`;
 		} else {
 			steam = '[/center]\n[HR][/HR]\n';
 		}
@@ -290,8 +299,7 @@ function GenerateTemplate(APIVALUE) {
 					json.released && json.released !== ''
 						? ` - (${json.released.substring(0, 4)})[/size][/b][/forumcolor]\n`
 						: '[/b][/size][/forumcolor]\n[HR][/HR]\n';
-				let description =
-					`[indent][forumcolor][b][size=25px]Description[/size][/b][/forumcolor][/indent]\n${json.description_raw}\n[HR][/HR]\n`;
+				let description = `[indent][forumcolor][b][size=25px]Description[/size][/b][/forumcolor][/indent]\n${json.description_raw}\n[HR][/HR]\n`;
 				let ratings =
 					'[indent][forumcolor][b][size=25px]Ratings[/size][/b][/forumcolor][/indent]\n[size=16px]\n[list]\n';
 				if (json.ratings == '') {
@@ -318,19 +326,15 @@ function GenerateTemplate(APIVALUE) {
 								img = 'https://i.ibb.co/cQ65F2b/skip.png';
 								color = '(251, 69, 83)';
 						}
-						ratings +=
-							`[*][img width="24px"]${img}[/img][color=rgb${color}]${x.title.toString()}: ${x.count.toString()} (${x.percent.toString()}%)[/color]\n`;
+						ratings += `[*][img width="24px"]${img}[/img][color=rgb${color}]${x.title.toString()}: ${x.count.toString()} (${x.percent.toString()}%)[/color]\n`;
 					}
 				}
-				ratings +=
-					`[SIZE=12px]Source: https://rawg.io/games/${IID}[/SIZE][/LIST]\n[/size]\n[HR][/HR]\n`;
+				ratings += `[SIZE=12px]Source: https://rawg.io/games/${IID}[/SIZE][/LIST]\n[/size]\n[HR][/HR]\n`;
 
-				vtLink =
-					`[indent][forumcolor][b][size=25px]VirusTotal[/size][/b][/forumcolor][/indent]\n${vtLink}\n[HR][/HR]\n`;
-				
-				ddl =
-					`[center][size=25px][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${ddl}\n[/center]`;
-				let dump = `${backgroundimage}${title} ${year} ${steam} ${description}${trailer}${screen}${ratings}${info}${vtLink}${ddl}`;
+				vtLink = `[indent][forumcolor][b][size=25px]VirusTotal[/size][/b][/forumcolor][/indent]\n${vtLink}\n[HR][/HR]\n`;
+
+				downloadLinks = `[center][size=25px][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`;
+				let dump = `${backgroundimage}${title} ${year} ${steam} ${description}${trailer}${screen}${ratings}${info}${vtLink}${downloadLinks}`;
 				try {
 					document.getElementsByName('message')[0].value = dump;
 				} catch (err) {
@@ -340,8 +344,9 @@ function GenerateTemplate(APIVALUE) {
 					);
 				} finally {
 					if (!document.getElementsByClassName('js-titleInput')[0].value) {
-						document.getElementsByClassName('js-titleInput')[0].value =
-							`${json.name} - (${json.released})`;
+						document.getElementsByClassName(
+							'js-titleInput'
+						)[0].value = `${json.name} - (${json.released})`;
 					}
 				}
 			},

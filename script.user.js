@@ -12,7 +12,6 @@
 // @require     https://code.jquery.com/jquery-3.6.0.min.js
 // @grant       GM_addStyle
 // @grant       GM_xmlhttpRequest
-// @grant       GM_setClipboard
 // @run-at      document-end
 // ==/UserScript==
 
@@ -338,11 +337,12 @@ function generateTemplate() {
                 try {
                     document.getElementsByName('message')[0].value = dump;
                 } catch (err) {
-                    GM_setClipboard(dump);
-                    Popup(
-                        'You should be running this in BBCode Mode. Check the Readme for more information!\n' +
-                        err
-                    );
+					removeAllChildNodes(
+						document.getElementsByClassName('fr-element fr-view')[0]
+					);
+					let p = document.createElement('p');
+					p.innerText = dump;
+					document.getElementsByClassName('fr-element fr-view')[0].appendChild(p);
                 } finally {
                     if (!document.getElementsByClassName('js-titleInput')[0].value) {
                         document.getElementsByClassName('js-titleInput')[0].value =

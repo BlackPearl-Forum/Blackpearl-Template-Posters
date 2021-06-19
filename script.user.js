@@ -73,293 +73,293 @@ errormessages
 </div></div></div></div>`;
 
 function Main() {
-	GM.getValue('DiscogKey', 'foo').then((value) => {
-		const APIVALUE = value;
-		const htmlpush = document.getElementsByTagName('dd')[0];
-		let lossless = window.location.href.match(/\d+/, '').includes('88');
-		htmlpush.innerHTML += APIVALUE !== 'foo' ? htmlTemplate : dginput;
-		$('#gmHideTemplate').click(() => HideTemplate());
-		$('#gmShowTemplate').click(() => ShowTemplate());
-		$('#gmSaveKey').click(() => SaveApiKey(APIVALUE));
-		SearchDiscog(APIVALUE);
-		$('#gmGenerate').click(() => GenerateTemplate(APIVALUE, lossless));
-	});
+    GM.getValue('DiscogKey', 'foo').then((value) => {
+        const APIVALUE = value;
+        const htmlpush = document.getElementsByTagName('dd')[0];
+        let lossless = window.location.href.match(/\d+/, '').includes('88');
+        htmlpush.innerHTML += APIVALUE !== 'foo' ? htmlTemplate : dginput;
+        $('#gmHideTemplate').click(() => HideTemplate());
+        $('#gmShowTemplate').click(() => ShowTemplate());
+        $('#gmSaveKey').click(() => SaveApiKey(APIVALUE));
+        SearchDiscog(APIVALUE);
+        $('#gmGenerate').click(() => GenerateTemplate(APIVALUE, lossless));
+    });
 }
 
 // Close Error Popup if overlay clicked
 $(document).click(function (e) {
-	if (
-		(!$('#errBox').is(e.target) & $('#js-XFUniqueId2').is(e.target)) |
-		$('.js-overlayClose').is(e.target)
-	) {
-		document.getElementsByName('errorpopup')[0].remove();
-	}
+    if (
+        (!$('#errBox').is(e.target) & $('#js-XFUniqueId2').is(e.target)) |
+        $('.js-overlayClose').is(e.target)
+    ) {
+        document.getElementsByName('errorpopup')[0].remove();
+    }
 });
 
 $(document).on('keydown', function (event) {
-	if (event.key == 'Escape') {
-		$('#discogGenerator').hide();
-		document.getElementById('gmShowTemplate').style.display = 'block';
-	}
+    if (event.key == 'Escape') {
+        $('#discogGenerator').hide();
+        document.getElementById('gmShowTemplate').style.display = 'block';
+    }
 });
 
 function HideTemplate() {
-	document.getElementById('gmShowTemplate').style.display = 'block';
-	$('#discogGenerator').hide();
+    document.getElementById('gmShowTemplate').style.display = 'block';
+    $('#discogGenerator').hide();
 }
 
 function ShowTemplate() {
-	document.getElementById('gmShowTemplate').style.display = 'none';
-	$('#discogGenerator').show();
+    document.getElementById('gmShowTemplate').style.display = 'none';
+    $('#discogGenerator').show();
 }
 
 // Popup for Errors
 function Popup(errors) {
-	let errOutput = errPopup.replace('errormessages', errors);
-	var body = document.getElementsByTagName('Body')[0];
-	body.insertAdjacentHTML('beforeend', errOutput);
+    let errOutput = errPopup.replace('errormessages', errors);
+    var body = document.getElementsByTagName('Body')[0];
+    body.insertAdjacentHTML('beforeend', errOutput);
 }
 
 function SaveApiKey(APIVALUE) {
-	if (APIVALUE == 'foo') {
-		let discogKey = $('#dgKey').val();
-		if (discogKey) {
-			GM.setValue('DiscogKey', discogKey);
-		} else {
-			alert("You Didn't Enter Your Key!!");
-		}
-		document.getElementById('discogGenerator').remove();
-		document.getElementById('gmShowTemplate').remove();
-		main();
-	}
+    if (APIVALUE == 'foo') {
+        let discogKey = $('#dgKey').val();
+        if (discogKey) {
+            GM.setValue('DiscogKey', discogKey);
+        } else {
+            alert("You Didn't Enter Your Key!!");
+        }
+        document.getElementById('discogGenerator').remove();
+        document.getElementById('gmShowTemplate').remove();
+        main();
+    }
 }
 
 function SearchDiscog(APIVALUE) {
-	$('#Discog_search').search({
-		type: 'category',
-		apiSettings: {
-			url: `https://api.discogs.com/database/search?q={query}&type=master&token=${APIVALUE}`,
-			onResponse: function (myfunc) {
-				var response = {
-					results: {},
-				};
-				$.each(myfunc.results, function (index, item) {
-					var category = item.type || 'Unknown',
-						maxResults = 10;
-					if (index >= maxResults) {
-						return false;
-					}
-					if (response.results[category] === undefined) {
-						response.results[category] = {
-							name: '~~~~~~~~~~' + category + '~~~~~~~~~~',
-							results: [],
-						};
-					}
-					var Name = item.title + ' (' + item.year + ')';
-					response.results[category].results.push({
-						title: Name,
-						description: Name,
-						master_url: item.master_url,
-					});
-				});
-				delete (response.results.release,
-					response.results.label,
-					response.results.artist);
-				return response;
-			},
-		},
-		fields: {
-			results: 'results',
-			title: 'name',
-		},
-		onSelect: function (response) {
-			$('#masterUrl').val(response.master_url);
-		},
-		minCharacters: 3,
-	});
+    $('#Discog_search').search({
+        type: 'category',
+        apiSettings: {
+            url: `https://api.discogs.com/database/search?q={query}&type=master&token=${APIVALUE}`,
+            onResponse: function (myfunc) {
+                var response = {
+                    results: {},
+                };
+                $.each(myfunc.results, function (index, item) {
+                    var category = item.type || 'Unknown',
+                        maxResults = 10;
+                    if (index >= maxResults) {
+                        return false;
+                    }
+                    if (response.results[category] === undefined) {
+                        response.results[category] = {
+                            name: '~~~~~~~~~~' + category + '~~~~~~~~~~',
+                            results: [],
+                        };
+                    }
+                    var Name = item.title + ' (' + item.year + ')';
+                    response.results[category].results.push({
+                        title: Name,
+                        description: Name,
+                        master_url: item.master_url,
+                    });
+                });
+                delete (response.results.release,
+                    response.results.label,
+                    response.results.artist);
+                return response;
+            },
+        },
+        fields: {
+            results: 'results',
+            title: 'name',
+        },
+        onSelect: function (response) {
+            $('#masterUrl').val(response.master_url);
+        },
+        minCharacters: 3,
+    });
 }
 
 function RemoveAllChildNodes(parent) {
-	while (parent.firstChild) {
-		parent.removeChild(parent.firstChild);
-	}
+    while (parent.firstChild) {
+        parent.removeChild(parent.firstChild);
+    }
 }
 
 function DownloadLinkHandler(downloadLinks) {
-	let [hideReactScore, hidePosts] = [$('#HideReactScore').val(), $('#HidePosts').val()];
-	if (Downcloud.checked) {
-		let ddlSplit = downloadLinks.split(' ');
-		downloadLinks = '';
-		for (let singleLink of ddlSplit) {
-			if (singleLink) {
-				downloadLinks += `[downcloud]${singleLink}[/downcloud]\n`;
-			}
-		}
-	} else {
-		downloadLinks = downloadLinks.replace(/\ /g, '\n');
-	}
-	downloadLinks = `[hidereact=1,2,3,4,5,6]${downloadLinks}[/hidereact]`;
-	if (hideReactScore !== '0') {
-		downloadLinks = `[hidereactscore=${hideReactScore}]${downloadLinks}[/hidereactscore]`;
-	}
-	if (hidePosts !== '0') {
-		downloadLinks = `[hideposts=${hidePosts}]${downloadLinks}[/hideposts]`;
-	}
-	return downloadLinks
+    let [hideReactScore, hidePosts] = [$('#HideReactScore').val(), $('#HidePosts').val()];
+    if (Downcloud.checked) {
+        let ddlSplit = downloadLinks.split(' ');
+        downloadLinks = '';
+        for (let singleLink of ddlSplit) {
+            if (singleLink) {
+                downloadLinks += `[downcloud]${singleLink}[/downcloud]\n`;
+            }
+        }
+    } else {
+        downloadLinks = downloadLinks.replace(/\ /g, '\n');
+    }
+    downloadLinks = `[hidereact=1,2,3,4,5,6]${downloadLinks}[/hidereact]`;
+    if (hideReactScore !== '0') {
+        downloadLinks = `[hidereactscore=${hideReactScore}]${downloadLinks}[/hidereactscore]`;
+    }
+    if (hidePosts !== '0') {
+        downloadLinks = `[hideposts=${hidePosts}]${downloadLinks}[/hideposts]`;
+    }
+    return downloadLinks
 }
 
 function GenerateTemplate(APIVALUE, lossless, masterUrl) {
-	let [downloadLinks, qualityImages, qualityText] = [$('#ddl').val(), $('#qImgs').val(), $('#qText').val(), $('#masterUrl').val()];
-	if (!masterUrl | !downloadLinks | (lossless & !qualityImages & !qualityText)) {
-		var errors = '';
-		errors += !masterUrl
-			? "<li>You Didn't Select A Result or Enter a URL!</li>"
-			: '';
-		errors += !downloadLinks
-			? "<li>Uh Oh! You Forgot Your Download Link! That's Pretty Important...</li>"
-			: '';
-		if (lossless) {
-			errors +=
-				!qualityImages && !qualityText
-					? '<li>You Didnt Add A Quality / Log Proof</li>'
-					: '';
-		}
-		if (errors) {
-			Popup(errors);
-		}
-		return
-	}
-	downloadLinks = DownloadLinkHandler(downloadLinks)
-	var xhReq = new XMLHttpRequest();
-	xhReq.open('GET', `${masterUrl}?token=${APIVALUE}`, false);
-	xhReq.send(null);
-	var albumjson = JSON.parse(xhReq.responseText);
-	GM_xmlhttpRequest({
-		method: 'GET',
-		url: `${albumjson.artists[0].resource_url}?token=${APIVALUE}`,
-		onload: function (response) {
-			var artistjson = JSON.parse(response.responseText);
-			let artistUri = artistjson.uri.replace('http:', 'https:');
-			let Cover = albumjson.images
-				? `[center][img width="250px"]${albumjson.images[0].uri}[/img][/center]\n`
-				: '';
-			let artistName = albumjson.artists[0].name.replace(/\(\d*\)/g, '');
-			let artist =
-				artistName && artistUri
-					? `[center][forumcolor][b][size=6][url=${artistUri}]${artistName}[/url][/size][/b][/forumcolor][/center]\n`
-					: '';
-			let album =
-				albumjson.uri && albumjson.title
-					? `[center][forumcolor][b][size=6][url=${albumjson.uri}]${albumjson.title}[/url][/size][/b][/forumcolor][/center]\n`
-					: '';
-			let tracknum = `[center][size=6]${albumjson.tracklist.length} Tracks[/size][/center]\n`;
-			let styles = '';
-			if (albumjson.styles) {
-				styles = '[*][b][forumcolor]Style(s): [/b][/forumcolor] | ';
-				for (let i = 0; i < albumjson.styles.length; i++) {
-					styles +=
-						`[url=https://www.discogs.com/style/${albumjson.styles[i].replace(' ', '+')}]${albumjson.styles[i]}[/url] | `;
-				}
-			}
-			let genres = '';
-			if (albumjson.genres) {
-				genres = '\n[*][forumcolor][b]Genre(s): [/b][/forumcolor] | ';
-				for (let i = 0; i < albumjson.genres.length; i++) {
-					genres +=
-						`[url=https://www.discogs.com/genre/${albumjson.genres[i].replace(' ', '+')}]${albumjson.genres[i]}[/url] | `;
-				}
-			}
-			let year = '';
-			if (albumjson.year) {
-				year = `\n[*][forumcolor][b]Release Year: [/b][/forumcolor]${albumjson.year}`;
-			}
-			let videos = '';
-			if (albumjson.videos) {
-				videos = '[spoiler="Video(s)"]\n';
-				for (let i = 0; i < albumjson.videos.length; i++) {
-					videos += albumjson.videos[i].uri + '\n';
-				}
-				videos += '[/spoiler]\n';
-			}
+    let [downloadLinks, qualityImages, qualityText] = [$('#ddl').val(), $('#qImgs').val(), $('#qText').val(), $('#masterUrl').val()];
+    if (!masterUrl | !downloadLinks | (lossless & !qualityImages & !qualityText)) {
+        var errors = '';
+        errors += !masterUrl
+            ? "<li>You Didn't Select A Result or Enter a URL!</li>"
+            : '';
+        errors += !downloadLinks
+            ? "<li>Uh Oh! You Forgot Your Download Link! That's Pretty Important...</li>"
+            : '';
+        if (lossless) {
+            errors +=
+                !qualityImages && !qualityText
+                    ? '<li>You Didnt Add A Quality / Log Proof</li>'
+                    : '';
+        }
+        if (errors) {
+            Popup(errors);
+        }
+        return
+    }
+    downloadLinks = DownloadLinkHandler(downloadLinks)
+    var xhReq = new XMLHttpRequest();
+    xhReq.open('GET', `${masterUrl}?token=${APIVALUE}`, false);
+    xhReq.send(null);
+    var albumjson = JSON.parse(xhReq.responseText);
+    GM_xmlhttpRequest({
+        method: 'GET',
+        url: `${albumjson.artists[0].resource_url}?token=${APIVALUE}`,
+        onload: function (response) {
+            var artistjson = JSON.parse(response.responseText);
+            let artistUri = artistjson.uri.replace('http:', 'https:');
+            let Cover = albumjson.images
+                ? `[center][img width="250px"]${albumjson.images[0].uri}[/img][/center]\n`
+                : '';
+            let artistName = albumjson.artists[0].name.replace(/\(\d*\)/g, '');
+            let artist =
+                artistName && artistUri
+                    ? `[center][forumcolor][b][size=6][url=${artistUri}]${artistName}[/url][/size][/b][/forumcolor][/center]\n`
+                    : '';
+            let album =
+                albumjson.uri && albumjson.title
+                    ? `[center][forumcolor][b][size=6][url=${albumjson.uri}]${albumjson.title}[/url][/size][/b][/forumcolor][/center]\n`
+                    : '';
+            let tracknum = `[center][size=6]${albumjson.tracklist.length} Tracks[/size][/center]\n`;
+            let styles = '';
+            if (albumjson.styles) {
+                styles = '[*][b][forumcolor]Style(s): [/b][/forumcolor] | ';
+                for (let i = 0; i < albumjson.styles.length; i++) {
+                    styles +=
+                        `[url=https://www.discogs.com/style/${albumjson.styles[i].replace(' ', '+')}]${albumjson.styles[i]}[/url] | `;
+                }
+            }
+            let genres = '';
+            if (albumjson.genres) {
+                genres = '\n[*][forumcolor][b]Genre(s): [/b][/forumcolor] | ';
+                for (let i = 0; i < albumjson.genres.length; i++) {
+                    genres +=
+                        `[url=https://www.discogs.com/genre/${albumjson.genres[i].replace(' ', '+')}]${albumjson.genres[i]}[/url] | `;
+                }
+            }
+            let year = '';
+            if (albumjson.year) {
+                year = `\n[*][forumcolor][b]Release Year: [/b][/forumcolor]${albumjson.year}`;
+            }
+            let videos = '';
+            if (albumjson.videos) {
+                videos = '[spoiler="Video(s)"]\n';
+                for (let i = 0; i < albumjson.videos.length; i++) {
+                    videos += albumjson.videos[i].uri + '\n';
+                }
+                videos += '[/spoiler]\n';
+            }
 
-			let albumDetails = `[INDENT][size=6][forumcolor][B]Album Details[/B][/forumcolor][/size][/INDENT]\n[list]\n${styles}${genres}${year}\n[/list]\n`;
-			// TODO: Add more details? ^^^^
-			let tracks = '';
-			if (albumjson.tracklist) {
-				tracks =
-					'\n[spoiler="Track List"]\n[TABLE=collapse]\n[TR]\n[TH]No.[/TH]\n[TH]Track Name[/TH]\n[TH]Track Duration[/TH]\n[/TR]\n';
-				for (let t of albumjson.tracklist) {
-					tracks += `[TR][TD]${t.position}[/TD]\n[TD]${t.title}[/TD]\n`;
-					if (t.duration) {
-						tracks += `[TD]${t.duration}[/TD]`;
-					}
-					tracks += '[/TR]\n';
-				}
-				if (!albumjson.tracklist[0].duration) {
-					tracks = tracks.replace('[TH]Track Duration[/TH]\n', '');
-				}
-				tracks += '[/TABLE]\n[/spoiler]\n';
-			}
-			let artistinfo = artistjson.profile
-				? `[spoiler="About Artist"]\n${artistjson.profile.replace(/\[.=/gm, '').replace(/\]/gm, '')}\n[/spoiler]`
-				: '';
-			let members =
-				'[indent][size=6][forumcolor][B]Artist Details[/B][/forumcolor][/size][/indent]\n';
-			if (artistjson.members) {
-				let memberlist = artistjson.members;
-				members += '[spoiler="Member List"]\n[tabs]';
-				for (let ml of memberlist) {
-					members += `[slide=${ml.name}]\n[img width="150px"]${ml.thumbnail_url}[/img][/slide]\n`;
-				}
-				members += '[/tabs]\n[/spoiler]\n';
-			}
-			let artistLinks = '';
-			if (artistjson.urls) {
-				artistLinks = '[spoiler="Artist Links"]\n';
-				for (let link of artistjson.urls) {
-					artistLinks += link.replace('http:', 'https:') + '\n';
-				}
-				artistLinks += '\n[/spoiler]\n[hr][/hr]\n';
-			}
-			downloadLinks =
-				`[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`;
-			let qualityImage = '';
-			if (qualityImages) {
-				for (let qi of qualityImages.split(' ')) {
-					qualityImage += `[img width="300"]${qi}[/img]`;
-				}
-				qualityImage += '\n';
-			}
-			qualityText = qualityText
-				? `[spoiler="Quality Proof"]${qualityText}[/Spoiler]\n`
-				: '';
-			let quality =
-				qualityImage || qualityText
-					? `[hr][/hr][center][size=6][forumcolor][b]Quality Proof[/b][/forumcolor][/size]\n${qualityImage}${qualityText}`
-					: '';
-			let dump = `${Cover}${artist}${album}${tracknum}${members}${artistinfo}${artistLinks}${albumDetails}${tracks}${videos}${quality}${downloadLinks}`;
-			try {
-				document.getElementsByName('message')[0].value = dump;
-			} catch (err) {
-				removeAllChildNodes(
-					document.getElementsByClassName('fr-element fr-view')[0]
-				);
-				let p = document.createElement('p');
-				p.innerText = dump;
-				document.getElementsByClassName('fr-element fr-view')[0].appendChild(p);
-			} finally {
-				if (!document.getElementsByClassName('js-titleInput')[0].value) {
-					document.getElementsByClassName('js-titleInput')[0].value =
-						`${artistName} - ${albumjson.title} (${albumjson.year})`;
-				}
-			}
-		},
-	});
+            let albumDetails = `[INDENT][size=6][forumcolor][B]Album Details[/B][/forumcolor][/size][/INDENT]\n[list]\n${styles}${genres}${year}\n[/list]\n`;
+            // TODO: Add more details? ^^^^
+            let tracks = '';
+            if (albumjson.tracklist) {
+                tracks =
+                    '\n[spoiler="Track List"]\n[TABLE=collapse]\n[TR]\n[TH]No.[/TH]\n[TH]Track Name[/TH]\n[TH]Track Duration[/TH]\n[/TR]\n';
+                for (let t of albumjson.tracklist) {
+                    tracks += `[TR][TD]${t.position}[/TD]\n[TD]${t.title}[/TD]\n`;
+                    if (t.duration) {
+                        tracks += `[TD]${t.duration}[/TD]`;
+                    }
+                    tracks += '[/TR]\n';
+                }
+                if (!albumjson.tracklist[0].duration) {
+                    tracks = tracks.replace('[TH]Track Duration[/TH]\n', '');
+                }
+                tracks += '[/TABLE]\n[/spoiler]\n';
+            }
+            let artistinfo = artistjson.profile
+                ? `[spoiler="About Artist"]\n${artistjson.profile.replace(/\[.=/gm, '').replace(/\]/gm, '')}\n[/spoiler]`
+                : '';
+            let members =
+                '[indent][size=6][forumcolor][B]Artist Details[/B][/forumcolor][/size][/indent]\n';
+            if (artistjson.members) {
+                let memberlist = artistjson.members;
+                members += '[spoiler="Member List"]\n[tabs]';
+                for (let ml of memberlist) {
+                    members += `[slide=${ml.name}]\n[img width="150px"]${ml.thumbnail_url}[/img][/slide]\n`;
+                }
+                members += '[/tabs]\n[/spoiler]\n';
+            }
+            let artistLinks = '';
+            if (artistjson.urls) {
+                artistLinks = '[spoiler="Artist Links"]\n';
+                for (let link of artistjson.urls) {
+                    artistLinks += link.replace('http:', 'https:') + '\n';
+                }
+                artistLinks += '\n[/spoiler]\n[hr][/hr]\n';
+            }
+            downloadLinks =
+                `[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`;
+            let qualityImage = '';
+            if (qualityImages) {
+                for (let qi of qualityImages.split(' ')) {
+                    qualityImage += `[img width="300"]${qi}[/img]`;
+                }
+                qualityImage += '\n';
+            }
+            qualityText = qualityText
+                ? `[spoiler="Quality Proof"]${qualityText}[/Spoiler]\n`
+                : '';
+            let quality =
+                qualityImage || qualityText
+                    ? `[hr][/hr][center][size=6][forumcolor][b]Quality Proof[/b][/forumcolor][/size]\n${qualityImage}${qualityText}`
+                    : '';
+            let dump = `${Cover}${artist}${album}${tracknum}${members}${artistinfo}${artistLinks}${albumDetails}${tracks}${videos}${quality}${downloadLinks}`;
+            try {
+                document.getElementsByName('message')[0].value = dump;
+            } catch (err) {
+                removeAllChildNodes(
+                    document.getElementsByClassName('fr-element fr-view')[0]
+                );
+                let p = document.createElement('p');
+                p.innerText = dump;
+                document.getElementsByClassName('fr-element fr-view')[0].appendChild(p);
+            } finally {
+                if (!document.getElementsByClassName('js-titleInput')[0].value) {
+                    document.getElementsByClassName('js-titleInput')[0].value =
+                        `${artistName} - ${albumjson.title} (${albumjson.year})`;
+                }
+            }
+        },
+    });
 }
 
 //--- CSS styles make it work...
 GM_addStyle(
-	"                                                             \
+    "                                                             \
     @media screen and (min-width: 300px) {                        \
       /* Divide Buttons */                                        \
       .divider{                                                   \

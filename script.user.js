@@ -78,11 +78,7 @@ function Main() {
 	GM.getValue('APIKEY', 'foo').then((value) => {
 		var APIVALUE = value;
 		const htmlpush = document.getElementsByTagName('dd')[0];
-		const titlechange = document.getElementById('title');
 		htmlpush.innerHTML += APIVALUE !== 'foo' ? htmlTemplate : rawginput;
-		if (titlechange) {
-			document.getElementById('title').className += 'input';
-		}
 		SectionSearch(APIVALUE);
 		$('#gmHideTemplate').click(() => HideTemplate());
 		$('#showTemplate').click(() => ShowTemplate());

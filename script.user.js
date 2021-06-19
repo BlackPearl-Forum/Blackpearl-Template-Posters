@@ -237,7 +237,7 @@ function DownloadLinkHandler(downloadLinks) {
 	} else {
 		downloadLinks = downloadLinks.replace(/\ /g, '\n');
 	}
-	downloadLinks = `[hidereact=1,2,3,4,5,6]${downloadLinks}[/hidereact]`;
+	downloadLinks = `[hidereact=1,2,3,4,5,6]${downloadLinks.replace(/\n+$/, '')}[/hidereact]`; // Remove extra newline at end of string
 	if (hideReactScore !== '0') {
 		downloadLinks = `[hidereactscore=${hideReactScore}]${downloadLinks}[/hidereactscore]`;
 	}

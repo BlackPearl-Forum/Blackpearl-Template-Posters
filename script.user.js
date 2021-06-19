@@ -80,7 +80,7 @@ function Main() {
 	htmlPlacement.innerHTML += htmlTemplate; // Place our HTML under the inputs
 	$('#gmHideTemplate').click(() => HideTemplate()); // When Hide button clicked, run hide function
 	$('#showTemplate').click(() => ShowTemplate()); // When Show button clicked, run Show function
-	$('#gmGenerate').click(() => generateTemplate()); // When Generate button clicked, run Generate function
+	$('#gmGenerate').click(() => GenerateTemplate()); // When Generate button clicked, run Generate function
 }
 
 // Close Error Popup if overlay clicked
@@ -135,7 +135,7 @@ function FilterRequiredVersion(element) {
 }
 
 // fix word casing
-function upperCase(str) {
+function UpperCase(str) {
 	str = str.toLowerCase(); // First make entire string lowercase
 	return str.replace(/(^|\s)\S/g, function (t) {
 		return t.toUpperCase(); // Return Uppercase for every word in String
@@ -205,7 +205,7 @@ function ScreenshotHandler(images) {
 	return playStoreImages;
 }
 
-function generateTemplate() {
+function GenerateTemplate() {
 	// Create variables from HTML
 	let [
 		playStoreLink,
@@ -313,13 +313,13 @@ function generateTemplate() {
 					? `[indent][size=6][color=rgb(26, 162, 96)][B]App Description[/B][/color][/size][/indent]\n[SPOILER='App Description']\n${gplayjson.description}\n[/SPOILER]\n[hr][/hr]\n`
 					: '';
 				let developerName = gplayjson.author.name
-					? `[indent][size=6][color=rgb(26, 162, 96)][B]App Details[/B][/color][/size][/indent]\n[LIST]\n[*][B]Developer: [/B] ${upperCase(
+					? `[indent][size=6][color=rgb(26, 162, 96)][B]App Details[/B][/color][/size][/indent]\n[LIST]\n[*][B]Developer: [/B] ${UpperCase(
 							gplayjson.author.name
 					  )}`
 					: '';
 				// App Category
 				let playStoreCategory = gplayjson.applicationCategory
-					? `\n[*][B]Category: [/B] ${upperCase(
+					? `\n[*][B]Category: [/B] ${UpperCase(
 							gplayjson.applicationCategory.replace(/\_/g, ' ')
 					  )}`
 					: '';

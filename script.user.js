@@ -254,6 +254,15 @@ function DownloadLinkHandler(downloadLinks) {
 	return downloadLinks;
 }
 
+function ScreenshotHandler(screenshots) {
+	var screen = `\n[hr][/hr][indent][size=6][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [spoiler='screenshots']\n`;
+	for (let ss of screenshots) {
+		screen += `[img]${ss}[/img]`;
+	}
+	screen += `[/spoiler]`;
+	return screen
+}
+
 function ParseMediaInfo(mediaInfo, premadeTitle) {
 	let videoInfo = mediaInfo.match(/(Video|Video #1)$.^[\s\S]*?(?=\n{2,})/ms)[0];
 	if (videoInfo) {
@@ -343,16 +352,7 @@ function generateTemplate(APIVALUE) {
 		return;
 	}
 	downloadLinks = DownloadLinkHandler(downloadLinks);
-	if (screenshots) {
-		screenshots = screenshots.split(' ');
-		var screen = `\n[hr][/hr][indent][size=6][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [spoiler='screenshots']\n`;
-		for (let ss of screenshots) {
-			screen += `[img]${ss}[/img]`;
-		}
-		screen += `[/spoiler]`;
-	} else {
-		screen = '';
-	}
+	var screen = screenshots ? ScreenshotHandler(screenshots.split(' ')) : '';
 	var trailer = youtubeLink.match(/[a-z]/)
 		? `\n[hr][/hr][indent][size=6][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n ${youtubeLink}`
 		: '';

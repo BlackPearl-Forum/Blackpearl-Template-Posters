@@ -46,9 +46,9 @@ HideReactScore
 HidePosts
 <input type="number" id="HidePosts" min="0" max="50" value="0"> <br>
 <div id="textareaDivider">&nbsp;</div>
-<button class="button--primary button button--icon" id="gmGenerate" type="button">Generate Template</button>
-<button class="button--primary button button--icon" id="gmClearBtn" type="reset">Clear</button>
-<button class="button--primary button button--icon" id="gmHideTemplate" type="button">Hide</button>
+<button class="button--primary button button--icon" id="generateTemplate" type="button">Generate Template</button>
+<button class="button--primary button button--icon" id="ClearBtn" type="reset">Clear</button>
+<button class="button--primary button button--icon" id="hideTemplate" type="button">Hide</button>
 </div>
 `;
 
@@ -58,9 +58,9 @@ const omdbinput = `
 <div id="OmdbGenerator">
 <input type="text" id="omdbKey" value="" class="input" placeholder="Enter Your Omdb API Key & Click Save">
 <div id="textareaDivider">&nbsp;</div>
-<button class="button--primary button button--icon" id="gmSaveKey" type="button">Save Key</button>
-<button class="button--primary button button--icon" id="gmClearBtn" type="reset">Clear</button>
-<button class="button--primary button button--icon" id="gmHideTemplate" type="button">Hide</button>
+<button class="button--primary button button--icon" id="saveKey" type="button">Save Key</button>
+<button class="button--primary button button--icon" id="clearBtn" type="reset">Clear</button>
+<button class="button--primary button button--icon" id="hideTemplate" type="button">Hide</button>
 </div>
 `;
 
@@ -85,10 +85,37 @@ function Main() {
 		const htmlpush = document.getElementsByTagName('dd')[0];
 		htmlpush.innerHTML += APIVALUE !== 'foo' ? htmlTemplate : omdbinput;
 		SectionSearch(APIVALUE);
-		$('#gmHideTemplate').click(() => HideTemplate());
-		$('#showTemplate').click(() => ShowTemplate());
-		$('#gmSaveKey').click(() => SaveApiKey(APIVALUE));
-		$('#gmGenerate').click(() => GenerateTemplate(APIVALUE));
+		document.getElementById('hideTemplate').addEventListener(
+			'click',
+			function () {
+				HideTemplate();
+			},
+			false
+		);
+		document.getElementById('showTemplate').addEventListener(
+			'click',
+			function () {
+				ShowTemplate();
+			},
+			false
+		);
+		if (APIVALUE !== 'foo') {
+			document.getElementById('generateTemplate').addEventListener(
+				'click',
+				function () {
+					GenerateTemplate(APIVALUE);
+				},
+				false
+			);
+		} else {
+			document.getElementById('saveKey').addEventListener(
+				'click',
+				function () {
+					SaveApiKey(APIVALUE);
+				},
+				false
+			);
+		}
 	});
 }
 
@@ -99,14 +126,6 @@ $(document).click(function (e) {
 		$('.js-overlayClose').is(e.target)
 	) {
 		document.getElementsByName('errorpopup')[0].remove();
-	}
-});
-
-$(document).on('keydown', function (event) {
-	if (event.key == 'Escape') {
-		$('#OmdbGenerator').hide();
-		document.getElementById('showTemplate').style.display = 'block';
-		document.getElementsByName('showDivider')[0].style.display = 'block';
 	}
 });
 
@@ -227,8 +246,8 @@ function SaveApiKey(APIVALUE) {
 
 function DownloadLinkHandler(downloadLinks) {
 	let [hideReactScore, hidePosts] = [
-		$('#HideReactScore').val(),
-		$('#HidePosts').val(),
+		document.getElementById('HideReactScore').value,
+		document.getElementById('HidePosts').value,
 	];
 	if (Downcloud.checked) {
 		let ddlSplit = downloadLinks.split(' ');
@@ -260,7 +279,7 @@ function ScreenshotHandler(screenshots) {
 		screen += `[img]${ss}[/img]`;
 	}
 	screen += `[/spoiler]`;
-	return screen
+	return screen;
 }
 
 function ParseMediaInfo(mediaInfo, premadeTitle) {
@@ -279,7 +298,7 @@ function ParseMediaInfo(mediaInfo, premadeTitle) {
 			}
 		}
 		let videoWritingLib = videoInfo.match(/Writing library.*/)[0];
-		if (videoWritingLib) {
+		if (videoWritingLib & (videoWritingLib.includes('x265') | videoWritingLib.includes('x264'))){
 			if (videoWritingLib.includes('x265')) {
 				premadeTitle += ' x265';
 			} else if (videoWritingLib.includes('x264')) {
@@ -325,14 +344,14 @@ function ParseMediaInfo(mediaInfo, premadeTitle) {
 
 function GenerateTemplate(APIVALUE) {
 	var [imdbID, screenshots, youtubeLink, downloadLinks, mediaInfo] = [
-		$('#hiddenIID').val(),
-		$('#screensLinks').val(),
-		$('#ytLink').val(),
-		$('#ddl').val(),
-		$('#mediaInfo').val(),
+		document.getElementById('hiddenIID').value,
+		document.getElementById('screensLinks').value,
+		document.getElementById('ytLink').value,
+		document.getElementById('ddl').value,
+		document.getElementById('mediaInfo').value,
 	];
 	if (!imdbID) {
-		imdbID = $('#searchID').val();
+		imdbID = document.getElementById('searchID').value;
 		if (imdbID.includes('imdb')) {
 			imdbID = imdbID.match(/tt\d+/)[0];
 		}

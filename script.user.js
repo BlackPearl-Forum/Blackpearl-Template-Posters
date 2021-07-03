@@ -151,8 +151,6 @@ function removeAllChildNodes(parent) {
 
 function sectionSearch(APIVALUE) {
 	const section = parseInt(window.location.href.match(/\d+/, '')[0]);
-	console.log(section);
-	console.log(window.location.href.match(/\d+/, '')[0]);
 	const [movies, series] = [
 		[129, 172, 173, 174, 175, 176, 178, 179, 180, 181, 183, 184, 202, 204],
 		[187, 188, 189, 190, 193, 194, 197, 198, 199, 200, 203, 206, 208, 209, 223],
@@ -258,7 +256,6 @@ function DownloadLinkHandler(downloadLinks) {
 
 function ParseMediaInfo(mediaInfo, premadeTitle) {
 	let videoInfo = mediaInfo.match(/(Video|Video #1)$.^[\s\S]*?(?=\n{2,})/ms)[0];
-	console.log(videoInfo);
 	if (videoInfo) {
 		let videoWidth = videoInfo.match(/Width.*/)[0];
 		if (videoWidth) {
@@ -273,7 +270,6 @@ function ParseMediaInfo(mediaInfo, premadeTitle) {
 			}
 		}
 		let videoWritingLib = videoInfo.match(/Writing library.*/)[0];
-		console.log(videoWritingLib);
 		if (videoWritingLib) {
 			if (videoWritingLib.includes('x265')) {
 				premadeTitle += ' x265';
@@ -298,7 +294,6 @@ function ParseMediaInfo(mediaInfo, premadeTitle) {
 		}
 	}
 	let audioInfo = mediaInfo.match(/(Audio|Audio #1)$.^[\s\S]*?(?=\n{2,})/ms)[0];
-	console.log(audioInfo);
 	if (audioInfo) {
 		let audioCodec = audioInfo.match(/Codec ID.*/)[0];
 		if (audioCodec) {

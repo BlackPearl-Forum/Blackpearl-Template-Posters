@@ -21,7 +21,7 @@
 // @connect     omdbapi.com
 // ==/UserScript==
 
-main();
+Main();
 
 const htmlTemplate = `
 <div id="textareaDivider" name="showDivider" style="display:none">&nbsp;</div>
@@ -79,16 +79,16 @@ var tagSelect = `<li class="select2-selection__choice" title="tagname"><span cla
 
 var sectionType;
 
-function main() {
+function Main() {
 	GM.getValue('APIKEY', 'foo').then((value) => {
 		var APIVALUE = value;
 		const htmlpush = document.getElementsByTagName('dd')[0];
 		htmlpush.innerHTML += APIVALUE !== 'foo' ? htmlTemplate : omdbinput;
-		sectionSearch(APIVALUE);
-		$('#gmHideTemplate').click(() => hideTemplate());
-		$('#showTemplate').click(() => showTemplate());
-		$('#gmSaveKey').click(() => saveApiKey(APIVALUE));
-		$('#gmGenerate').click(() => generateTemplate(APIVALUE));
+		SectionSearch(APIVALUE);
+		$('#gmHideTemplate').click(() => HideTemplate());
+		$('#showTemplate').click(() => ShowTemplate());
+		$('#gmSaveKey').click(() => SaveApiKey(APIVALUE));
+		$('#gmGenerate').click(() => GenerateTemplate(APIVALUE));
 	});
 }
 
@@ -110,13 +110,13 @@ $(document).on('keydown', function (event) {
 	}
 });
 
-function showTemplate() {
+function ShowTemplate() {
 	document.getElementById('showTemplate').style.display = 'none';
 	document.getElementsByName('showDivider')[0].style.display = 'none';
 	$('#OmdbGenerator').show();
 }
 
-function hideTemplate() {
+function HideTemplate() {
 	document.getElementById('showTemplate').style.display = 'block';
 	document.getElementsByName('showDivider')[0].style.display = 'block';
 	$('#OmdbGenerator').hide();
@@ -130,7 +130,7 @@ function Popup(errors) {
 }
 
 // Push Genre Tags to HTML
-function tagsPush(tag) {
+function TagsPush(tag) {
 	let tagOutput = tagSelect.replace(/tagname/g, tag);
 	let tagParent = document.getElementsByClassName(
 		'select2-selection__rendered'
@@ -143,13 +143,13 @@ function tagsPush(tag) {
 	tagParent2.add(option);
 }
 
-function removeAllChildNodes(parent) {
+function RemoveAllChildNodes(parent) {
 	while (parent.firstChild) {
 		parent.removeChild(parent.firstChild);
 	}
 }
 
-function sectionSearch(APIVALUE) {
+function SectionSearch(APIVALUE) {
 	const section = parseInt(window.location.href.match(/\d+/, '')[0]);
 	const [movies, series] = [
 		[129, 172, 173, 174, 175, 176, 178, 179, 180, 181, 183, 184, 202, 204],
@@ -211,7 +211,7 @@ function sectionSearch(APIVALUE) {
 	});
 }
 
-function saveApiKey(APIVALUE) {
+function SaveApiKey(APIVALUE) {
 	if (APIVALUE == 'foo') {
 		let omdbKey = $('#omdbKey').val();
 		if (omdbKey) {
@@ -323,7 +323,7 @@ function ParseMediaInfo(mediaInfo, premadeTitle) {
 	return premadeTitle;
 }
 
-function generateTemplate(APIVALUE) {
+function GenerateTemplate(APIVALUE) {
 	var [imdbID, screenshots, youtubeLink, downloadLinks, mediaInfo] = [
 		$('#hiddenIID').val(),
 		$('#screensLinks').val(),
@@ -459,22 +459,22 @@ function generateTemplate(APIVALUE) {
 				'[hr][/hr][indent][size=6][forumcolor][b]Media Info[/b][/forumcolor][/size][/indent]\n' +
 				`[spoiler='Click here to view Media Info']\n${mediaInfo}\n[/spoiler]\n`;
 			downloadLinks = `[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`;
-			let dump = `${poster}${fullName}${imdbID} ${rating}${imdbvotes}${plot}${trailer}${screen}${movieInfo}${mediaInfo}${downloadLinks}`;
+			let forumBBcode = `${poster}${fullName}${imdbID} ${rating}${imdbvotes}${plot}${trailer}${screen}${movieInfo}${mediaInfo}${downloadLinks}`;
 			try {
-				document.getElementsByName('message')[0].value = dump;
+				document.getElementsByName('message')[0].value = forumBBcode;
 			} catch (err) {
-				removeAllChildNodes(
+				RemoveAllChildNodes(
 					document.getElementsByClassName('fr-element fr-view')[0]
 				);
 				let p = document.createElement('p');
-				p.innerText = dump;
+				p.innerText = forumBBcode;
 				document.getElementsByClassName('fr-element fr-view')[0].appendChild(p);
 			} finally {
 				if (tags) {
 					document.getElementsByName('tags')[0].value = tags;
 					tags = tags.split(', ');
 					for (let i = 0; i < tags.length; i++) {
-						tagsPush(tags[i]);
+						TagsPush(tags[i]);
 					}
 				}
 				if (titleBool) {

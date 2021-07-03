@@ -150,7 +150,9 @@ function removeAllChildNodes(parent) {
 }
 
 function sectionSearch(APIVALUE) {
-	const section = parseInt(window.location.href.match(/\d+/, ''));
+	const section = parseInt(window.location.href.match(/\d+/, '')[0]);
+	console.log(section);
+	console.log(window.location.href.match(/\d+/, '')[0]);
 	const [movies, series] = [
 		[129, 172, 173, 174, 175, 176, 178, 179, 180, 181, 183, 184, 202, 204],
 		[187, 188, 189, 190, 193, 194, 197, 198, 199, 200, 203, 206, 208, 209, 223],
@@ -254,10 +256,11 @@ function DownloadLinkHandler(downloadLinks) {
 	return downloadLinks;
 }
 
-function ParseMediaInfo(mediainfo, premadeTitle) {
-	let videoInfo = mediainfo.match(/(Video|Video #1)$.^[\s\S]*?(?=\n{2,})/ms);
+function ParseMediaInfo(mediaInfo, premadeTitle) {
+	let videoInfo = mediaInfo.match(/(Video|Video #1)$.^[\s\S]*?(?=\n{2,})/ms)[0];
+	console.log(videoInfo);
 	if (videoInfo) {
-		let videoWidth = videoInfo.match(/Width.*/);
+		let videoWidth = videoInfo.match(/Width.*/)[0];
 		if (videoWidth) {
 			if (videoWidth.includes('3 840')) {
 				premadeTitle += ' 2160p';
@@ -269,7 +272,8 @@ function ParseMediaInfo(mediainfo, premadeTitle) {
 				premadeTitle += ' 480p';
 			}
 		}
-		let videoWritingLib = videoInfo.match(/Writing library.*/);
+		let videoWritingLib = videoInfo.match(/Writing library.*/)[0];
+		console.log(videoWritingLib);
 		if (videoWritingLib) {
 			if (videoWritingLib.includes('x265')) {
 				premadeTitle += ' x265';
@@ -277,7 +281,7 @@ function ParseMediaInfo(mediainfo, premadeTitle) {
 				premadeTitle += ' x264';
 			}
 		} else {
-			let videoFormat = videoInfo.match(/Format.*/);
+			let videoFormat = videoInfo.match(/Format.*/)[0];
 			if (videoFormat) {
 				if (videoFormat.includes('HEVC')) {
 					premadeTitle += ' HEVC';
@@ -286,24 +290,29 @@ function ParseMediaInfo(mediainfo, premadeTitle) {
 				}
 			}
 		}
-		let videoBitDepth = videoInfo.match(/Bit depth.*/);
+		let videoBitDepth = videoInfo.match(/Bit depth.*/)[0];
 		if (videoBitDepth) {
-			premadeTitle += ` ${videoBitDepth.match(/\d.*/).replace(' bits', 'bit')}`;
+			premadeTitle += ` ${videoBitDepth
+				.match(/\d.*/)[0]
+				.replace(' bits', 'bit')}`;
 		}
 	}
-	let audioInfo = mediainfo.match(/(Audio|Audio #1)$.^[\s\S]*?(?=\n{2,})/ms);
+	let audioInfo = mediaInfo.match(/(Audio|Audio #1)$.^[\s\S]*?(?=\n{2,})/ms)[0];
+	console.log(audioInfo);
 	if (audioInfo) {
-		let audioCodec = audioInfo.match(/Codec ID.*/)
+		let audioCodec = audioInfo.match(/Codec ID.*/)[0];
 		if (audioCodec) {
-			premadeTitle += audioCodec.match(/(?<=A_).*/) ? ` ${audioCodec.match(/(?<=A_).*/)}`
+			premadeTitle += audioCodec.match(/(?<=A_).*/)[0]
+				? ` ${audioCodec.match(/(?<=A_).*/)[0]}`
+				: '';
 		}
 	}
 	if (sectionType === 'movies') {
-		let generalInfo = mediaInfo.match(/General$.^[\s\S]*?(?=\n{2,})/ms);
+		let generalInfo = mediaInfo.match(/General$.^[\s\S]*?(?=\n{2,})/ms)[0];
 		if (generalInfo) {
-			let mediaSize = generalInfo.match(/File size.*/);
+			let mediaSize = generalInfo.match(/File size.*/)[0];
 			if (mediaSize) {
-				premadeTitle += ` [${mediaSize.match(/\d.*/)}]`;
+				premadeTitle += ` [${mediaSize.match(/\d.*/)[0]}]`;
 			}
 		}
 	}
@@ -436,14 +445,14 @@ function generateTemplate(APIVALUE) {
 				!document.getElementsByClassName('js-titleInput')[0].value;
 			let premadeTitle = titleBool ? `${json.Title} (${json.Year})` : '';
 			if (titleBool) {
-				premadeTitle = ParseMediaInfo(mediainfo, premadeTitle);
+				premadeTitle = ParseMediaInfo(mediaInfo, premadeTitle);
 			}
 			let tags = json.Genre && json.Genre !== 'N/A' ? json.Genre : '';
 			if (mediaInfo.includes('Dolby Vision')) {
 				tags += ', Dolby Vision';
 				premadeTitle += titleBool ? ' Dolby Vision' : '';
 			}
-			if (mediainfo.includes('HDR10+ Profile')) {
+			if (mediaInfo.includes('HDR10+ Profile')) {
 				tags += ', hdr10plus';
 				premadeTitle += titleBool ? ' HDR10Plus' : '';
 			} else if (mediaInfo.includes('HDR10 Compatible')) {

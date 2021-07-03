@@ -240,7 +240,7 @@ function SaveApiKey(APIVALUE) {
 		}
 		document.getElementById('OmdbGenerator').remove();
 		document.getElementById('showTemplate').remove();
-		main();
+		Main();
 	}
 }
 

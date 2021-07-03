@@ -77,6 +77,8 @@ errormessages
 
 var tagSelect = `<li class="select2-selection__choice" title="tagname"><span class="select2-selection__choice__remove" role="presentation">×</span>tagname</li>`;
 
+var sectionType;
+
 function main() {
 	GM.getValue('APIKEY', 'foo').then((value) => {
 		var APIVALUE = value;
@@ -149,15 +151,17 @@ function removeAllChildNodes(parent) {
 
 function sectionSearch(APIVALUE) {
 	const section = parseInt(window.location.href.match(/\d+/, ''));
-	const [Movies, Series] = [
+	const [movies, series] = [
 		[129, 172, 173, 174, 175, 176, 178, 179, 180, 181, 183, 184, 202, 204],
 		[187, 188, 189, 190, 193, 194, 197, 198, 199, 200, 203, 206, 208, 209, 223],
 	];
 	var query;
-	if (Series.includes(section)) {
+	if (series.includes(section)) {
 		query = `https://www.omdbapi.com/?apikey=${APIVALUE}&r=JSON&s={query}&type=series`;
-	} else if (Movies.includes(section)) {
+		sectionType = 'series';
+	} else if (movies.includes(section)) {
 		query = `https://www.omdbapi.com/?apikey=${APIVALUE}&r=JSON&s={query}&type=movie`;
+		sectionType = 'movies';
 	} else {
 		query = `https://www.omdbapi.com/?apikey=${APIVALUE}&r=JSON&s={query}`;
 	}
@@ -237,7 +241,10 @@ function DownloadLinkHandler(downloadLinks) {
 	} else {
 		downloadLinks = downloadLinks.replace(/\ /g, '\n');
 	}
-	downloadLinks = `[hidereact=1,2,3,4,5,6]${downloadLinks.replace(/\n+$/, '')}[/hidereact]`; // Remove extra newline at end of string
+	downloadLinks = `[hidereact=1,2,3,4,5,6]${downloadLinks.replace(
+		/\n+$/,
+		''
+	)}[/hidereact]`; // Remove extra newline at end of string
 	if (hideReactScore !== '0') {
 		downloadLinks = `[hidereactscore=${hideReactScore}]${downloadLinks}[/hidereactscore]`;
 	}
@@ -247,8 +254,64 @@ function DownloadLinkHandler(downloadLinks) {
 	return downloadLinks;
 }
 
+function ParseMediaInfo(mediainfo, premadeTitle) {
+	let videoInfo = mediainfo.match(/(Video|Video #1)$.^[\s\S]*?(?=\n{2,})/ms);
+	if (videoInfo) {
+		let videoWidth = videoInfo.match(/Width.*/);
+		if (videoWidth) {
+			if (videoWidth.includes('3 840')) {
+				premadeTitle += ' 2160p';
+			} else if (videoWidth.includes('1 920')) {
+				premadeTitle += ' 1080p';
+			} else if (videoWidth.includes('1 280')) {
+				premadeTitle += ' 720p';
+			} else if (videoWidth.includes('720')) {
+				premadeTitle += ' 480p';
+			}
+		}
+		let videoWritingLib = videoInfo.match(/Writing library.*/);
+		if (videoWritingLib) {
+			if (videoWritingLib.includes('x265')) {
+				premadeTitle += ' x265';
+			} else if (videoWritingLib.includes('x264')) {
+				premadeTitle += ' x264';
+			}
+		} else {
+			let videoFormat = videoInfo.match(/Format.*/);
+			if (videoFormat) {
+				if (videoFormat.includes('HEVC')) {
+					premadeTitle += ' HEVC';
+				} else if (videoFormat.includes('AVC')) {
+					premadeTitle += ' AVC';
+				}
+			}
+		}
+		let videoBitDepth = videoInfo.match(/Bit depth.*/);
+		if (videoBitDepth) {
+			premadeTitle += ` ${videoBitDepth.match(/\d.*/).replace(' bits', 'bit')}`;
+		}
+	}
+	let audioInfo = mediainfo.match(/(Audio|Audio #1)$.^[\s\S]*?(?=\n{2,})/ms);
+	if (audioInfo) {
+		let audioCodec = audioInfo.match(/Codec ID.*/)
+		if (audioCodec) {
+			premadeTitle += audioCodec.match(/(?<=A_).*/) ? ` ${audioCodec.match(/(?<=A_).*/)}`
+		}
+	}
+	if (sectionType === 'movies') {
+		let generalInfo = mediaInfo.match(/General$.^[\s\S]*?(?=\n{2,})/ms);
+		if (generalInfo) {
+			let mediaSize = generalInfo.match(/File size.*/);
+			if (mediaSize) {
+				premadeTitle += ` [${mediaSize.match(/\d.*/)}]`;
+			}
+		}
+	}
+	return premadeTitle;
+}
+
 function generateTemplate(APIVALUE) {
-	var [imdbID, screenshots, youtubeLink, downloadLinks, MediaInfo] = [
+	var [imdbID, screenshots, youtubeLink, downloadLinks, mediaInfo] = [
 		$('#hiddenIID').val(),
 		$('#screensLinks').val(),
 		$('#ytLink').val(),
@@ -261,7 +324,7 @@ function generateTemplate(APIVALUE) {
 			imdbID = imdbID.match(/tt\d+/)[0];
 		}
 	}
-	if (!imdbID | !downloadLinks | !MediaInfo) {
+	if (!imdbID | !downloadLinks | !mediaInfo) {
 		let errors = '';
 		errors += !imdbID
 			? "<li>You Didn't Select A Title or Enter a IMDB ID!</li>"
@@ -269,7 +332,7 @@ function generateTemplate(APIVALUE) {
 		errors += !downloadLinks
 			? "<li>You Forgot Your Download Link! That's Pretty Important...!</li>"
 			: '';
-		errors += !MediaInfo
+		errors += !mediaInfo
 			? "<li>You Don't Have Any Mediainfo? It's Required!</li>"
 			: '';
 		Popup(errors);
@@ -366,20 +429,33 @@ function generateTemplate(APIVALUE) {
 			if (json.Production && json.Production !== 'N/A') {
 				movieInfo += `[*][B]Production: [/B] ${json.Production}\n`;
 			}
-
 			movieInfo = movieInfo
 				? `\n[hr][/hr][indent][size=6][forumcolor][b]Movie Info[/b][/forumcolor][/size][/indent]\n[LIST]${movieInfo}[/LIST]\n`
 				: '';
+			let titleBool =
+				!document.getElementsByClassName('js-titleInput')[0].value;
+			let premadeTitle = titleBool ? `${json.Title} (${json.Year})` : '';
+			if (titleBool) {
+				premadeTitle = ParseMediaInfo(mediainfo, premadeTitle);
+			}
 			let tags = json.Genre && json.Genre !== 'N/A' ? json.Genre : '';
-			if (MediaInfo.includes('Dolby Vision')) {
+			if (mediaInfo.includes('Dolby Vision')) {
 				tags += ', Dolby Vision';
+				premadeTitle += titleBool ? ' Dolby Vision' : '';
+			}
+			if (mediainfo.includes('HDR10+ Profile')) {
+				tags += ', hdr10plus';
+				premadeTitle += titleBool ? ' HDR10Plus' : '';
+			} else if (mediaInfo.includes('HDR10 Compatible')) {
+				tags += ', hdr10';
+				premadeTitle += titleBool ? ' HDR10' : '';
 			}
 			tags = tags.replace(/^([, ]*)/g, '');
-			MediaInfo =
+			mediaInfo =
 				'[hr][/hr][indent][size=6][forumcolor][b]Media Info[/b][/forumcolor][/size][/indent]\n' +
-				`[spoiler='Click here to view Media Info']\n${MediaInfo}\n[/spoiler]\n`;
+				`[spoiler='Click here to view Media Info']\n${mediaInfo}\n[/spoiler]\n`;
 			downloadLinks = `[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`;
-			let dump = `${poster}${fullName}${imdbID} ${rating}${imdbvotes}${plot}${trailer}${screen}${movieInfo}${MediaInfo}${downloadLinks}`;
+			let dump = `${poster}${fullName}${imdbID} ${rating}${imdbvotes}${plot}${trailer}${screen}${movieInfo}${mediaInfo}${downloadLinks}`;
 			try {
 				document.getElementsByName('message')[0].value = dump;
 			} catch (err) {
@@ -397,10 +473,9 @@ function generateTemplate(APIVALUE) {
 						tagsPush(tags[i]);
 					}
 				}
-				if (!document.getElementsByClassName('js-titleInput')[0].value) {
-					document.getElementsByClassName(
-						'js-titleInput'
-					)[0].value = `${json.Title} (${json.Year})`;
+				if (titleBool) {
+					document.getElementsByClassName('js-titleInput')[0].value =
+						premadeTitle;
 				}
 			}
 		},

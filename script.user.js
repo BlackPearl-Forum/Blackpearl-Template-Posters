@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Blackpearl Games
-// @version     1.0.4
+// @version     1.0.5
 // @description Template Maker
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png

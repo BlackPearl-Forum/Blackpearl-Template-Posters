@@ -46,9 +46,9 @@ HideReactScore
 HidePosts
 <input type="number" id="HidePosts" min="0" max="50" value="0"> <br>
 <div id="textareaDivider">&nbsp;</div>
-<button class="button--primary button button--icon" id="gmGenerate" type="button">Generate Template</button>
-<button class="button--primary button button--icon" id="gmClearBtn" type="reset">Clear</button>
-<button class="button--primary button button--icon" id="gmHideTemplate" type="button">Hide</button>
+<button class="button--primary button button--icon" id="generateTemplate" type="button">Generate Template</button>
+<button class="button--primary button button--icon" id="ClearBtn" type="reset">Clear</button>
+<button class="button--primary button button--icon" id="hideTemplate" type="button">Hide</button>
 </div>
 `;
 
@@ -57,9 +57,9 @@ const rawginput = `
 <div id="rawgGenerator">
 <label>Enter Your RAWG API Key, Then Click On Save :)</label>
 <input type="text" id="rawgKey" value="" class="input" placeholder="Rawg API Key">
-<button class="button--primary button button--icon" id="gmSaveKey" type="button">Save Key</button>
-<button class="button--primary button button--icon" id="gmClearBtn" type="reset">Clear</button>
-<button class="button--primary button button--icon" id="gmHideTemplate" type="button">Hide</button>
+<button class="button--primary button button--icon" id="saveKey" type="button">Save Key</button>
+<button class="button--primary button button--icon" id="ClearBtn" type="reset">Clear</button>
+<button class="button--primary button button--icon" id="hideTemplate" type="button">Hide</button>
 </div>
 `;
 
@@ -80,10 +80,37 @@ function Main() {
 		const htmlpush = document.getElementsByTagName('dd')[0];
 		htmlpush.innerHTML += APIVALUE !== 'foo' ? htmlTemplate : rawginput;
 		SectionSearch(APIVALUE);
-		$('#gmHideTemplate').click(() => HideTemplate());
-		$('#showTemplate').click(() => ShowTemplate());
-		$('#gmSaveKey').click(() => SaveApiKey(APIVALUE, htmlpush));
-		$('#gmGenerate').click(() => GenerateTemplate(APIVALUE));
+		document.getElementById('hideTemplate').addEventListener(
+			'click',
+			function () {
+				HideTemplate();
+			};
+			false
+		);
+		document.getElementById('showTemplate').addEventListener(
+			'click',
+			function () {
+				ShowTemplate();
+			};
+			false
+		);
+		if (APIVALUE !== 'foo') {
+			document.getElementById('generateTemplate').addEventListener(
+				'click',
+				function () {
+					GenerateTemplate(APIVALUE);
+				};
+				false
+			);
+		} else {
+			document.getElementById('saveKey').addEventListener(
+				'click',
+				function () {
+					SaveApiKey(APIVALUE);
+				};
+				false
+			);
+		}
 	});
 }
 
@@ -97,24 +124,16 @@ $(document).click(function (e) {
 	}
 });
 
-$(document).on('keydown', function (event) {
-	if (event.key == 'Escape') {
-		$('#rawgGenerator').hide();
-		document.getElementById('showTemplate').style.display = 'block';
-		document.getElementsByName('showDivider')[0].style.display = 'block';
-	}
-});
-
 function ShowTemplate() {
 	document.getElementById('showTemplate').style.display = 'none';
 	document.getElementsByName('showDivider')[0].style.display = 'none';
-	$('#rawgGenerator').show();
+	document.getElementById('rawgGenerator').style.display = 'block';
 }
 
 function HideTemplate() {
 	document.getElementById('showTemplate').style.display = 'block';
 	document.getElementsByName('showDivider')[0].style.display = 'block';
-	$('#rawgGenerator').hide();
+	document.getElementById('rawgGenerator').style.display = 'none';
 }
 
 // Popup for Errors
@@ -156,8 +175,8 @@ function SectionSearch(APIVALUE) {
 			title: 'name',
 		},
 		onSelect: function (response) {
-			$('#hiddenIID').val(response.rawgID);
-			$('#searchID').val(response.title);
+			document.getElementById('hiddenIID').value = response.rawgID;
+			document.getElementById('searchID').value = response.title;
 		},
 		minCharacters: 3,
 	});
@@ -185,8 +204,8 @@ function RemoveAllChildNodes(parent) {
 
 function DownloadLinkHandler(downloadLinks) {
 	let [hideReactScore, hidePosts] = [
-		$('#HideReactScore').val(),
-		$('#HidePosts').val(),
+		document.getElementById('HideReactScore').value,
+		document.getElementById('HidePosts').value,
 	];
 	if (Downcloud.checked) {
 		let ddlSplit = downloadLinks.split(' ');
@@ -226,9 +245,14 @@ function GenerateTemplate(APIVALUE) {
 		$('#info').val(),
 		$('#vtLink').val(),
 		$('#ddl').val(),
+		document.getElementById('hiddenIID').value,
+		document.getElementById('ytLink').value,
+		document.getElementById('info').value,
+		document.getElementById('vtLink').value,
+		document.getElementById('ddl').value,
 	];
 	if (!rawgGameID) {
-		rawgGameID = $('#searchID').val();
+		rawgGameID = document.getElementById('searchID').value;
 		if (rawgGameID.includes('rawg')) {
 			rawgGameID = rawgGameID.match(/(?<=games\/).*(?<!\/)/)[0];
 		}

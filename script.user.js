@@ -84,14 +84,14 @@ function Main() {
 			'click',
 			function () {
 				HideTemplate();
-			};
+			},
 			false
 		);
 		document.getElementById('showTemplate').addEventListener(
 			'click',
 			function () {
 				ShowTemplate();
-			};
+			},
 			false
 		);
 		if (APIVALUE !== 'foo') {
@@ -99,7 +99,7 @@ function Main() {
 				'click',
 				function () {
 					GenerateTemplate(APIVALUE);
-				};
+				},
 				false
 			);
 		} else {
@@ -107,7 +107,7 @@ function Main() {
 				'click',
 				function () {
 					SaveApiKey(APIVALUE);
-				};
+				},
 				false
 			);
 		}
@@ -240,11 +240,6 @@ function HttpGet(url) {
 
 function GenerateTemplate(APIVALUE) {
 	var [rawgGameID, youtubeLink, releaseInfo, virustotalLinks, downloadLinks] = [
-		$('#hiddenIID').val(),
-		$('#ytLink').val(),
-		$('#info').val(),
-		$('#vtLink').val(),
-		$('#ddl').val(),
 		document.getElementById('hiddenIID').value,
 		document.getElementById('ytLink').value,
 		document.getElementById('info').value,

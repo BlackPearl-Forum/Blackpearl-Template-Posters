@@ -24,10 +24,10 @@
 Main();
 
 const htmlTemplate = `
-<button id="gmShowTemplate" name="templateButton" style="display:none" type="button">Show</button>
+<button id="showTemplate" name="templateButton" style="display:none" type="button">Show</button>
 <div id="discogGenerator">
 <input type="text" id="masterUrl" value="" style="display:none">
-<div class="ui search" id="Discog_search">
+<div class="ui search" id="discogSearch">
 <input type="text" class="prompt input" id="searchID" placeholder="Artist + Album name"  onfocus="this.placeholder = ''" onblur="this.placeholder = 'Artist + Album name'">
 <div class="results input" style="display:none"></div>
 </div>
@@ -44,20 +44,19 @@ HideReactScore
 HidePosts
 <input type="number" id="HidePosts" min="0" max="50" value="0"> <br>
 <div id="textarea_divider">&nbsp;</div>
-<button class="button--primary button button--icon" id="gmGenerate" name="templateButton" type="button">Generate Template</button>
-<button class="button--primary button button--icon" id="gmClearBtn" name="templateButton" type="reset">Clear</button>
-<button class="button--primary button button--icon" id="gmHideTemplate" name="templateButton" type="button">Hide</button>
+<button class="button--primary button button--icon" id="generate" name="templateButton" type="button">Generate Template</button>
+<button class="button--primary button button--icon" id="clearBtn" name="templateButton" type="reset">Clear</button>
+<button class="button--primary button button--icon" id="hideTemplate" name="templateButton" type="button">Hide</button>
 </div>
 `;
 
 const dginput = `
-<button id="gmShowTemplate" name="templateButton" style="display:none" type="button">Show</button>
+<button id="showTemplate" name="templateButton" style="display:none" type="button">Show</button>
 <div id="discogGenerator">
-<label>Enter Your Discog API Key, Then Click On Save :)</label>
-<input type="text" id="dgKey" value="" class="input" placeholder="discorg API Key" onfocus="this.placeholder = ''" onblur="this.placeholder = 'discorg API Key'">
-<button class="button--primary button button--icon" id="gmSaveKey" name="templateButton" type="button">Save Key</button>
-<button class="button--primary button button--icon" id="gmClearBtn" name="templateButton" type="reset">Clear</button>
-<button class="button--primary button button--icon" id="gmHideTemplate" name="templateButton" type="button">Hide</button>
+<input type="text" id="dgKey" value="" class="input" placeholder="Enter Your Discog API Key, Then Click On Save." onfocus="this.placeholder = ''" onblur="this.placeholder = 'Enter Your Discog API Key, Then Click On Save.'">
+<button class="button--primary button button--icon" id="saveKey" name="templateButton" type="button">Save Key</button>
+<button class="button--primary button button--icon" id="clearBtn" name="templateButton" type="reset">Clear</button>
+<button class="button--primary button button--icon" id="hideTemplate" name="templateButton" type="button">Hide</button>
 </div>
 `;
 
@@ -78,11 +77,38 @@ function Main() {
 		const htmlpush = document.getElementsByTagName('dd')[0];
 		let lossless = window.location.href.match(/\d+/, '').includes('88');
 		htmlpush.innerHTML += APIVALUE !== 'foo' ? htmlTemplate : dginput;
-		$('#gmHideTemplate').click(() => HideTemplate());
-		$('#gmShowTemplate').click(() => ShowTemplate());
-		$('#gmSaveKey').click(() => SaveApiKey(APIVALUE));
 		SearchDiscog(APIVALUE);
-		$('#gmGenerate').click(() => GenerateTemplate(APIVALUE, lossless));
+		document.getElementById('hideTemplate').addEventListener(
+			'click',
+			function () {
+				HideTemplate();
+			},
+			false
+		);
+		document.getElementById('showTemplate').addEventListener(
+			'click',
+			function () {
+				ShowTemplate();
+			},
+			false
+		);
+		if (APIVALUE !== 'foo') {
+			document.getElementById('generateTemplate').addEventListener(
+				'click',
+				function () {
+					GenerateTemplate(APIVALUE, lossless);
+				},
+				false
+			);
+		} else {
+			document.getElementById('saveKey').addEventListener(
+				'click',
+				function () {
+					SaveApiKey(APIVALUE);
+				},
+				false
+			);
+		}
 	});
 }
 
@@ -96,21 +122,14 @@ $(document).click(function (e) {
 	}
 });
 
-$(document).on('keydown', function (event) {
-	if (event.key == 'Escape') {
-		$('#discogGenerator').hide();
-		document.getElementById('gmShowTemplate').style.display = 'block';
-	}
-});
-
-function HideTemplate() {
-	document.getElementById('gmShowTemplate').style.display = 'block';
-	$('#discogGenerator').hide();
+function ShowTemplate() {
+	document.getElementById('showTemplate').style.display = 'none';
+	document.getElementById('discogGenerator').style.display = 'none';
 }
 
-function ShowTemplate() {
-	document.getElementById('gmShowTemplate').style.display = 'none';
-	$('#discogGenerator').show();
+function HideTemplate() {
+	document.getElementById('showTemplate').style.display = 'block';
+	document.getElementById('discogGenerator').style.display = 'block';
 }
 
 // Popup for Errors
@@ -120,17 +139,23 @@ function Popup(errors) {
 	body.insertAdjacentHTML('beforeend', errOutput);
 }
 
-function SaveApiKey(APIVALUE) {
-	if (APIVALUE == 'foo') {
-		let discogKey = $('#dgKey').val();
-		if (discogKey) {
-			GM.setValue('DiscogKey', discogKey);
-		} else {
-			alert("You Didn't Enter Your Key!!");
-		}
-		document.getElementById('discogGenerator').remove();
-		document.getElementById('gmShowTemplate').remove();
-		Main();
+// Push Genre Tags to HTML
+function TagsPush(tag) {
+	let tagOutput = tagSelect.replace(/tagname/g, tag);
+	let tagParent = document.getElementsByClassName(
+		'select2-selection__rendered'
+	)[1];
+	let tagParent2 = document.getElementsByName('tokens_select')[0];
+	let option = document.createElement('option');
+	option.text = tag;
+	option.value = tag;
+	tagParent.insertAdjacentHTML('afterbegin', tagOutput);
+	tagParent2.add(option);
+}
+
+function RemoveAllChildNodes(parent) {
+	while (parent.firstChild) {
+		parent.removeChild(parent.firstChild);
 	}
 }
 
@@ -173,24 +198,32 @@ function SearchDiscog(APIVALUE) {
 			title: 'name',
 		},
 		onSelect: function (response) {
-			$('#masterUrl').val(response.master_url);
+			document.getElementById('masterUrl').value = response.master_url;
 		},
 		minCharacters: 3,
 	});
 }
 
-function RemoveAllChildNodes(parent) {
-	while (parent.firstChild) {
-		parent.removeChild(parent.firstChild);
+function SaveApiKey(APIVALUE) {
+	if (APIVALUE == 'foo') {
+		let discogKey = document.getElementById('dgKey').value;
+		if (discogKey) {
+			GM.setValue('DiscogKey', discogKey);
+		} else {
+			alert("You Didn't Enter Your Key!");
+		}
+		document.getElementById('discogGenerator').remove();
+		document.getElementById('showTemplate').remove();
+		Main();
 	}
 }
 
 function DownloadLinkHandler(downloadLinks) {
 	let [hideReactScore, hidePosts] = [
-		$('#HideReactScore').val(),
-		$('#HidePosts').val(),
+		document.getElementById('HideReactScore').value,
+		document.getElementById('HidePosts').value,
 	];
-	if (Downcloud.checked) {
+	if (document.getElementById('Downcloud').checked) {
 		let ddlSplit = downloadLinks.split(' ');
 		downloadLinks = '';
 		for (let singleLink of ddlSplit) {
@@ -201,7 +234,10 @@ function DownloadLinkHandler(downloadLinks) {
 	} else {
 		downloadLinks = downloadLinks.replace(/\ /g, '\n');
 	}
-	downloadLinks = `[hidereact=1,2,3,4,5,6]${downloadLinks.replace(/\n+$/, '')}[/hidereact]`; // Remove extra newline at end of string
+	downloadLinks = `[hidereact=1,2,3,4,5,6]${downloadLinks.replace(
+		/\n+$/,
+		''
+	)}[/hidereact]`; // Remove extra newline at end of string
 	if (hideReactScore !== '0') {
 		downloadLinks = `[hidereactscore=${hideReactScore}]${downloadLinks}[/hidereactscore]`;
 	}
@@ -211,12 +247,12 @@ function DownloadLinkHandler(downloadLinks) {
 	return downloadLinks;
 }
 
-function GenerateTemplate(APIVALUE, lossless, masterUrl) {
-	let [downloadLinks, qualityImages, qualityText] = [
-		$('#ddl').val(),
-		$('#qImgs').val(),
-		$('#qText').val(),
-		$('#masterUrl').val(),
+function GenerateTemplate(APIVALUE, lossless) {
+	var [downloadLinks, qualityImages, qualityText, masterUrl] = [
+		document.getElementById('ddl').value,
+		document.getElementById('qImgs').value,
+		document.getElementById('qText').value,
+		document.getElementById('masterUrl').value,
 	];
 	if (
 		!masterUrl |
@@ -352,15 +388,15 @@ function GenerateTemplate(APIVALUE, lossless, masterUrl) {
 				qualityImage || qualityText
 					? `[hr][/hr][center][size=6][forumcolor][b]Quality Proof[/b][/forumcolor][/size]\n${qualityImage}${qualityText}`
 					: '';
-			let dump = `${Cover}${artist}${album}${tracknum}${members}${artistinfo}${artistLinks}${albumDetails}${tracks}${videos}${quality}${downloadLinks}`;
+			let forumBBcode = `${Cover}${artist}${album}${tracknum}${members}${artistinfo}${artistLinks}${albumDetails}${tracks}${videos}${quality}${downloadLinks}`;
 			try {
-				document.getElementsByName('message')[0].value = dump;
+				document.getElementsByName('message')[0].value = forumBBcode;
 			} catch (err) {
 				removeAllChildNodes(
 					document.getElementsByClassName('fr-element fr-view')[0]
 				);
 				let p = document.createElement('p');
-				p.innerText = dump;
+				p.innerText = forumBBcode;
 				document.getElementsByClassName('fr-element fr-view')[0].appendChild(p);
 			} finally {
 				if (!document.getElementsByClassName('js-titleInput')[0].value) {

@@ -71,6 +71,8 @@ errormessages
 </ul>
 </div></div></div></div>`;
 
+var tagSelect = `<li class="select2-selection__choice" title="tagname"><span class="select2-selection__choice__remove" role="presentation">×</span>tagname</li>`;
+
 function Main() {
 	GM.getValue('DiscogKey', 'foo').then((value) => {
 		const APIVALUE = value;
@@ -244,6 +246,7 @@ function DownloadLinkHandler(downloadLinks) {
 	if (hidePosts !== '0') {
 		downloadLinks = `[hideposts=${hidePosts}]${downloadLinks}[/hideposts]`;
 	}
+	downloadLinks = `[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`
 	return downloadLinks;
 }
 
@@ -278,15 +281,19 @@ function GenerateTemplate(APIVALUE, lossless) {
 		return;
 	}
 	downloadLinks = DownloadLinkHandler(downloadLinks);
+	//? Is there a better way than sending another request? Check if URL actually needs API key for info we use.
 	var xhReq = new XMLHttpRequest();
 	xhReq.open('GET', `${masterUrl}?token=${APIVALUE}`, false);
 	xhReq.send(null);
 	var albumjson = JSON.parse(xhReq.responseText);
+	var artistURL = `${albumjson.artists[0].resource_url}?token=${APIVALUE}`;
+	//* For "Various" artists, resource_URL is blank string; causing below method to pull BP HTML page
 	GM_xmlhttpRequest({
 		method: 'GET',
-		url: `${albumjson.artists[0].resource_url}?token=${APIVALUE}`,
+		url: artistURL,
 		onload: function (response) {
-			var artistjson = JSON.parse(response.responseText);
+			//TODO: Add "Various" artist statement to use Generic Artist information & bypass JSON parse
+			var artistjson = JSON.parse(response.responseText); // TODO: Add Json error correcting from OMDB
 			let artistUri = artistjson.uri.replace('http:', 'https:');
 			let Cover = albumjson.images
 				? `[center][img width="250px"]${albumjson.images[0].uri}[/img][/center]\n`
@@ -333,7 +340,7 @@ function GenerateTemplate(APIVALUE, lossless) {
 			}
 
 			let albumDetails = `[INDENT][size=6][forumcolor][B]Album Details[/B][/forumcolor][/size][/INDENT]\n[list]\n${styles}${genres}${year}\n[/list]\n`;
-			// TODO: Add more details? ^^^^
+			//? Add more details? ^^^^
 			let tracks = '';
 			if (albumjson.tracklist) {
 				tracks =
@@ -373,7 +380,6 @@ function GenerateTemplate(APIVALUE, lossless) {
 				}
 				artistLinks += '\n[/spoiler]\n[hr][/hr]\n';
 			}
-			downloadLinks = `[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`;
 			let qualityImage = '';
 			if (qualityImages) {
 				for (let qi of qualityImages.split(' ')) {
@@ -388,17 +394,25 @@ function GenerateTemplate(APIVALUE, lossless) {
 				qualityImage || qualityText
 					? `[hr][/hr][center][size=6][forumcolor][b]Quality Proof[/b][/forumcolor][/size]\n${qualityImage}${qualityText}`
 					: '';
+			var tags = albumjson.genres.concat(albumjson.styles); //? Find example of "blank" genres or styles, possible error checking needed
 			let forumBBcode = `${Cover}${artist}${album}${tracknum}${members}${artistinfo}${artistLinks}${albumDetails}${tracks}${videos}${quality}${downloadLinks}`;
 			try {
 				document.getElementsByName('message')[0].value = forumBBcode;
 			} catch (err) {
-				removeAllChildNodes(
+				RemoveAllChildNodes(
 					document.getElementsByClassName('fr-element fr-view')[0]
 				);
 				let p = document.createElement('p');
 				p.innerText = forumBBcode;
 				document.getElementsByClassName('fr-element fr-view')[0].appendChild(p);
 			} finally {
+				//TODO: Add all Genre's and Styles from Discog to BP Tag System
+				if (tags) {
+					document.getElementsByName('tags')[0].value = tags.toString();
+					for (let i = 0; i < tags.length; i++) {
+						TagsPush(tags[i]);
+					}
+				}
 				if (!document.getElementsByClassName('js-titleInput')[0].value) {
 					document.getElementsByClassName(
 						'js-titleInput'

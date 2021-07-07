@@ -34,7 +34,7 @@ const htmlTemplate = `
 <input type="text" id="qImgs" value="" class="input" placeholder="Quality Image Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Quality Image Link'">
 <textarea rows="1" style="width:100%;" class="input" id="qText" placeholder="Quality Text" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Quality Text'"></textarea>
 <input type="text" id="ddl" value="" class="input" placeholder="Download Link" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Download Link'">
-<div id="textarea_divider">&nbsp;</div>
+<div id="textareaDivider">&nbsp;</div>
 <span>DownCloud</span>
 <label class="switch">
 <input type="checkbox" id="Downcloud" value="Downcloud" checked></input>
@@ -43,8 +43,8 @@ HideReactScore
 <input type="number" id="HideReactScore" min="0" max="100" value="0">
 HidePosts
 <input type="number" id="HidePosts" min="0" max="50" value="0"> <br>
-<div id="textarea_divider">&nbsp;</div>
-<button class="button--primary button button--icon" id="generate" name="templateButton" type="button">Generate Template</button>
+<div id="textareaDivider">&nbsp;</div>
+<button class="button--primary button button--icon" id="generateTemplate" name="templateButton" type="button">Generate Template</button>
 <button class="button--primary button button--icon" id="clearBtn" name="templateButton" type="reset">Clear</button>
 <button class="button--primary button button--icon" id="hideTemplate" name="templateButton" type="button">Hide</button>
 </div>
@@ -428,7 +428,7 @@ GM_addStyle(
             color:                  white;                        \
             max-width:              35px;                         \
       }                                                           \
-      #textarea_divider {                                         \
+      #textareaDivider {                                          \
             margin-top:             -11px;                        \
       }                                                           \
       /* Start Rounded sliders Checkboxes */                      \
@@ -502,7 +502,7 @@ GM_addStyle(
             color:                  white;                        \
             max-width:              35px;                         \
       }                                                           \
-      #textarea_divider {                                         \
+      #textareaDivider {                                          \
             margin-top:             -11px;                        \
       }                                                           \
       .switch {                                                   \

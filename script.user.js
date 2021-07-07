@@ -13,6 +13,7 @@
 // @grant       GM_addStyle
 // @grant       GM_xmlhttpRequest
 // @run-at      document-end
+// @connect 	play.google.com
 // ==/UserScript==
 
 const htmlTemplate = `
@@ -54,9 +55,9 @@ HideReactScore
 HidePosts
 <input type="number" id="HidePosts" min="0" max="50" value="0"> <br>
 <div id="textareaDivider">&nbsp;</div>
-<button class="button--primary button button--icon" id="gmGenerate" type="button">Generate Template</button>
-<button class="button--primary button button--icon" id="gmClearBtn" type="reset">Clear</button>
-<button class="button--primary button button--icon" id="gmHideTemplate" type="button">Hide</button>
+<button class="button--primary button button--icon" id="generateTemplate" type="button">Generate Template</button>
+<button class="button--primary button button--icon" id="ClearBtn" type="reset">Clear</button>
+<button class="button--primary button button--icon" id="hideTemplate" type="button">Hide</button>
 </div>
 `;
 
@@ -78,9 +79,27 @@ Main();
 function Main() {
 	var htmlPlacement = document.getElementsByTagName('dd')[0]; // Grab dd tag under the inputs
 	htmlPlacement.innerHTML += htmlTemplate; // Place our HTML under the inputs
-	$('#gmHideTemplate').click(() => HideTemplate()); // When Hide button clicked, run hide function
-	$('#showTemplate').click(() => ShowTemplate()); // When Show button clicked, run Show function
-	$('#gmGenerate').click(() => GenerateTemplate()); // When Generate button clicked, run Generate function
+	document.getElementById('hideTemplate').addEventListener(
+		'click',
+		function () {
+			HideTemplate();
+		},
+		false
+	);
+	document.getElementById('showTemplate').addEventListener(
+		'click',
+		function () {
+			ShowTemplate();
+		},
+		false
+	);
+	document.getElementById('generateTemplate').addEventListener(
+		'click',
+		function () {
+			GenerateTemplate();
+		},
+		false
+	);
 }
 
 // Close Error Popup if overlay clicked
@@ -96,7 +115,7 @@ $(document).click(function (e) {
 // Add Hotkey "Escape" to Hide fields
 $(document).on('keydown', function (event) {
 	if (event.key == 'Escape') {
-		$('#ApkGenerator').hide();
+		document.getElementById('ApkGenerator').style.display = 'none';
 		document.getElementById('showTemplate').style.display = 'block';
 		document.getElementsByName('showDivider')[0].style.display = 'block';
 	}
@@ -106,14 +125,14 @@ $(document).on('keydown', function (event) {
 function ShowTemplate() {
 	document.getElementById('showTemplate').style.display = 'none';
 	document.getElementsByName('showDivider')[0].style.display = 'none';
-	$('#ApkGenerator').show();
+	document.getElementById('ApkGenerator').style.display = 'block';
 }
 
 // Hide Template HTML and unhide "Show" button
 function HideTemplate() {
 	document.getElementById('showTemplate').style.display = 'block';
 	document.getElementsByName('showDivider')[0].style.display = 'block';
-	$('#ApkGenerator').hide();
+	document.getElementById('ApkGenerator').style.display = 'none';
 }
 
 // Popup for Errors
@@ -150,8 +169,8 @@ function RemoveAllChildNodes(parent) {
 
 function DownloadLinkHandler(downloadLinks) {
 	let [hideReactScore, hidePosts] = [
-		$('#HideReactScore').val(),
-		$('#HidePosts').val(),
+		document.getElementById('HideReactScore').value,
+		document.getElementById('HidePosts').value,
 	];
 	if (Downcloud.checked) {
 		let ddlSplit = downloadLinks.split(' ');
@@ -218,10 +237,10 @@ function GenerateTemplate() {
 		lite,
 		premium,
 	] = [
-		$('#gplaylink').val(),
-		$('#modinfo').val(),
-		$('#virustotal').val(),
-		$('#ddl').val(),
+		document.getElementById('gplaylink').value,
+		document.getElementById('modinfo').value,
+		document.getElementById('virustotal').value,
+		document.getElementById('ddl').value,
 		document.querySelector('input[value="mod"]').checked ? ' [Mod]' : '',
 		document.querySelector('input[value="unlocked"]').checked
 			? ' [Unlocked]'

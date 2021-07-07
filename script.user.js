@@ -160,7 +160,7 @@ function RemoveAllChildNodes(parent) {
 }
 
 function SearchDiscog(APIVALUE) {
-	$('#Discog_search').search({
+	$('#discogSearch').search({
 		type: 'category',
 		apiSettings: {
 			url: `https://api.discogs.com/database/search?q={query}&type=master&token=${APIVALUE}`,

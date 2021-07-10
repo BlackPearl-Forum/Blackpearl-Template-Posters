@@ -191,7 +191,7 @@ function SaveApiKey(APIVALUE, htmlpush) {
 			alert("You Didn't Enter Your Key!!");
 		}
 		document.getElementById('rawgGenerator').remove();
-		document.getElementById('gmShowTemplate').remove();
+		document.getElementById('showTemplate').remove();
 		Main();
 	}
 }

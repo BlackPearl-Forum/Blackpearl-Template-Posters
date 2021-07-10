@@ -53,7 +53,7 @@ HidePosts
 `;
 
 const rawginput = `
-<button id="gmShowTemplate" style="display:none" type="button">Show</button>
+<button id="showTemplate" style="display:none" type="button">Show</button>
 <div id="rawgGenerator">
 <label>Enter Your RAWG API Key, Then Click On Save :)</label>
 <input type="text" id="rawgKey" value="" class="input" placeholder="Rawg API Key">

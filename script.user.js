@@ -399,9 +399,7 @@ function GenerateTemplate(APIVALUE) {
 			} catch (e) {
 				let errors =
 					'<li>Something Messed Up! Check The OMDB Error Below.</li>';
-				errors += `<li>${
-					response.responseText.match(/(?<=Error":").*(?="})/)[0]
-				}</li>`;
+				errors += `<li>${response.responseText}</li>`;
 				Popup(errors);
 				return;
 			}

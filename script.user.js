@@ -246,11 +246,196 @@ function DownloadLinkHandler(downloadLinks) {
 	if (hidePosts !== '0') {
 		downloadLinks = `[hideposts=${hidePosts}]${downloadLinks}[/hideposts]`;
 	}
-	downloadLinks = `[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`
+	downloadLinks = `[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`;
 	return downloadLinks;
 }
 
-function GenerateTemplate(APIVALUE, lossless) {
+async function AlbumHandler(albumLink) {
+	let response = await new Promise((resolve, reject) => {
+		GM_xmlhttpRequest({
+			method: 'GET',
+			url: albumLink,
+			onload: (response) => {
+				resolve(response);
+			},
+			onerror: (response) => {
+				reject(response);
+			},
+		});
+	});
+	//TODO: Fix up this error handling, currently displays BP Error page
+	try {
+		var albumjson = JSON.parse(response.responseText);
+	} catch (e) {
+		console.log(response);
+		let errors = '<li>Something Messed Up! Check The Discog Error Below.</li>';
+		errors += `<li>Error Reporting Currently Unavaliable</li>`;
+		Popup(errors);
+		return;
+	}
+	let Cover = albumjson.images
+		? `[center][img width="250px"]${albumjson.images[0].uri}[/img][/center]\n`
+		: '';
+	let artistName = albumjson.artists[0].name.replace(/\(\d*\)/g, '');
+	let album =
+		albumjson.uri && albumjson.title
+			? `[center][forumcolor][b][size=6][url=${albumjson.uri}]${albumjson.title}[/url][/size][/b][/forumcolor][/center]\n`
+			: '';
+	let tracknum = `[center][size=6]${albumjson.tracklist.length} Tracks[/size][/center]\n`;
+	let styles = '';
+	if (albumjson.styles) {
+		styles = '[*][b][forumcolor]Style(s): [/b][/forumcolor] | ';
+		for (let i = 0; i < albumjson.styles.length; i++) {
+			styles += `[url=https://www.discogs.com/style/${albumjson.styles[
+				i
+			].replace(' ', '+')}]${albumjson.styles[i]}[/url] | `;
+		}
+	}
+	let genres = '';
+	if (albumjson.genres) {
+		genres = '\n[*][forumcolor][b]Genre(s): [/b][/forumcolor] | ';
+		for (let i = 0; i < albumjson.genres.length; i++) {
+			genres += `[url=https://www.discogs.com/genre/${albumjson.genres[
+				i
+			].replace(' ', '+')}]${albumjson.genres[i]}[/url] | `;
+		}
+	}
+	let year = '';
+	if (albumjson.year) {
+		year = `\n[*][forumcolor][b]Release Year: [/b][/forumcolor]${albumjson.year}`;
+	}
+	let videos = '';
+	if (albumjson.videos) {
+		videos = '[spoiler="Video(s)"]\n';
+		for (let i = 0; i < albumjson.videos.length; i++) {
+			videos += albumjson.videos[i].uri + '\n';
+		}
+		videos += '[/spoiler]\n';
+	}
+
+	let albumDetails = `[INDENT][size=6][forumcolor][B]Album Details[/B][/forumcolor][/size][/INDENT]\n[list]\n${styles}${genres}${year}\n[/list]\n`;
+	//? Add more details? ^^^^
+	let tracks = '';
+	if (albumjson.tracklist) {
+		tracks =
+			'\n[spoiler="Track List"]\n[TABLE=collapse]\n[TR]\n[TH]No.[/TH]\n[TH]Track Name[/TH]\n[TH]Track Duration[/TH]\n[/TR]\n';
+		for (let t of albumjson.tracklist) {
+			tracks += `[TR][TD]${t.position}[/TD]\n[TD]${t.title}[/TD]\n`;
+			if (t.duration) {
+				tracks += `[TD]${t.duration}[/TD]`;
+			}
+			tracks += '[/TR]\n';
+		}
+		if (!albumjson.tracklist[0].duration) {
+			tracks = tracks.replace('[TH]Track Duration[/TH]\n', '');
+		}
+		tracks += '[/TABLE]\n[/spoiler]\n';
+	}
+	var tags = albumjson.genres.concat(albumjson.styles); //? Find example of "blank" genres or styles, possible error checking needed
+	let forumTitle = `${artistName} - ${albumjson.title} (${albumjson.year})`;
+	return {
+		cover: Cover,
+		artistName: artistName,
+		artistURL: albumjson.artists[0].resource_url,
+		album: album,
+		tracknum: tracknum,
+		styles: styles,
+		genres: genres,
+		year: year,
+		videos: videos,
+		albumDetails: albumDetails,
+		tracks: tracks,
+		tags: tags,
+		forumTitle: forumTitle,
+	};
+}
+
+async function ArtistHandler(artistURL, artistName) {
+	let response = await new Promise((resolve, reject) => {
+		GM_xmlhttpRequest({
+			method: 'GET',
+			url: artistURL,
+			onload: (response) => {
+				resolve(response);
+			},
+			onerror: (response) => {
+				reject(response);
+			},
+		});
+	});
+	//TODO: Fix up this error handling, currently displays BP Error page
+	try {
+		var artistjson = JSON.parse(response.responseText);
+	} catch (e) {
+		let errors = '<li>Something Messed Up! Check The Discog Error Below.</li>';
+		errors += `<li>Error Reporting Currently Unavaliable</li>`;
+		Popup(errors);
+		return;
+	}
+	let artistUri = artistjson.uri.replace('http:', 'https:');
+	let artist =
+		artistName && artistUri
+			? `[center][forumcolor][b][size=6][url=${artistUri}]${artistName}[/url][/size][/b][/forumcolor][/center]\n`
+			: '';
+	let artistinfo = artistjson.profile
+		? `[spoiler="About Artist"]\n${artistjson.profile
+				.replace(/\[.=/gm, '')
+				.replace(/\[.*?\]/gm, '')}\n[/spoiler]`
+		: '';
+	let members =
+		'[indent][size=6][forumcolor][B]Artist Details[/B][/forumcolor][/size][/indent]\n';
+	if (artistjson.members) {
+		let memberlist = artistjson.members;
+		members += '[spoiler="Member List"]\n[tabs]';
+		for (let ml of memberlist) {
+			members += `[slide=${ml.name}]\n[img width="150px"]${ml.thumbnail_url}[/img][/slide]\n`;
+		}
+		members += '[/tabs]\n[/spoiler]\n';
+	}
+	let artistLinks = '';
+	if (artistjson.urls) {
+		artistLinks = '[spoiler="Artist Links"]\n';
+		for (let link of artistjson.urls) {
+			artistLinks += link.replace('http:', 'https:') + '\n';
+		}
+		artistLinks += '\n[/spoiler]\n[hr][/hr]\n';
+	}
+	return {
+		artistUri: artistUri,
+		artist: artist,
+		artistinfo: artistinfo,
+		members: members,
+		artistLinks: artistLinks,
+	};
+}
+
+function SubmitToForum(albumDict, artistDict, quality, downloadLinks) {
+	let forumBBcode = `${albumDict.cover}${artistDict.artist}${albumDict.album}${albumDict.tracknum}${artistDict.members}${artistDict.artistinfo}${artistDict.artistLinks}${albumDict.albumDetails}${albumDict.tracks}${albumDict.videos}${quality}${downloadLinks}`;
+	try {
+		document.getElementsByName('message')[0].value = forumBBcode;
+	} catch (err) {
+		RemoveAllChildNodes(
+			document.getElementsByClassName('fr-element fr-view')[0]
+		);
+		let p = document.createElement('p');
+		p.innerText = forumBBcode;
+		document.getElementsByClassName('fr-element fr-view')[0].appendChild(p);
+	} finally {
+		//TODO: Add all Genre's and Styles from Discog to BP Tag System
+		if (albumDict.tags) {
+			document.getElementsByName('tags')[0].value = albumDict.tags.toString();
+			for (let i = 0; i < albumDict.tags.length; i++) {
+				TagsPush(albumDict.tags[i]);
+			}
+		}
+		if (!document.getElementsByClassName('js-titleInput')[0].value) {
+			document.getElementsByClassName('js-titleInput')[0].value =
+				albumDict.forumTitle;
+		}
+	}
+}
+
+async function GenerateTemplate(APIVALUE, lossless) {
 	var [downloadLinks, qualityImages, qualityText, masterUrl] = [
 		document.getElementById('ddl').value,
 		document.getElementById('qImgs').value,
@@ -280,146 +465,42 @@ function GenerateTemplate(APIVALUE, lossless) {
 		}
 		return;
 	}
+	let albumDict = AlbumHandler(`${masterUrl}?token=${APIVALUE}`);
 	downloadLinks = DownloadLinkHandler(downloadLinks);
-	//? Is there a better way than sending another request? Check if URL actually needs API key for info we use.
-	var xhReq = new XMLHttpRequest();
-	xhReq.open('GET', `${masterUrl}?token=${APIVALUE}`, false);
-	xhReq.send(null);
-	var albumjson = JSON.parse(xhReq.responseText);
-	var artistURL = `${albumjson.artists[0].resource_url}?token=${APIVALUE}`;
-	//* For "Various" artists, resource_URL is blank string; causing below method to pull BP HTML page
-	GM_xmlhttpRequest({
-		method: 'GET',
-		url: artistURL,
-		onload: function (response) {
-			//TODO: Add "Various" artist statement to use Generic Artist information & bypass JSON parse
-			var artistjson = JSON.parse(response.responseText); // TODO: Add Json error correcting from OMDB
-			let artistUri = artistjson.uri.replace('http:', 'https:');
-			let Cover = albumjson.images
-				? `[center][img width="250px"]${albumjson.images[0].uri}[/img][/center]\n`
-				: '';
-			let artistName = albumjson.artists[0].name.replace(/\(\d*\)/g, '');
-			let artist =
-				artistName && artistUri
-					? `[center][forumcolor][b][size=6][url=${artistUri}]${artistName}[/url][/size][/b][/forumcolor][/center]\n`
-					: '';
-			let album =
-				albumjson.uri && albumjson.title
-					? `[center][forumcolor][b][size=6][url=${albumjson.uri}]${albumjson.title}[/url][/size][/b][/forumcolor][/center]\n`
-					: '';
-			let tracknum = `[center][size=6]${albumjson.tracklist.length} Tracks[/size][/center]\n`;
-			let styles = '';
-			if (albumjson.styles) {
-				styles = '[*][b][forumcolor]Style(s): [/b][/forumcolor] | ';
-				for (let i = 0; i < albumjson.styles.length; i++) {
-					styles += `[url=https://www.discogs.com/style/${albumjson.styles[
-						i
-					].replace(' ', '+')}]${albumjson.styles[i]}[/url] | `;
-				}
-			}
-			let genres = '';
-			if (albumjson.genres) {
-				genres = '\n[*][forumcolor][b]Genre(s): [/b][/forumcolor] | ';
-				for (let i = 0; i < albumjson.genres.length; i++) {
-					genres += `[url=https://www.discogs.com/genre/${albumjson.genres[
-						i
-					].replace(' ', '+')}]${albumjson.genres[i]}[/url] | `;
-				}
-			}
-			let year = '';
-			if (albumjson.year) {
-				year = `\n[*][forumcolor][b]Release Year: [/b][/forumcolor]${albumjson.year}`;
-			}
-			let videos = '';
-			if (albumjson.videos) {
-				videos = '[spoiler="Video(s)"]\n';
-				for (let i = 0; i < albumjson.videos.length; i++) {
-					videos += albumjson.videos[i].uri + '\n';
-				}
-				videos += '[/spoiler]\n';
-			}
-
-			let albumDetails = `[INDENT][size=6][forumcolor][B]Album Details[/B][/forumcolor][/size][/INDENT]\n[list]\n${styles}${genres}${year}\n[/list]\n`;
-			//? Add more details? ^^^^
-			let tracks = '';
-			if (albumjson.tracklist) {
-				tracks =
-					'\n[spoiler="Track List"]\n[TABLE=collapse]\n[TR]\n[TH]No.[/TH]\n[TH]Track Name[/TH]\n[TH]Track Duration[/TH]\n[/TR]\n';
-				for (let t of albumjson.tracklist) {
-					tracks += `[TR][TD]${t.position}[/TD]\n[TD]${t.title}[/TD]\n`;
-					if (t.duration) {
-						tracks += `[TD]${t.duration}[/TD]`;
-					}
-					tracks += '[/TR]\n';
-				}
-				if (!albumjson.tracklist[0].duration) {
-					tracks = tracks.replace('[TH]Track Duration[/TH]\n', '');
-				}
-				tracks += '[/TABLE]\n[/spoiler]\n';
-			}
-			let artistinfo = artistjson.profile
-				? `[spoiler="About Artist"]\n${artistjson.profile
-						.replace(/\[.=/gm, '')
-						.replace(/\]/gm, '')}\n[/spoiler]`
-				: '';
-			let members =
-				'[indent][size=6][forumcolor][B]Artist Details[/B][/forumcolor][/size][/indent]\n';
-			if (artistjson.members) {
-				let memberlist = artistjson.members;
-				members += '[spoiler="Member List"]\n[tabs]';
-				for (let ml of memberlist) {
-					members += `[slide=${ml.name}]\n[img width="150px"]${ml.thumbnail_url}[/img][/slide]\n`;
-				}
-				members += '[/tabs]\n[/spoiler]\n';
-			}
-			let artistLinks = '';
-			if (artistjson.urls) {
-				artistLinks = '[spoiler="Artist Links"]\n';
-				for (let link of artistjson.urls) {
-					artistLinks += link.replace('http:', 'https:') + '\n';
-				}
-				artistLinks += '\n[/spoiler]\n[hr][/hr]\n';
-			}
-			let qualityImage = '';
-			if (qualityImages) {
-				for (let qi of qualityImages.split(' ')) {
-					qualityImage += `[img width="300"]${qi}[/img]`;
-				}
-				qualityImage += '\n';
-			}
-			qualityText = qualityText
-				? `[spoiler="Quality Proof"]${qualityText}[/Spoiler]\n`
-				: '';
-			let quality =
-				qualityImage || qualityText
-					? `[hr][/hr][center][size=6][forumcolor][b]Quality Proof[/b][/forumcolor][/size]\n${qualityImage}${qualityText}`
-					: '';
-			var tags = albumjson.genres.concat(albumjson.styles); //? Find example of "blank" genres or styles, possible error checking needed
-			let forumBBcode = `${Cover}${artist}${album}${tracknum}${members}${artistinfo}${artistLinks}${albumDetails}${tracks}${videos}${quality}${downloadLinks}`;
-			try {
-				document.getElementsByName('message')[0].value = forumBBcode;
-			} catch (err) {
-				RemoveAllChildNodes(
-					document.getElementsByClassName('fr-element fr-view')[0]
-				);
-				let p = document.createElement('p');
-				p.innerText = forumBBcode;
-				document.getElementsByClassName('fr-element fr-view')[0].appendChild(p);
-			} finally {
-				//TODO: Add all Genre's and Styles from Discog to BP Tag System
-				if (tags) {
-					document.getElementsByName('tags')[0].value = tags.toString();
-					for (let i = 0; i < tags.length; i++) {
-						TagsPush(tags[i]);
-					}
-				}
-				if (!document.getElementsByClassName('js-titleInput')[0].value) {
-					document.getElementsByClassName(
-						'js-titleInput'
-					)[0].value = `${artistName} - ${albumjson.title} (${albumjson.year})`;
-				}
-			}
-		},
+	let qualityImage = '';
+	if (qualityImages) {
+		for (let qi of qualityImages.split(' ')) {
+			qualityImage += `[img width="300"]${qi}[/img]`;
+		}
+		qualityImage += '\n';
+	}
+	qualityText = qualityText
+		? `[spoiler="Quality Proof"]${qualityText}[/Spoiler]\n`
+		: '';
+	let quality =
+		qualityImage || qualityText
+			? `[hr][/hr][center][size=6][forumcolor][b]Quality Proof[/b][/forumcolor][/size]\n${qualityImage}${qualityText}`
+			: '';
+	var artistDict;
+	albumDict.then(function (albumDict) {
+		if (albumDict.artistURL) {
+			artistDict = ArtistHandler(
+				`${albumDict.artistURL}?token=${APIVALUE}`,
+				albumDict.artistName
+			);
+		} else {
+			artistDict = '';
+		}
+		if (artistDict) {
+			artistDict.then(function (artistDict) {
+				SubmitToForum(albumDict, artistDict, quality, downloadLinks);
+			});
+		} else {
+			//TODO: Add various artist BBCode
+			var errors = "<li>Various Artists Aren't Currently Supported!!</li>";
+			Popup(errors);
+			return;
+		}
 	});
 }
 

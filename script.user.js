@@ -483,14 +483,7 @@ async function GenerateTemplate(APIVALUE, lossless) {
 			: '';
 	var artistDict;
 	albumDict.then(function (albumDict) {
-		if (albumDict.artistURL) {
-			artistDict = ArtistHandler(
-				`${albumDict.artistURL}?token=${APIVALUE}`,
-				albumDict.artistName
-			);
-		} else {
-			artistDict = '';
-		}
+		artistDict = albumDict.artistURL ? ArtistHandler(`${albumDict.artistURL}?token=${APIVALUE}`, albumDict.artistName) : '';
 		if (artistDict) {
 			artistDict.then(function (artistDict) {
 				SubmitToForum(albumDict, artistDict, quality, downloadLinks);

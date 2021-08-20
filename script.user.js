@@ -489,10 +489,14 @@ async function GenerateTemplate(APIVALUE, lossless) {
 				SubmitToForum(albumDict, artistDict, quality, downloadLinks);
 			});
 		} else {
-			//TODO: Add various artist BBCode
-			var errors = "<li>Various Artists Aren't Currently Supported!!</li>";
-			Popup(errors);
-			return;
+			artistDict = {
+				artistUri: '',
+				artist: `[center][forumcolor][b][size=6]Various Artists[/size][/b][/forumcolor][/center]\n`,
+				artistinfo: '',
+				members: '',
+				artistLinks: '',
+				};
+			SubmitToForum(albumDict, artistDict, quality, downloadLinks);
 		}
 	});
 }

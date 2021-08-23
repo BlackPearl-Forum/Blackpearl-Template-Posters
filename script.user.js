@@ -204,6 +204,16 @@ function SearchDiscog(APIVALUE) {
 		},
 		minCharacters: 3,
 	});
+	fetch(`https://api.discogs.com/oauth/identity?token=${APIVALUE}`)
+		.then(function(response)
+		{
+			if(response.status==401) {
+				let errors = '<li>Something Messed Up! Check The Discog Error Below.</li>';
+				errors += `<li>Your API Key is not valid!</li>`;
+				Popup(errors);
+			}
+
+		})
 }
 
 function SaveApiKey(APIVALUE) {
@@ -273,7 +283,7 @@ async function AlbumHandler(albumLink) {
 		Popup(errors);
 		return;
 	}
-	let Cover = albumjson.images
+	let cover = albumjson.images
 		? `[center][img width="250px"]${albumjson.images[0].uri}[/img][/center]\n`
 		: '';
 	let artistName = albumjson.artists[0].name.replace(/\(\d*\)/g, '');
@@ -334,7 +344,7 @@ async function AlbumHandler(albumLink) {
 	var tags = albumjson.genres.concat(albumjson.styles); //? Find example of "blank" genres or styles, possible error checking needed
 	let forumTitle = `${artistName} - ${albumjson.title} (${albumjson.year})`;
 	return {
-		cover: Cover,
+		cover: cover,
 		artistName: artistName,
 		artistURL: albumjson.artists[0].resource_url,
 		album: album,

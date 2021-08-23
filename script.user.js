@@ -204,16 +204,6 @@ function SearchDiscog(APIVALUE) {
 		},
 		minCharacters: 3,
 	});
-	fetch(`https://api.discogs.com/oauth/identity?token=${APIVALUE}`)
-		.then(function(response)
-		{
-			if(response.status==401) {
-				let errors = '<li>Something Messed Up! Check The Discog Error Below.</li>';
-				errors += `<li>Your API Key is not valid!</li>`;
-				Popup(errors);
-			}
-
-		})
 }
 
 function SaveApiKey(APIVALUE) {

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Blackpearl Discog Poster
 // @version     1.0.0
-// @description Template Maker
+// @description Creates a BBCode template with data pulled from the Discogs API.
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png
 // @homepage    https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/tree/Music
@@ -210,13 +210,46 @@ function SaveApiKey(APIVALUE) {
 	if (APIVALUE == 'foo') {
 		let discogKey = document.getElementById('dgKey').value;
 		if (discogKey) {
-			GM.setValue('DiscogKey', discogKey);
+			fetch(`https://api.discogs.com/oauth/identity?token=${discogKey}`)
+				.then(function (response) {
+					if (!response.ok) {
+						if (response.status === 401) {
+							response.json().then((data) => {
+								let errors =
+									'<li>Something Messed Up! Check The Discog Error Below.</li>';
+								errors += `<li>${data.message}</li>`;
+								Popup(errors);
+							});
+							throw Error('401 Response');
+						} else {
+							throw Error(
+								`Unable To Verify API Key. \n HTTP STATUS CODE: ${response.status}`
+							);
+						}
+					}
+					return response;
+				})
+				.then(function (response) {
+					GM.setValue('DiscogKey', discogKey);
+					document.getElementById('discogGenerator').remove();
+					document.getElementById('showTemplate').remove();
+					Main();
+				})
+				.catch(function (error) {
+					if (error.message !== '401 Response') {
+						let errors =
+							'<li>Something Messed Up! Check The Discog Error Below.</li>';
+						errors += `<li>${error}</li>`;
+						Popup(errors);
+					}
+					console.error(error);
+				});
 		} else {
-			alert("You Didn't Enter Your Key!");
+			let errors = '<li>Something Messed Up! Check The Error Below.</li>';
+			errors += `<li>No API Key found. Please check that you have entered your key and try again.</li>`;
+			Popup(errors);
+			return;
 		}
-		document.getElementById('discogGenerator').remove();
-		document.getElementById('showTemplate').remove();
-		Main();
 	}
 }
 
@@ -483,7 +516,12 @@ async function GenerateTemplate(APIVALUE, lossless) {
 			: '';
 	var artistDict;
 	albumDict.then(function (albumDict) {
-		artistDict = albumDict.artistURL ? ArtistHandler(`${albumDict.artistURL}?token=${APIVALUE}`, albumDict.artistName) : '';
+		artistDict = albumDict.artistURL
+			? ArtistHandler(
+					`${albumDict.artistURL}?token=${APIVALUE}`,
+					albumDict.artistName
+			  )
+			: '';
 		if (artistDict) {
 			artistDict.then(function (artistDict) {
 				SubmitToForum(albumDict, artistDict, quality, downloadLinks);
@@ -495,7 +533,7 @@ async function GenerateTemplate(APIVALUE, lossless) {
 				artistinfo: '',
 				members: '',
 				artistLinks: '',
-				};
+			};
 			SubmitToForum(albumDict, artistDict, quality, downloadLinks);
 		}
 	});

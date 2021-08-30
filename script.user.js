@@ -263,14 +263,14 @@ function SaveApiKey(APIVALUE) {
 					if (error.message !== '401 Response') {
 						let errors =
 							'<li>Something Messed Up! Check The OMDB Error Below.</li>';
-						errors += `<li>${error}</li>`;
+						errors += `<li>${error.message}</li>`;
 						Popup(errors);
 					}
 					console.error(error);
 				});
 		} else {
 			let errors = '<li>Something Messed Up! Check The Error Below.</li>';
-			errors += `<li>No API Key found. Please check that you have entered your key and try again.</li>`;
+			errors += '<li>No API Key found. Please check that you have entered your key and try again.</li>';
 			Popup(errors);
 			return;
 		}

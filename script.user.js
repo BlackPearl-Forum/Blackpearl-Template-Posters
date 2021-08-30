@@ -456,7 +456,7 @@ function GenerateTemplate(APIVALUE) {
 			let fullName = `[center][forumcolor][b][size=6][url='https://blackpearl.biz/search/1/?q=${imdbID}&o=date']${title}${year}[/url][/size][/b][/forumcolor][/center]`;
 			imdbID =
 				json.imdbID && json.imdbID !== 'N/A'
-					? `[center][url=https://www.imdb.com/title/${json.imdbID}][img width='46px']https://i.imgur.com/KO5Twbs.png[/img][/url][/center]`
+					? `\n[center][url=https://www.imdb.com/title/${json.imdbID}][img width='46px']https://i.imgur.com/KO5Twbs.png[/img][/url][/center]`
 					: '';
 			let rating =
 				json.imdbRating && json.imdbRating !== 'N/A'

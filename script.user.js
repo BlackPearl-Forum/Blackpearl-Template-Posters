@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Blackpearl Games
-// @version     1.0.5
+// @version     1.0.4
 // @description Template Maker
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png
@@ -17,12 +17,14 @@
 // @grant       GM_xmlhttpRequest
 // @grant       GM.setValue
 // @grant       GM.getValue
+// @grant       GM.deleteValue
 // @run-at      document-end
 // @connect     api.rawg.io
 // ==/UserScript==
 
 Main();
 
+// Start Var Declarations
 const htmlTemplate = `
 <div id="textareaDivider" name="showDivider" style="display:none">&nbsp;</div>
 <button class="button--primary button button--icon" id="showTemplate" style="display:none" type="button">Show</button>
@@ -46,8 +48,8 @@ HideReactScore
 HidePosts
 <input type="number" id="HidePosts" min="0" max="50" value="0"> <br>
 <div id="textareaDivider">&nbsp;</div>
-<button class="button--primary button button--icon" id="generateTemplate" type="button">Generate Template</button>
-<button class="button--primary button button--icon" id="ClearBtn" type="reset">Clear</button>
+<button class="button--primary button button--icon" id="generate" type="button">Generate Template</button>
+<button class="button--primary button button--icon" id="clearBtn" type="reset">Clear</button>
 <button class="button--primary button button--icon" id="hideTemplate" type="button">Hide</button>
 </div>
 `;
@@ -58,7 +60,7 @@ const rawginput = `
 <label>Enter Your RAWG API Key, Then Click On Save :)</label>
 <input type="text" id="rawgKey" value="" class="input" placeholder="Rawg API Key">
 <button class="button--primary button button--icon" id="saveKey" type="button">Save Key</button>
-<button class="button--primary button button--icon" id="ClearBtn" type="reset">Clear</button>
+<button class="button--primary button button--icon" id="clearBtn" type="reset">Clear</button>
 <button class="button--primary button button--icon" id="hideTemplate" type="button">Hide</button>
 </div>
 `;
@@ -74,42 +76,63 @@ errormessages
 </ul>
 </div></div></div></div>`;
 
+var apiKeyChecked = false;
+
+const today = new Date();
+
+var sameDate;
+
+const datesAreOnSameDay = (first, second) =>
+	first.getFullYear() === second.getFullYear() &&
+	first.getMonth() === second.getMonth() &&
+	first.getDate() === second.getDate();
+
+// End Var Declarations
+
 function Main() {
 	GM.getValue('APIKEY', 'foo').then((value) => {
 		var APIVALUE = value;
 		const htmlpush = document.getElementsByTagName('dd')[0];
 		htmlpush.innerHTML += APIVALUE !== 'foo' ? htmlTemplate : rawginput;
-		SectionSearch(APIVALUE);
-		document.getElementById('hideTemplate').addEventListener(
-			'click',
-			function () {
-				HideTemplate();
-			},
-			false
-		);
-		document.getElementById('showTemplate').addEventListener(
-			'click',
-			function () {
-				ShowTemplate();
-			},
-			false
-		);
-		if (APIVALUE !== 'foo') {
-			document.getElementById('generateTemplate').addEventListener(
-				'click',
-				function () {
-					GenerateTemplate(APIVALUE);
-				},
-				false
-			);
+		$('#hideTemplate').click(() => HideTemplate());
+		$('#showTemplate').click(() => ShowTemplate());
+		if (APIVALUE === 'foo') {
+			$('#saveKey').click(() => SaveApiKey(htmlpush));
 		} else {
-			document.getElementById('saveKey').addEventListener(
-				'click',
-				function () {
-					SaveApiKey(APIVALUE);
-				},
-				false
+			SectionSearch(APIVALUE);
+			$('#generate').click(() => GenerateTemplate(APIVALUE));
+			if (!apiKeyChecked) {
+				CheckKeyStatus(APIVALUE);
+				apiKeyChecked = true;
+			}
+		}
+	});
+}
+
+// Check status of RAWG key once per day, Remove key if invalid
+function CheckKeyStatus(APIVALUE) {
+	GM.getValue('lastChecked', 'foo').then((lastChecked) => {
+		if (lastChecked === 'foo') {
+			GM.setValue('lastChecked', today);
+		} else {
+			sameDate = datesAreOnSameDay(new Date(), new Date(lastChecked));
+		}
+		if (!sameDate) {
+			let apiStatus = CheckApiStatus(
+				`https://api.rawg.io/api/games?search=4200&key=${APIVALUE}`
 			);
+			apiStatus.then((result) => {
+				if (!result) {
+					let errors =
+						'<li>API Key appears to be invalid. We have removed your key from the script. Please re-enter a valid key.<li>';
+					errors +=
+						'<li>Grab your new API Key <a href="https://rawg.io/login/?forward=developer" target="_blank">Here</a>!';
+					Popup(errors);
+					GM.deleteValue('APIKEY');
+					apiKeyChecked = true;
+					Main();
+				}
+			});
 		}
 	});
 }
@@ -124,16 +147,24 @@ $(document).click(function (e) {
 	}
 });
 
+$(document).on('keydown', function (event) {
+	if (event.key == 'Escape') {
+		$('#rawgGenerator').hide();
+		document.getElementById('showTemplate').style.display = 'block';
+		document.getElementsByName('showDivider')[0].style.display = 'block';
+	}
+});
+
 function ShowTemplate() {
 	document.getElementById('showTemplate').style.display = 'none';
 	document.getElementsByName('showDivider')[0].style.display = 'none';
-	document.getElementById('rawgGenerator').style.display = 'block';
+	$('#rawgGenerator').show();
 }
 
 function HideTemplate() {
 	document.getElementById('showTemplate').style.display = 'block';
 	document.getElementsByName('showDivider')[0].style.display = 'block';
-	document.getElementById('rawgGenerator').style.display = 'none';
+	$('#rawgGenerator').hide();
 }
 
 // Popup for Errors
@@ -175,24 +206,85 @@ function SectionSearch(APIVALUE) {
 			title: 'name',
 		},
 		onSelect: function (response) {
-			document.getElementById('hiddenIID').value = response.rawgID;
-			document.getElementById('searchID').value = response.title;
+			$('#hiddenIID').val(response.rawgID);
+			$('#searchID').val(response.title);
 		},
 		minCharacters: 3,
 	});
 }
 
+// Asyncronous http requests
+async function RequestUrl(url) {
+	return await new Promise((resolve, reject) => {
+		GM_xmlhttpRequest({
+			method: 'GET',
+			url: url,
+			onload: (response) => {
+				resolve(response);
+			},
+			onerror: (response) => {
+				reject(response);
+			},
+		});
+	});
+}
+
+// Check response status from RAWG API
+function CheckApiStatus(url) {
+	let returnResult = RequestUrl(url)
+		.then(function (response) {
+			if (!response.ok) {
+				if (response.status === 401) {
+					let errors =
+						'<li>Something Messed Up! Check The Rawg Error Below.</li>';
+					errors += `<li>The API Key is Invalid.</li>`;
+					Popup(errors);
+					throw Error('401 Response');
+				}
+			} else {
+				throw Error(
+					`Unable To Verify API Key. \n HTTP STATUS CODE: ${response.status}`
+				);
+			}
+			return response;
+		})
+		.then(function (response) {
+			return true;
+		})
+		.catch(function (error) {
+			if (error.message !== '401 Response') {
+				let errors =
+					'<li>Something Messed Up! Check The Rawg Error Below.</li>';
+				errors += `<li>${error.message}</li>`;
+				Popup(errors);
+			}
+			console.error(error);
+			return false;
+		});
+	return returnResult;
+}
+
 function SaveApiKey(APIVALUE, htmlpush) {
-	if (APIVALUE == 'foo') {
-		let rawgKey = $('#rawgKey').val();
-		if (rawgKey) {
-			GM.setValue('APIKEY', rawgKey);
-		} else {
-			alert("You Didn't Enter Your Key!!");
-		}
-		document.getElementById('rawgGenerator').remove();
-		document.getElementById('showTemplate').remove();
-		Main();
+	let rawgKey = $('#rawgKey').val();
+	if (rawgKey) {
+		let apiResult = CheckApiStatus(
+			`https://api.rawg.io/api/games/4200?key=${rawgKey}`
+		);
+		apiResult.then(function (result) {
+			if (result) {
+				GM.setValue('APIKEY', rawgKey);
+				GM.setValue('lastChecked', today);
+				sameDate = true;
+				document.getElementById('rawgGenerator').remove();
+				document.getElementById('showTemplate').remove();
+				Main();
+			}
+		});
+	} else {
+		let errors = '<li>Something Messed Up! Check The Error Below.</li>';
+		errors += `<li>No API Key found. Please check that you have entered your key and try again.</li>`;
+		Popup(errors);
+		return;
 	}
 }
 
@@ -204,8 +296,8 @@ function RemoveAllChildNodes(parent) {
 
 function DownloadLinkHandler(downloadLinks) {
 	let [hideReactScore, hidePosts] = [
-		document.getElementById('HideReactScore').value,
-		document.getElementById('HidePosts').value,
+		$('#HideReactScore').val(),
+		$('#HidePosts').val(),
 	];
 	if (Downcloud.checked) {
 		let ddlSplit = downloadLinks.split(' ');
@@ -231,7 +323,11 @@ function DownloadLinkHandler(downloadLinks) {
 	return downloadLinks;
 }
 
+/**
+ * @deprecated Use the new function `RequestUrl` instead. Remove function once all code is updated.
+ */
 function HttpGet(url) {
+	console.warn('[Deprecation] Use Asyncronous "RequestUrl" function instead.');
 	let xmlHttp = new XMLHttpRequest();
 	xmlHttp.open('GET', url, false);
 	xmlHttp.send(null);
@@ -240,14 +336,14 @@ function HttpGet(url) {
 
 function GenerateTemplate(APIVALUE) {
 	var [rawgGameID, youtubeLink, releaseInfo, virustotalLinks, downloadLinks] = [
-		document.getElementById('hiddenIID').value,
-		document.getElementById('ytLink').value,
-		document.getElementById('info').value,
-		document.getElementById('vtLink').value,
-		document.getElementById('ddl').value,
+		$('#hiddenIID').val(),
+		$('#ytLink').val(),
+		$('#info').val(),
+		$('#vtLink').val(),
+		$('#ddl').val(),
 	];
 	if (!rawgGameID) {
-		rawgGameID = document.getElementById('searchID').value;
+		rawgGameID = $('#searchID').val();
 		if (rawgGameID.includes('rawg')) {
 			rawgGameID = rawgGameID.match(/(?<=games\/).*(?<!\/)/)[0];
 		}

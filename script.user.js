@@ -48,7 +48,7 @@ HideReactScore
 HidePosts
 <input type="number" id="HidePosts" min="0" max="50" value="0"> <br>
 <div id="textareaDivider">&nbsp;</div>
-<button class="button--primary button button--icon" id="generate" type="button">Generate Template</button>
+<button class="button--primary button button--icon" id="generateTemplate" type="button">Generate Template</button>
 <button class="button--primary button button--icon" id="clearBtn" type="reset">Clear</button>
 <button class="button--primary button button--icon" id="hideTemplate" type="button">Hide</button>
 </div>

@@ -361,6 +361,15 @@ function HttpGet(url) {
 	return xmlHttp.response;
 }
 
+function VirusTotalHandler(virustotalSplit) {
+	let virustotalLinks = '';
+	for (let splitLink of virustotalSplit) {
+		virustotalLinks += `[downcloud]${splitLink}[/downcloud]\n`;
+	}
+	virustotalLinks = `[indent][forumcolor][b][size=25px]VirusTotal[/size][/b][/forumcolor][/indent]\n${virustotalLinks}\n[HR][/HR]\n`;
+	return virustotalLinks;
+}
+
 function GenerateTemplate(APIVALUE) {
 	var [rawgGameID, youtubeLink, releaseInfo, virustotalLinks, downloadLinks] = [
 		document.getElementById('hiddenIID').value,
@@ -405,11 +414,7 @@ function GenerateTemplate(APIVALUE) {
 	var trailer = youtubeLink.match(/[a-z]/)
 		? `[indent][size=25px][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n\n${youtubeLink}\n\n[HR][/HR]\n`
 		: '';
-	let virustotalSplit = virustotalLinks.split(' ');
-	virustotalLinks = '';
-	for (let vts of virustotalSplit) {
-		virustotalLinks += `[DOWNCLOUD]${vts}[/DOWNCLOUD]\n`;
-	}
+	let virustotalBBcode = VirusTotalHandler(virustotalLinks.split(' '));
 	releaseInfo = releaseInfo.match(/[a-z]/)
 		? `[indent][size=25px][forumcolor][b]Release Infos[/b][/forumcolor][/size][/indent]\n[spoiler='Click here to view Release Info']\n${releaseInfo}\n[/spoiler]\n[HR][/HR]\n`
 		: '';
@@ -474,9 +479,8 @@ function GenerateTemplate(APIVALUE) {
 				}
 			}
 			ratings += `[SIZE=12px]Source: https://rawg.io/games/${rawgGameID}[/SIZE][/LIST]\n[/size]\n[HR][/HR]\n`;
-			virustotalLinks = `[indent][forumcolor][b][size=25px]VirusTotal[/size][/b][/forumcolor][/indent]\n${virustotalLinks}\n[HR][/HR]\n`;
 			downloadLinks = `[center][size=25px][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`;
-			let dump = `${backgroundimage}${title} ${year} ${steam} ${description}${trailer}${screen}${ratings}${releaseInfo}${virustotalLinks}${downloadLinks}`;
+			let dump = `${backgroundimage}${title} ${year} ${steam} ${description}${trailer}${screen}${ratings}${releaseInfo}${virustotalBBcode}${downloadLinks}`;
 			try {
 				document.getElementsByName('message')[0].value = dump;
 			} catch (err) {

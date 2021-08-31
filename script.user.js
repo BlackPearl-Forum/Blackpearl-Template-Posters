@@ -313,20 +313,20 @@ function SaveApiKey() {
 	}
 }
 
-// Removed every Child node from parent, Used for removing HTML Render mode content 
+// Removed every Child node from parent, Used for removing HTML Render mode content
 function RemoveAllChildNodes(parent) {
 	while (parent.firstChild) {
 		parent.removeChild(parent.firstChild);
 	}
 }
 
-// Handle BBcode for Download links
+// Handles BBCode for Download Links
 function DownloadLinkHandler(downloadLinks) {
 	let [hideReactScore, hidePosts] = [
 		document.getElementById('HideReactScore').value,
 		document.getElementById('HidePosts').value,
 	];
-	if (Downcloud.checked) {
+	if (document.getElementById('Downcloud').checked) {
 		let ddlSplit = downloadLinks.split(' ');
 		downloadLinks = '';
 		for (let singleLink of ddlSplit) {
@@ -340,13 +340,14 @@ function DownloadLinkHandler(downloadLinks) {
 	downloadLinks = `[hidereact=1,2,3,4,5,6]${downloadLinks.replace(
 		/\n+$/,
 		''
-	)}[/hidereact]`;
+	)}[/hidereact]`; // Remove extra newline at end of string
 	if (hideReactScore !== '0') {
 		downloadLinks = `[hidereactscore=${hideReactScore}]${downloadLinks}[/hidereactscore]`;
 	}
 	if (hidePosts !== '0') {
 		downloadLinks = `[hideposts=${hidePosts}]${downloadLinks}[/hideposts]`;
 	}
+	downloadLinks = `[center][size=25px][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`;
 	return downloadLinks;
 }
 
@@ -398,7 +399,7 @@ function GenerateTemplate(APIVALUE) {
 		Popup(errors);
 		return;
 	}
-	downloadLinks = DownloadLinkHandler(downloadLinks);
+	downloadLinkBBcode = DownloadLinkHandler(downloadLinks);
 	let screenshotsURL = `https://api.rawg.io/api/games/${rawgGameID}/screenshots?key=${APIVALUE}`;
 	var screenshots = JSON.parse(HttpGet(screenshotsURL));
 	if (screenshots.count !== 0) {
@@ -479,8 +480,7 @@ function GenerateTemplate(APIVALUE) {
 				}
 			}
 			ratings += `[SIZE=12px]Source: https://rawg.io/games/${rawgGameID}[/SIZE][/LIST]\n[/size]\n[HR][/HR]\n`;
-			downloadLinks = `[center][size=25px][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`;
-			let dump = `${backgroundimage}${title} ${year} ${steam} ${description}${trailer}${screen}${ratings}${releaseInfo}${virustotalBBcode}${downloadLinks}`;
+			let dump = `${backgroundimage}${title} ${year} ${steam} ${description}${trailer}${screen}${ratings}${releaseInfo}${virustotalBBcode}${downloadLinkBBcode}`;
 			try {
 				document.getElementsByName('message')[0].value = dump;
 			} catch (err) {

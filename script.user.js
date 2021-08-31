@@ -94,13 +94,37 @@ function Main() {
 		var APIVALUE = value;
 		const htmlpush = document.getElementsByTagName('dd')[0];
 		htmlpush.innerHTML += APIVALUE !== 'foo' ? htmlTemplate : rawginput;
-		$('#hideTemplate').click(() => HideTemplate());
-		$('#showTemplate').click(() => ShowTemplate());
+		document.getElementById('hideTemplate').addEventListener(
+			'click',
+			function () {
+				HideTemplate();
+			},
+			false
+		);
+		document.getElementById('showTemplate').addEventListener(
+			'click',
+			function () {
+				ShowTemplate();
+			},
+			false
+		);
 		if (APIVALUE === 'foo') {
-			$('#saveKey').click(() => SaveApiKey(htmlpush));
+			document.getElementById('saveKey').addEventListener(
+				'click',
+				function () {
+					SaveApiKey();
+				},
+				false
+			);
 		} else {
 			SectionSearch(APIVALUE);
-			$('#generate').click(() => GenerateTemplate(APIVALUE));
+			document.getElementById('generateTemplate').addEventListener(
+				'click',
+				function () {
+					GenerateTemplate(APIVALUE);
+				},
+				false
+			);
 			if (!apiKeyChecked) {
 				CheckKeyStatus(APIVALUE);
 				apiKeyChecked = true;
@@ -158,13 +182,13 @@ $(document).on('keydown', function (event) {
 function ShowTemplate() {
 	document.getElementById('showTemplate').style.display = 'none';
 	document.getElementsByName('showDivider')[0].style.display = 'none';
-	$('#rawgGenerator').show();
+	document.getElementById('rawgGenerator').style.display = 'block';
 }
 
 function HideTemplate() {
 	document.getElementById('showTemplate').style.display = 'block';
 	document.getElementsByName('showDivider')[0].style.display = 'block';
-	$('#rawgGenerator').hide();
+	document.getElementById('rawgGenerator').style.display = 'none';
 }
 
 // Popup for Errors
@@ -206,8 +230,8 @@ function SectionSearch(APIVALUE) {
 			title: 'name',
 		},
 		onSelect: function (response) {
-			$('#hiddenIID').val(response.rawgID);
-			$('#searchID').val(response.title);
+			document.getElementById('hiddenIID').value = response.rawgID;
+			document.getElementById('searchID').value = response.title;
 		},
 		minCharacters: 3,
 	});
@@ -264,7 +288,8 @@ function CheckApiStatus(url) {
 	return returnResult;
 }
 
-function SaveApiKey(APIVALUE, htmlpush) {
+// Save Rawg API key (if valid) to script manager storage
+function SaveApiKey() {
 	let rawgKey = $('#rawgKey').val();
 	if (rawgKey) {
 		let apiResult = CheckApiStatus(
@@ -288,16 +313,18 @@ function SaveApiKey(APIVALUE, htmlpush) {
 	}
 }
 
+// Removed every Child node from parent, Used for removing HTML Render mode content 
 function RemoveAllChildNodes(parent) {
 	while (parent.firstChild) {
 		parent.removeChild(parent.firstChild);
 	}
 }
 
+// Handle BBcode for Download links
 function DownloadLinkHandler(downloadLinks) {
 	let [hideReactScore, hidePosts] = [
-		$('#HideReactScore').val(),
-		$('#HidePosts').val(),
+		document.getElementById('HideReactScore').value,
+		document.getElementById('HidePosts').value,
 	];
 	if (Downcloud.checked) {
 		let ddlSplit = downloadLinks.split(' ');
@@ -336,14 +363,14 @@ function HttpGet(url) {
 
 function GenerateTemplate(APIVALUE) {
 	var [rawgGameID, youtubeLink, releaseInfo, virustotalLinks, downloadLinks] = [
-		$('#hiddenIID').val(),
-		$('#ytLink').val(),
-		$('#info').val(),
-		$('#vtLink').val(),
-		$('#ddl').val(),
+		document.getElementById('hiddenIID').value,
+		document.getElementById('ytLink').value,
+		document.getElementById('info').value,
+		document.getElementById('vtLink').value,
+		document.getElementById('ddl').value,
 	];
 	if (!rawgGameID) {
-		rawgGameID = $('#searchID').val();
+		rawgGameID = document.getElementById('searchID').value;
 		if (rawgGameID.includes('rawg')) {
 			rawgGameID = rawgGameID.match(/(?<=games\/).*(?<!\/)/)[0];
 		}

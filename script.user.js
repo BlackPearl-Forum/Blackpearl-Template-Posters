@@ -401,6 +401,7 @@ function GenerateTemplate(APIVALUE) {
 	}
 	downloadLinkBBcode = DownloadLinkHandler(downloadLinks);
 	let screenshotsURL = `https://api.rawg.io/api/games/${rawgGameID}/screenshots?key=${APIVALUE}`;
+	// TODO: Move to ScreenshotHandler function like other scripts, and remove the HttpGet function
 	var screenshots = JSON.parse(HttpGet(screenshotsURL));
 	if (screenshots.count !== 0) {
 		var screen = `[indent][size=25px][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [Spoiler='Screenshots']\n`;
@@ -419,16 +420,21 @@ function GenerateTemplate(APIVALUE) {
 	releaseInfo = releaseInfo.match(/[a-z]/)
 		? `[indent][size=25px][forumcolor][b]Release Infos[/b][/forumcolor][/size][/indent]\n[spoiler='Click here to view Release Info']\n${releaseInfo}\n[/spoiler]\n[HR][/HR]\n`
 		: '';
-	var storesURL = `https://api.rawg.io/api/games/${rawgGameID}/stores?key=${APIVALUE}`;
-	var stores = JSON.parse(HttpGet(storesURL));
-	var steamReg = /(https?:\/\/)?store\.steampowered\.com\/app\/\d{1,7}/;
-	var steamStoreLink = stores.results.find((e) => e.url.match(steamReg));
-	if (steamStoreLink && steamStoreLink.length !== 0) {
-		let steamID = steamStoreLink.url.match(/\d{1,7}/);
-		var steam = `[media=steamstore]${steamID}[/media][/center]\n[HR][/HR]\n`;
-	} else {
-		steam = '[/center]\n[HR][/HR]\n';
-	}
+	let steamPromise = RequestUrl(
+		`https://api.rawg.io/api/games/${rawgGameID}/stores?key=${APIVALUE}`
+	).then((response) => {
+		let storeUrl;
+		JSON.parse(response.responseText).results.every((store) => {
+			if (store.store_id === 1) {
+				storeUrl = `[media=steamstore]${store.url.match(
+					/\d{1,7}/
+				)}[/media][/center]\n[HR][/HR]\n`;
+				return false;
+			}
+			return true;
+		});
+		return (storeUrl = !storeUrl ? '[/center]\n[HR][/HR]\n' : storeUrl);
+	});
 	GM_xmlhttpRequest({
 		method: 'GET',
 		url: `https://api.rawg.io/api/games/${rawgGameID}?key=${APIVALUE}`,
@@ -480,23 +486,28 @@ function GenerateTemplate(APIVALUE) {
 				}
 			}
 			ratings += `[SIZE=12px]Source: https://rawg.io/games/${rawgGameID}[/SIZE][/LIST]\n[/size]\n[HR][/HR]\n`;
-			let dump = `${backgroundimage}${title} ${year} ${steam} ${description}${trailer}${screen}${ratings}${releaseInfo}${virustotalBBcode}${downloadLinkBBcode}`;
-			try {
-				document.getElementsByName('message')[0].value = dump;
-			} catch (err) {
-				RemoveAllChildNodes(
-					document.getElementsByClassName('fr-element fr-view')[0]
-				);
-				let p = document.createElement('p');
-				p.innerText = dump;
-				document.getElementsByClassName('fr-element fr-view')[0].appendChild(p);
-			} finally {
-				if (!document.getElementsByClassName('js-titleInput')[0].value) {
-					document.getElementsByClassName(
-						'js-titleInput'
-					)[0].value = `${json.name} - (${json.released})`;
+			// TODO: move to a SubmitToForum function we have in Music template then resolve promises there
+			steamPromise.then((steamBBCode) => {
+				let dump = `${backgroundimage}${title} ${year} ${steamBBCode} ${description}${trailer}${screen}${ratings}${releaseInfo}${virustotalBBcode}${downloadLinkBBcode}`;
+				try {
+					document.getElementsByName('message')[0].value = dump;
+				} catch (err) {
+					RemoveAllChildNodes(
+						document.getElementsByClassName('fr-element fr-view')[0]
+					);
+					let p = document.createElement('p');
+					p.innerText = dump;
+					document
+						.getElementsByClassName('fr-element fr-view')[0]
+						.appendChild(p);
+				} finally {
+					if (!document.getElementsByClassName('js-titleInput')[0].value) {
+						document.getElementsByClassName(
+							'js-titleInput'
+						)[0].value = `${json.name} - (${json.released})`;
+					}
 				}
-			}
+			});
 		},
 	});
 }

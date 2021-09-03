@@ -371,6 +371,27 @@ function VirusTotalHandler(virustotalSplit) {
 	return virustotalLinks;
 }
 
+function SubmitToForum(forumBBCode) {
+	try {
+		document.getElementsByName('message')[0].value = forumBBCode;
+	} catch (err) {
+		RemoveAllChildNodes(
+			document.getElementsByClassName('fr-element fr-view')[0]
+		);
+		let p = document.createElement('p');
+		p.innerText = forumBBCode;
+		document
+			.getElementsByClassName('fr-element fr-view')[0]
+			.appendChild(p);
+	} finally {
+		if (!document.getElementsByClassName('js-titleInput')[0].value) {
+			document.getElementsByClassName(
+				'js-titleInput'
+			)[0].value = `${json.name} - (${json.released})`;
+		}
+	}
+}
+
 function GenerateTemplate(APIVALUE) {
 	var [rawgGameID, youtubeLink, releaseInfo, virustotalLinks, downloadLinks] = [
 		document.getElementById('hiddenIID').value,
@@ -486,27 +507,9 @@ function GenerateTemplate(APIVALUE) {
 				}
 			}
 			ratings += `[SIZE=12px]Source: https://rawg.io/games/${rawgGameID}[/SIZE][/LIST]\n[/size]\n[HR][/HR]\n`;
-			// TODO: move to a SubmitToForum function we have in Music template then resolve promises there
 			steamPromise.then((steamBBCode) => {
 				let dump = `${backgroundimage}${title} ${year} ${steamBBCode} ${description}${trailer}${screen}${ratings}${releaseInfo}${virustotalBBcode}${downloadLinkBBcode}`;
-				try {
-					document.getElementsByName('message')[0].value = dump;
-				} catch (err) {
-					RemoveAllChildNodes(
-						document.getElementsByClassName('fr-element fr-view')[0]
-					);
-					let p = document.createElement('p');
-					p.innerText = dump;
-					document
-						.getElementsByClassName('fr-element fr-view')[0]
-						.appendChild(p);
-				} finally {
-					if (!document.getElementsByClassName('js-titleInput')[0].value) {
-						document.getElementsByClassName(
-							'js-titleInput'
-						)[0].value = `${json.name} - (${json.released})`;
-					}
-				}
+				SubmitToForum(dump);
 			});
 		},
 	});

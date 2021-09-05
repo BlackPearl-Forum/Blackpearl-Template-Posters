@@ -243,14 +243,10 @@ function SubmitToForum(forumBBCode, title) {
 		);
 		let p = document.createElement('p');
 		p.innerText = forumBBCode;
-		document
-			.getElementsByClassName('fr-element fr-view')[0]
-			.appendChild(p);
+		document.getElementsByClassName('fr-element fr-view')[0].appendChild(p);
 	} finally {
 		if (!document.getElementsByClassName('js-titleInput')[0].value) {
-			document.getElementsByClassName(
-				'js-titleInput'
-			)[0].value = title;
+			document.getElementsByClassName('js-titleInput')[0].value = title;
 		}
 	}
 }

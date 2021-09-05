@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Blackpearl Android Template Generator
-// @version     1.0.1
+// @version     1.0.2
 // @description Generates a Template for the Android section of Blackpearl
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png

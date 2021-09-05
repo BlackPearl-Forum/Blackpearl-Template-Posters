@@ -232,6 +232,58 @@ function SectionSearch(APIVALUE) {
 	});
 }
 
+// Asyncronous http requests
+async function RequestUrl(url) {
+	return await new Promise((resolve, reject) => {
+		GM_xmlhttpRequest({
+			method: 'GET',
+			url: url,
+			onload: (response) => {
+				resolve(response);
+			},
+			onerror: (response) => {
+				reject(response);
+			},
+		});
+	});
+}
+
+// Check response status from API
+function CheckApiStatus(url) {
+	let returnResult = RequestUrl(url)
+		.then(function (response) {
+			if (!response.ok) {
+				if (response.status === 401) {
+					let data = JSON.parse(response.responseText);
+					let errors =
+						'<li>Something Messed Up! Check The Omdb Error Below.</li>';
+					errors += `<li>${data.message}</li>`;
+					Popup(errors);
+					throw Error('401 Response');
+				}
+			} else {
+				throw Error(
+					`Unable To Verify API Key. \n HTTP STATUS CODE: ${response.status}`
+				);
+			}
+			return response;
+		})
+		.then(function (response) {
+			return true;
+		})
+		.catch(function (error) {
+			if (error.message !== '401 Response') {
+				let errors =
+					'<li>Something Messed Up! Check The Omdb Error Below.</li>';
+				errors += `<li>${error.message}</li>`;
+				Popup(errors);
+			}
+			console.error(error);
+			return false;
+		});
+	return returnResult;
+}
+
 // Check and Save API Key if valid
 function SaveApiKey(APIVALUE) {
 	if (APIVALUE == 'foo') {

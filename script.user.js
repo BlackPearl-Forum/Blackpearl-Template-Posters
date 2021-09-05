@@ -80,21 +80,21 @@ function Main() {
 	htmlPlacement.innerHTML += htmlTemplate; // Place our HTML under the inputs
 	document.getElementById('hideTemplate').addEventListener(
 		'click',
-		function () {
+		() => {
 			HideTemplate();
 		},
 		false
 	);
 	document.getElementById('showTemplate').addEventListener(
 		'click',
-		function () {
+		() => {
 			ShowTemplate();
 		},
 		false
 	);
 	document.getElementById('generateTemplate').addEventListener(
 		'click',
-		function () {
+		() => {
 			GenerateTemplate();
 		},
 		false

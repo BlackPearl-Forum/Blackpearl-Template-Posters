@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Blackpearl Music Template Generator
-// @version     1.0.0
+// @version     1.0.1
 // @description Creates a BBCode template with data pulled from the Discogs API.
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png

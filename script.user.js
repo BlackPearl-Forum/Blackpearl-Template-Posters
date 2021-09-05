@@ -111,7 +111,7 @@ function Main() {
 			document.getElementById('saveKey').addEventListener(
 				'click',
 				function () {
-					SaveApiKey(APIVALUE);
+					SaveApiKey();
 				},
 				false
 			);
@@ -285,50 +285,26 @@ function CheckApiStatus(url) {
 }
 
 // Check and Save API Key if valid
-function SaveApiKey(APIVALUE) {
-	if (APIVALUE == 'foo') {
-		let omdbKey = document.getElementById('omdbKey').value;
-		if (omdbKey) {
-			fetch(`https://www.omdbapi.com/?apikey=${omdbKey}`)
-				.then(function (response) {
-					if (!response.ok) {
-						if (response.status === 401) {
-							response.json().then((data) => {
-								let errors =
-									'<li>Something Messed Up! Check The OMDB Error Below.</li>';
-								errors += `<li>${data.Error}</li>`;
-								Popup(errors);
-							});
-							throw Error('401 Response');
-						} else {
-							throw Error(
-								`Unable To Verify API Key. \n HTTP STATUS CODE: ${response.status}`
-							);
-						}
-					}
-					return response;
-				})
-				.then(function (response) {
-					GM.setValue('APIKEY', omdbKey);
-					document.getElementById('OmdbGenerator').remove();
-					document.getElementById('showTemplate').remove();
-					Main();
-				})
-				.catch(function (error) {
-					if (error.message !== '401 Response') {
-						let errors =
-							'<li>Something Messed Up! Check The OMDB Error Below.</li>';
-						errors += `<li>${error.message}</li>`;
-						Popup(errors);
-					}
-					console.error(error);
-				});
-		} else {
-			let errors = '<li>Something Messed Up! Check The Error Below.</li>';
-			errors += '<li>No API Key found. Please check that you have entered your key and try again.</li>';
-			Popup(errors);
-			return;
-		}
+function SaveApiKey() {
+	let omdbKey = document.getElementById('omdbKey').value;
+	if (omdbKey) {
+		let apiResult = CheckApiStatus(
+			`https://www.omdbapi.com/?apikey=${omdbKey}`
+		);
+		apiResult.then(function (result) {
+			if (result) {
+				GM.setValue('APIKEY', omdbKey);
+				document.getElementById('OmdbGenerator').remove();
+				document.getElementById('showTemplate').remove();
+				Main();
+			}
+		});
+	} else {
+		let errors = '<li>Something Messed Up! Check The Error Below.</li>';
+		errors +=
+			'<li>No API Key found. Please check that you have entered your key and try again.</li>';
+		Popup(errors);
+		return;
 	}
 }
 

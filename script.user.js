@@ -233,6 +233,28 @@ function VirusTotalHandler(virustotalSplit) {
 	return virustotalLinks;
 }
 
+// Submit Generated BBCode to the forum
+function SubmitToForum(forumBBCode, title) {
+	try {
+		document.getElementsByName('message')[0].value = forumBBCode;
+	} catch (err) {
+		RemoveAllChildNodes(
+			document.getElementsByClassName('fr-element fr-view')[0]
+		);
+		let p = document.createElement('p');
+		p.innerText = forumBBCode;
+		document
+			.getElementsByClassName('fr-element fr-view')[0]
+			.appendChild(p);
+	} finally {
+		if (!document.getElementsByClassName('js-titleInput')[0].value) {
+			document.getElementsByClassName(
+				'js-titleInput'
+			)[0].value = title;
+		}
+	}
+}
+
 function GenerateTemplate() {
 	// haha let init go brrrr
 	let [
@@ -371,22 +393,7 @@ function GenerateTemplate() {
 				? `[indent][size=6][color=rgb(26, 162, 96)][B]Mod Info[/B][/color][/size][/indent]\n${modInfo}[hr][/hr]\n`
 				: '';
 			let bbcode = `${logo}${title}${rating}${reviewscount}${playStoreImages}${appDescription}${developerName}${playStoreCategory}${ContentRating}${requiredVersion}${appSize}${playStoreVersion}${playStoreLink}${modInfo}${virustotalBBcode}${downloadLinkBBcode}`;
-			try {
-				document.getElementsByName('message')[0].value = bbcode;
-			} catch (err) {
-				RemoveAllChildNodes(
-					document.getElementsByClassName('fr-element fr-view')[0]
-				);
-				let p = document.createElement('p');
-				p.innerText = bbcode;
-				document.getElementsByClassName('fr-element fr-view')[0].appendChild(p);
-			} finally {
-				if (!document.getElementsByClassName('js-titleInput')[0].value) {
-					document.getElementsByClassName(
-						'js-titleInput'
-					)[0].value = `${gplayjson.name}${titleExtra}`;
-				}
-			}
+			SubmitToForum(bbcode, `${gplayjson.name}${titleExtra}`);
 		},
 	});
 }

@@ -234,7 +234,7 @@ function CheckApiStatus(url) {
 		.then(function (response) {
 			if (!response.ok) {
 				if (response.status === 401) {
-					data = JSON.parse(response.responseText);
+					let data = JSON.parse(response.responseText);
 					let errors =
 						'<li>Something Messed Up! Check The Discog Error Below.</li>';
 					errors += `<li>${data.message}</li>`;
@@ -321,7 +321,7 @@ function DownloadLinkHandler(downloadLinks) {
 async function AlbumHandler(albumURL) {
 	let response = await RequestUrl(albumURL);
 	var albumjson = JSON.parse(response.responseText);
-	let styles = new String();
+	let styles = String();
 	if (albumjson.styles) {
 		styles = '[*][b][forumcolor]Style(s): [/b][/forumcolor] | ';
 		for (let i = 0; i < albumjson.styles.length; i++) {
@@ -330,7 +330,7 @@ async function AlbumHandler(albumURL) {
 			].replace(' ', '+')}]${albumjson.styles[i]}[/url] | `;
 		}
 	}
-	let genres = new String();
+	let genres = String();
 	if (albumjson.genres) {
 		genres = '\n[*][forumcolor][b]Genre(s): [/b][/forumcolor] | ';
 		for (let i = 0; i < albumjson.genres.length; i++) {
@@ -339,7 +339,7 @@ async function AlbumHandler(albumURL) {
 			].replace(' ', '+')}]${albumjson.genres[i]}[/url] | `;
 		}
 	}
-	let videos = new String();
+	let videos = String();
 	if (albumjson.videos) {
 		videos = '[spoiler="Video(s)"]\n';
 		for (let i = 0; i < albumjson.videos.length; i++) {
@@ -347,7 +347,7 @@ async function AlbumHandler(albumURL) {
 		}
 		videos += '[/spoiler]\n';
 	}
-	let tracks = new String();
+	let tracks = String();
 	if (albumjson.tracklist) {
 		tracks =
 			'\n[spoiler="Track List"]\n[TABLE=collapse]\n[TR]\n[TH]No.[/TH]\n[TH]Track Name[/TH]\n[TH]Track Duration[/TH]\n[/TR]\n';
@@ -399,7 +399,7 @@ async function ArtistHandler(artistURL, artistName) {
 		}
 		members += '[/tabs]\n[/spoiler]\n';
 	}
-	let artistLinks = new String();
+	let artistLinks = String();
 	if (artistjson.urls) {
 		artistLinks = '[spoiler="Artist Links"]\n';
 		for (let link of artistjson.urls) {

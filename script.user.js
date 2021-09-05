@@ -219,8 +219,7 @@ function ScreenshotHandler(images) {
 			break;
 		}
 	}
-	playStoreImages = `[indent][size=6][color=rgb(26, 162, 96)][B]Screenshots[/B][/color][/size][/indent]\n${playStoreImages}[/center]\n[hr][/hr]\n`;
-	return playStoreImages;
+	return `[indent][size=6][color=rgb(26, 162, 96)][B]Screenshots[/B][/color][/size][/indent]\n${playStoreImages}[/center]\n[hr][/hr]\n`;
 }
 
 // Handle BBCode for VirusTotal

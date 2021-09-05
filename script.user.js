@@ -95,7 +95,7 @@ function Main() {
 	document.getElementById('generateTemplate').addEventListener(
 		'click',
 		() => {
-			GenerateTemplate();
+			TemplateGenerationHandler();
 		},
 		false
 	);
@@ -162,6 +162,22 @@ function RemoveAllChildNodes(parent) {
 	while (parent.firstChild) {
 		parent.removeChild(parent.firstChild);
 	}
+}
+
+// Asyncronous http requests
+async function RequestUrl(url) {
+	return await new Promise((resolve, reject) => {
+		GM_xmlhttpRequest({
+			method: 'GET',
+			url: url,
+			onload: (response) => {
+				resolve(response);
+			},
+			onerror: (response) => {
+				reject(response);
+			},
+		});
+	});
 }
 
 // Handles BBCode for Download Links
@@ -249,7 +265,107 @@ function SubmitToForum(forumBBCode, title) {
 	}
 }
 
-function GenerateTemplate() {
+async function GenerateBBCode(
+	playStoreLink,
+	modInfo,
+	titleExtra,
+	virustotalBBcode,
+	downloadLinkBBcode
+) {
+	let response = await RequestUrl(playStoreLink);
+	let [page, parser] = [response.responseText, new DOMParser()];
+	let parsedHtml = parser.parseFromString(page, 'text/html');
+	// Grab json from parse
+	var gplayjson = parsedHtml.querySelector(
+		'script[type="application/ld+json"]'
+	).text;
+	gplayjson = JSON.parse(gplayjson);
+	// Turn nodelist into an array
+	var h2 = Array.prototype.slice.call(parsedHtml.querySelectorAll('div'));
+
+	// Filter Function
+	var [appSize, playStoreVersion, requiredVersion] = [
+		h2.filter(FilterSize),
+		h2.filter(FilterCurrentVersion),
+		h2.filter(FilterRequiredVersion),
+	];
+	// Grab all images & find logo
+	let images = parsedHtml.getElementsByTagName('img');
+	for (let logoImage of images) {
+		let logoattr = logoImage.alt;
+		if (logoattr == 'Cover art') {
+			var logo = `[center][img width='100px']${logoImage.srcset
+				.replace('-rw', '')
+				.replace(' 2x', '')}[/img]\n`;
+		}
+	}
+	let playStoreImages = ScreenshotHandler(images);
+	// App Name
+	let title = gplayjson.name
+		? `[color=rgb(26, 162, 96)][B][size=6]${gplayjson.name}[/size][/B][/color]\n`
+		: '';
+	// Review Star Rating
+	try {
+		var rating = gplayjson.aggregateRating.ratingValue
+			? `[img width='40px']https://i.postimg.cc/g28wfSTs/630px-Green-star-41-108-41-svg.png[/img][size=6][B]${Math.floor(
+					gplayjson.aggregateRating.ratingValue
+			  )}/5[/B]\n`
+			: '';
+	} catch (e) {
+		rating = '';
+	}
+	// Amount of Reviews
+	try {
+		var reviewscount = gplayjson.aggregateRating.ratingCount
+			? `[img width='40px']https://i.postimg.cc/nV6RDhJ3/Webp-net-resizeimage-002.png[/img]${Number(
+					gplayjson.aggregateRating.ratingCount
+			  ).toLocaleString()}[/size]\n`
+			: '';
+	} catch (e) {
+		reviewscount = '';
+	}
+
+	// Grab App Details from Play Store HTML parse
+	// App Description
+	let appDescription = gplayjson.description
+		? `[indent][size=6][color=rgb(26, 162, 96)][B]App Description[/B][/color][/size][/indent]\n[SPOILER='App Description']\n${gplayjson.description}\n[/SPOILER]\n[hr][/hr]\n`
+		: '';
+	let developerName = gplayjson.author.name
+		? `[indent][size=6][color=rgb(26, 162, 96)][B]App Details[/B][/color][/size][/indent]\n[LIST]\n[*][B]Developer: [/B] ${UpperCase(
+				gplayjson.author.name
+		  )}`
+		: '';
+	// App Category
+	let playStoreCategory = gplayjson.applicationCategory
+		? `\n[*][B]Category: [/B] ${UpperCase(
+				gplayjson.applicationCategory.replace(/\_/g, ' ')
+		  )}`
+		: '';
+	// Age Content Rating
+	let ContentRating = gplayjson.contentRating
+		? `\n[*][B]Content Rating: [/B] ${gplayjson.contentRating}`
+		: '';
+	requiredVersion = requiredVersion[0].nextElementSibling.innerText
+		? `\n[*][B]Required Android Version: [/B] ${requiredVersion[0].nextElementSibling.innerText}`
+		: '';
+	appSize = appSize[0].nextElementSibling.innerText
+		? `\n[*][B]Size: [/B] ${appSize[0].nextElementSibling.innerText} (Taken from the Google Play Store)`
+		: '';
+	playStoreVersion = playStoreVersion[0].nextElementSibling.innerText
+		? `\n[*][B]Latest Google Play Version: [/B] ${playStoreVersion[0].nextElementSibling.innerText}\n[/LIST]\n`
+		: '';
+	// Add BBCode for "Get this on Google Play Store"
+	playStoreLink = `[URL=${playStoreLink}][img width='250px']https://i.postimg.cc/mrWtVGwr/image.png[/img][/URL]\n[hr][/hr]\n`;
+	modInfo = modInfo
+		? `[indent][size=6][color=rgb(26, 162, 96)][B]Mod Info[/B][/color][/size][/indent]\n${modInfo}[hr][/hr]\n`
+		: '';
+	return {
+		post: `${logo}${title}${rating}${reviewscount}${playStoreImages}${appDescription}${developerName}${playStoreCategory}${ContentRating}${requiredVersion}${appSize}${playStoreVersion}${playStoreLink}${modInfo}${virustotalBBcode}${downloadLinkBBcode}`,
+		title: `${gplayjson.name}${titleExtra}`,
+	};
+}
+
+function TemplateGenerationHandler() {
 	// haha let init go brrrr
 	let [
 		playStoreLink,
@@ -295,100 +411,15 @@ function GenerateTemplate() {
 	let titleExtra = mod + unlocked + premium + adfree + lite;
 	let virustotalBBcode = VirusTotalHandler(virustotalLinks.split(' '));
 	let downloadLinkBBcode = DownloadLinkHandler(downloadLinks);
-
-	GM_xmlhttpRequest({
-		method: 'GET',
-		url: playStoreLink,
-		onload: function (response) {
-			let [page, parser] = [response.responseText, new DOMParser()];
-			let parsedHtml = parser.parseFromString(page, 'text/html');
-			// Grab json from parse
-			var gplayjson = parsedHtml.querySelector(
-				'script[type="application/ld+json"]'
-			).text;
-			gplayjson = JSON.parse(gplayjson);
-			// Turn nodelist into an array
-			var h2 = Array.prototype.slice.call(parsedHtml.querySelectorAll('div'));
-
-			// Filter Function
-			var [appSize, playStoreVersion, requiredVersion] = [
-				h2.filter(FilterSize),
-				h2.filter(FilterCurrentVersion),
-				h2.filter(FilterRequiredVersion),
-			];
-			// Grab all images & find logo
-			let images = parsedHtml.getElementsByTagName('img');
-			for (let logoImage of images) {
-				let logoattr = logoImage.alt;
-				if (logoattr == 'Cover art') {
-					var logo = `[center][img width='100px']${logoImage.srcset
-						.replace('-rw', '')
-						.replace(' 2x', '')}[/img]\n`;
-				}
-			}
-			let playStoreImages = ScreenshotHandler(images);
-			// App Name
-			let title = gplayjson.name
-				? `[color=rgb(26, 162, 96)][B][size=6]${gplayjson.name}[/size][/B][/color]\n`
-				: '';
-			// Review Star Rating
-			try {
-				var rating = gplayjson.aggregateRating.ratingValue
-					? `[img width='40px']https://i.postimg.cc/g28wfSTs/630px-Green-star-41-108-41-svg.png[/img][size=6][B]${Math.floor(
-							gplayjson.aggregateRating.ratingValue
-					  )}/5[/B]\n`
-					: '';
-			} catch (e) {
-				rating = '';
-			}
-			// Amount of Reviews
-			try {
-				var reviewscount = gplayjson.aggregateRating.ratingCount
-					? `[img width='40px']https://i.postimg.cc/nV6RDhJ3/Webp-net-resizeimage-002.png[/img]${Number(
-							gplayjson.aggregateRating.ratingCount
-					  ).toLocaleString()}[/size]\n`
-					: '';
-			} catch (e) {
-				reviewscount = '';
-			}
-
-			// Grab App Details from Play Store HTML parse
-			// App Description
-			let appDescription = gplayjson.description
-				? `[indent][size=6][color=rgb(26, 162, 96)][B]App Description[/B][/color][/size][/indent]\n[SPOILER='App Description']\n${gplayjson.description}\n[/SPOILER]\n[hr][/hr]\n`
-				: '';
-			let developerName = gplayjson.author.name
-				? `[indent][size=6][color=rgb(26, 162, 96)][B]App Details[/B][/color][/size][/indent]\n[LIST]\n[*][B]Developer: [/B] ${UpperCase(
-						gplayjson.author.name
-				  )}`
-				: '';
-			// App Category
-			let playStoreCategory = gplayjson.applicationCategory
-				? `\n[*][B]Category: [/B] ${UpperCase(
-						gplayjson.applicationCategory.replace(/\_/g, ' ')
-				  )}`
-				: '';
-			// Age Content Rating
-			let ContentRating = gplayjson.contentRating
-				? `\n[*][B]Content Rating: [/B] ${gplayjson.contentRating}`
-				: '';
-			requiredVersion = requiredVersion[0].nextElementSibling.innerText
-				? `\n[*][B]Required Android Version: [/B] ${requiredVersion[0].nextElementSibling.innerText}`
-				: '';
-			appSize = appSize[0].nextElementSibling.innerText
-				? `\n[*][B]Size: [/B] ${appSize[0].nextElementSibling.innerText} (Taken from the Google Play Store)`
-				: '';
-			playStoreVersion = playStoreVersion[0].nextElementSibling.innerText
-				? `\n[*][B]Latest Google Play Version: [/B] ${playStoreVersion[0].nextElementSibling.innerText}\n[/LIST]\n`
-				: '';
-			// Add BBCode for "Get this on Google Play Store"
-			playStoreLink = `[URL=${playStoreLink}][img width='250px']https://i.postimg.cc/mrWtVGwr/image.png[/img][/URL]\n[hr][/hr]\n`;
-			modInfo = modInfo
-				? `[indent][size=6][color=rgb(26, 162, 96)][B]Mod Info[/B][/color][/size][/indent]\n${modInfo}[hr][/hr]\n`
-				: '';
-			let bbcode = `${logo}${title}${rating}${reviewscount}${playStoreImages}${appDescription}${developerName}${playStoreCategory}${ContentRating}${requiredVersion}${appSize}${playStoreVersion}${playStoreLink}${modInfo}${virustotalBBcode}${downloadLinkBBcode}`;
-			SubmitToForum(bbcode, `${gplayjson.name}${titleExtra}`);
-		},
+	let bbcode = GenerateBBCode(
+		playStoreLink,
+		modInfo,
+		titleExtra,
+		virustotalBBcode,
+		downloadLinkBBcode
+	);
+	bbcode.then((result) => {
+		SubmitToForum(result.post, result.title);
 	});
 }
 

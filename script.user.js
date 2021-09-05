@@ -86,14 +86,14 @@ function Main() {
 		htmlpush.innerHTML += APIVALUE !== 'foo' ? htmlTemplate : omdbinput;
 		document.getElementById('hideTemplate').addEventListener(
 			'click',
-			function () {
+			() => {
 				HideTemplate();
 			},
 			false
 		);
 		document.getElementById('showTemplate').addEventListener(
 			'click',
-			function () {
+			() => {
 				ShowTemplate();
 			},
 			false
@@ -102,7 +102,7 @@ function Main() {
 			SectionSearch(APIVALUE);
 			document.getElementById('generateTemplate').addEventListener(
 				'click',
-				function () {
+				() => {
 					GenerateTemplate(APIVALUE);
 				},
 				false
@@ -110,7 +110,7 @@ function Main() {
 		} else {
 			document.getElementById('saveKey').addEventListener(
 				'click',
-				function () {
+				() => {
 					SaveApiKey();
 				},
 				false

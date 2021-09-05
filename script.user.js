@@ -335,7 +335,7 @@ function DownloadLinkHandler(downloadLinks) {
 	if (hidePosts !== '0') {
 		downloadLinks = `[hideposts=${hidePosts}]${downloadLinks}[/hideposts]`;
 	}
-	return downloadLinks;
+	return `[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`;
 }
 
 // Handle BBCode for Screenshots
@@ -453,7 +453,7 @@ function GenerateTemplate(APIVALUE) {
 		Popup(errors);
 		return;
 	}
-	downloadLinks = DownloadLinkHandler(downloadLinks);
+	downloadLinksBBCode = DownloadLinkHandler(downloadLinks);
 	var screen = screenshots ? ScreenshotHandler(screenshots.split(' ')) : '';
 	var trailer = youtubeLink.match(/[a-z]/)
 		? `\n[hr][/hr][indent][size=6][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n ${youtubeLink}`
@@ -558,8 +558,7 @@ function GenerateTemplate(APIVALUE) {
 			mediaInfo =
 				'[hr][/hr][indent][size=6][forumcolor][b]Media Info[/b][/forumcolor][/size][/indent]\n' +
 				`[spoiler='Click here to view Media Info']\n${mediaInfo}\n[/spoiler]\n`;
-			downloadLinks = `[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`;
-			let forumBBcode = `${poster}${fullName}${imdbID} ${rating}${imdbvotes}${plot}${trailer}${screen}${movieInfo}${mediaInfo}${downloadLinks}`;
+			let forumBBcode = `${poster}${fullName}${imdbID} ${rating}${imdbvotes}${plot}${trailer}${screen}${movieInfo}${mediaInfo}${downloadLinksBBCode}`;
 			try {
 				document.getElementsByName('message')[0].value = forumBBcode;
 			} catch (err) {

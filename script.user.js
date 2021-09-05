@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        Blackpearl IMDB
+// @name        Blackpearl Movie/TV Template Generator
 // @version     3.0.10
 // @description Template Maker
 // @author      Blackpearl_Team

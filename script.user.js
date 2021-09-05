@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        Blackpearl Discog Poster
+// @name        Blackpearl Music Template Generator
 // @version     1.0.0
 // @description Creates a BBCode template with data pulled from the Discogs API.
 // @author      Blackpearl_Team
@@ -73,40 +73,42 @@ errormessages
 
 var tagSelect = `<li class="select2-selection__choice" title="tagname"><span class="select2-selection__choice__remove" role="presentation">×</span>tagname</li>`;
 
+const lossless = window.location.href.match(/\d+/, '').includes('88');
+
+// TODO: Add CheckApiStatus to Main
 function Main() {
 	GM.getValue('DiscogKey', 'foo').then((value) => {
 		const APIVALUE = value;
 		const htmlpush = document.getElementsByTagName('dd')[0];
-		let lossless = window.location.href.match(/\d+/, '').includes('88');
 		htmlpush.innerHTML += APIVALUE !== 'foo' ? htmlTemplate : dginput;
-		SearchDiscog(APIVALUE);
 		document.getElementById('hideTemplate').addEventListener(
 			'click',
-			function () {
+			() => {
 				HideTemplate();
 			},
 			false
 		);
 		document.getElementById('showTemplate').addEventListener(
 			'click',
-			function () {
+			() => {
 				ShowTemplate();
 			},
 			false
 		);
 		if (APIVALUE !== 'foo') {
+			SearchDiscog(APIVALUE);
 			document.getElementById('generateTemplate').addEventListener(
 				'click',
-				function () {
-					GenerateTemplate(APIVALUE, lossless);
+				() => {
+					GenerateTemplate(APIVALUE);
 				},
 				false
 			);
 		} else {
 			document.getElementById('saveKey').addEventListener(
 				'click',
-				function () {
-					SaveApiKey(APIVALUE);
+				() => {
+					SaveApiKey();
 				},
 				false
 			);
@@ -124,11 +126,13 @@ $(document).click(function (e) {
 	}
 });
 
+// Code behind Show button
 function ShowTemplate() {
 	document.getElementById('showTemplate').style.display = 'none';
 	document.getElementById('discogGenerator').style.display = 'none';
 }
 
+// Code behind Hide button
 function HideTemplate() {
 	document.getElementById('showTemplate').style.display = 'block';
 	document.getElementById('discogGenerator').style.display = 'block';
@@ -155,12 +159,14 @@ function TagsPush(tag) {
 	tagParent2.add(option);
 }
 
+// Removes all Child nodes from a parent | Used for clearing the HTML Render
 function RemoveAllChildNodes(parent) {
 	while (parent.firstChild) {
 		parent.removeChild(parent.firstChild);
 	}
 }
 
+// Displays Search Results
 function SearchDiscog(APIVALUE) {
 	$('#discogSearch').search({
 		type: 'category',
@@ -206,50 +212,78 @@ function SearchDiscog(APIVALUE) {
 	});
 }
 
-function SaveApiKey(APIVALUE) {
-	if (APIVALUE == 'foo') {
-		let discogKey = document.getElementById('dgKey').value;
-		if (discogKey) {
-			fetch(`https://api.discogs.com/oauth/identity?token=${discogKey}`)
-				.then(function (response) {
-					if (!response.ok) {
-						if (response.status === 401) {
-							response.json().then((data) => {
-								let errors =
-									'<li>Something Messed Up! Check The Discog Error Below.</li>';
-								errors += `<li>${data.message}</li>`;
-								Popup(errors);
-							});
-							throw Error('401 Response');
-						} else {
-							throw Error(
-								`Unable To Verify API Key. \n HTTP STATUS CODE: ${response.status}`
-							);
-						}
-					}
-					return response;
-				})
-				.then(function (response) {
-					GM.setValue('DiscogKey', discogKey);
-					document.getElementById('discogGenerator').remove();
-					document.getElementById('showTemplate').remove();
-					Main();
-				})
-				.catch(function (error) {
-					if (error.message !== '401 Response') {
-						let errors =
-							'<li>Something Messed Up! Check The Discog Error Below.</li>';
-						errors += `<li>${error}</li>`;
-						Popup(errors);
-					}
-					console.error(error);
-				});
-		} else {
-			let errors = '<li>Something Messed Up! Check The Error Below.</li>';
-			errors += `<li>No API Key found. Please check that you have entered your key and try again.</li>`;
-			Popup(errors);
-			return;
-		}
+// Asyncronous http requests
+async function RequestUrl(url) {
+	return await new Promise((resolve, reject) => {
+		GM_xmlhttpRequest({
+			method: 'GET',
+			url: url,
+			onload: (response) => {
+				resolve(response);
+			},
+			onerror: (response) => {
+				reject(response);
+			},
+		});
+	});
+}
+
+// Check response status from API
+function CheckApiStatus(url) {
+	let returnResult = RequestUrl(url)
+		.then(function (response) {
+			if (!response.ok) {
+				if (response.status === 401) {
+					data = JSON.parse(response.responseText);
+					let errors =
+						'<li>Something Messed Up! Check The Discog Error Below.</li>';
+					errors += `<li>${data.message}</li>`;
+					Popup(errors);
+					throw Error('401 Response');
+				}
+			} else {
+				throw Error(
+					`Unable To Verify API Key. \n HTTP STATUS CODE: ${response.status}`
+				);
+			}
+			return response;
+		})
+		.then(function (response) {
+			return true;
+		})
+		.catch(function (error) {
+			if (error.message !== '401 Response') {
+				let errors =
+					'<li>Something Messed Up! Check The Discog Error Below.</li>';
+				errors += `<li>${error.message}</li>`;
+				Popup(errors);
+			}
+			console.error(error);
+			return false;
+		});
+	return returnResult;
+}
+
+// Check and Save API Key if valid
+function SaveApiKey() {
+	let discogKey = document.getElementById('dgKey').value;
+	if (discogKey) {
+		let apiResult = CheckApiStatus(
+			`https://api.discogs.com/oauth/identity?token=${discogKey}`
+		);
+		apiResult.then(function (result) {
+			if (result) {
+				GM.setValue('DiscogKey', discogKey);
+				document.getElementById('discogGenerator').remove();
+				document.getElementById('showTemplate').remove();
+				Main();
+			}
+		});
+	} else {
+		let errors = '<li>Something Messed Up! Check The Error Below.</li>';
+		errors += `<li>No API Key found. Please check that you have entered your key and try again.</li>`;
+		Popup(errors);
+		return;
 	}
 }
 
@@ -283,29 +317,9 @@ function DownloadLinkHandler(downloadLinks) {
 	return downloadLinks;
 }
 
-async function AlbumHandler(albumLink) {
-	let response = await new Promise((resolve, reject) => {
-		GM_xmlhttpRequest({
-			method: 'GET',
-			url: albumLink,
-			onload: (response) => {
-				resolve(response);
-			},
-			onerror: (response) => {
-				reject(response);
-			},
-		});
-	});
-	//TODO: Fix up this error handling, currently displays BP Error page
-	try {
-		var albumjson = JSON.parse(response.responseText);
-	} catch (e) {
-		console.log(response);
-		let errors = '<li>Something Messed Up! Check The Discog Error Below.</li>';
-		errors += `<li>Error Reporting Currently Unavaliable</li>`;
-		Popup(errors);
-		return;
-	}
+async function AlbumHandler(albumURL) {
+	let response = await RequestUrl(albumURL);
+	var albumjson = JSON.parse(response.responseText);
 	let cover = albumjson.images
 		? `[center][img width="250px"]${albumjson.images[0].uri}[/img][/center]\n`
 		: '';
@@ -345,10 +359,7 @@ async function AlbumHandler(albumLink) {
 		}
 		videos += '[/spoiler]\n';
 	}
-
-	let albumDetails = `[INDENT][size=6][forumcolor][B]Album Details[/B][/forumcolor][/size][/INDENT]\n[list]\n${styles}${genres}${year}\n[/list]\n`;
-	//? Add more details? ^^^^
-	let tracks = '';
+	let tracks = new String;
 	if (albumjson.tracklist) {
 		tracks =
 			'\n[spoiler="Track List"]\n[TABLE=collapse]\n[TR]\n[TH]No.[/TH]\n[TH]Track Name[/TH]\n[TH]Track Duration[/TH]\n[/TR]\n';
@@ -376,7 +387,7 @@ async function AlbumHandler(albumLink) {
 		genres: genres,
 		year: year,
 		videos: videos,
-		albumDetails: albumDetails,
+		albumDetails: `[INDENT][size=6][forumcolor][B]Album Details[/B][/forumcolor][/size][/INDENT]\n[list]\n${styles}${genres}${year}\n[/list]\n`,
 		tracks: tracks,
 		tags: tags,
 		forumTitle: forumTitle,
@@ -384,37 +395,8 @@ async function AlbumHandler(albumLink) {
 }
 
 async function ArtistHandler(artistURL, artistName) {
-	let response = await new Promise((resolve, reject) => {
-		GM_xmlhttpRequest({
-			method: 'GET',
-			url: artistURL,
-			onload: (response) => {
-				resolve(response);
-			},
-			onerror: (response) => {
-				reject(response);
-			},
-		});
-	});
-	//TODO: Fix up this error handling, currently displays BP Error page
-	try {
-		var artistjson = JSON.parse(response.responseText);
-	} catch (e) {
-		let errors = '<li>Something Messed Up! Check The Discog Error Below.</li>';
-		errors += `<li>Error Reporting Currently Unavaliable</li>`;
-		Popup(errors);
-		return;
-	}
-	let artistUri = artistjson.uri.replace('http:', 'https:');
-	let artist =
-		artistName && artistUri
-			? `[center][forumcolor][b][size=6][url=${artistUri}]${artistName}[/url][/size][/b][/forumcolor][/center]\n`
-			: '';
-	let artistinfo = artistjson.profile
-		? `[spoiler="About Artist"]\n${artistjson.profile
-				.replace(/\[.=/gm, '')
-				.replace(/\[.*?\]/gm, '')}\n[/spoiler]`
-		: '';
+	let response = await RequestUrl(artistURL);
+	var artistjson = JSON.parse(response.responseText);
 	let members =
 		'[indent][size=6][forumcolor][B]Artist Details[/B][/forumcolor][/size][/indent]\n';
 	if (artistjson.members) {
@@ -425,7 +407,7 @@ async function ArtistHandler(artistURL, artistName) {
 		}
 		members += '[/tabs]\n[/spoiler]\n';
 	}
-	let artistLinks = '';
+	let artistLinks = new String;
 	if (artistjson.urls) {
 		artistLinks = '[spoiler="Artist Links"]\n';
 		for (let link of artistjson.urls) {
@@ -434,16 +416,15 @@ async function ArtistHandler(artistURL, artistName) {
 		artistLinks += '\n[/spoiler]\n[hr][/hr]\n';
 	}
 	return {
-		artistUri: artistUri,
-		artist: artist,
-		artistinfo: artistinfo,
+		artist: artistName && artistjson.uri ? `[center][forumcolor][b][size=6][url=${artistjson.uri.replace('http:', 'https:')}]${artistName}[/url][/size][/b][/forumcolor][/center]\n` : '',
+		artistInfo: artistjson.profile ? `[spoiler="About Artist"]\n${artistjson.profile.replace(/\[.=/gm, '').replace(/\[.*?\]/gm, '')}\n[/spoiler]` : '',
 		members: members,
 		artistLinks: artistLinks,
 	};
 }
 
 function SubmitToForum(albumDict, artistDict, quality, downloadLinks) {
-	let forumBBcode = `${albumDict.cover}${artistDict.artist}${albumDict.album}${albumDict.tracknum}${artistDict.members}${artistDict.artistinfo}${artistDict.artistLinks}${albumDict.albumDetails}${albumDict.tracks}${albumDict.videos}${quality}${downloadLinks}`;
+	let forumBBcode = `${albumDict.cover}${artistDict.artist}${albumDict.album}${albumDict.tracknum}${artistDict.members}${artistDict.artistInfo}${artistDict.artistLinks}${albumDict.albumDetails}${albumDict.tracks}${albumDict.videos}${quality}${downloadLinks}`;
 	try {
 		document.getElementsByName('message')[0].value = forumBBcode;
 	} catch (err) {
@@ -514,25 +495,23 @@ async function GenerateTemplate(APIVALUE, lossless) {
 		qualityImage || qualityText
 			? `[hr][/hr][center][size=6][forumcolor][b]Quality Proof[/b][/forumcolor][/size]\n${qualityImage}${qualityText}`
 			: '';
-	var artistDict;
 	albumDict.then(function (albumDict) {
-		artistDict = albumDict.artistURL
+		let artistDict = albumDict.artistURL
 			? ArtistHandler(
 					`${albumDict.artistURL}?token=${APIVALUE}`,
 					albumDict.artistName
 			  )
-			: '';
+			: null;
 		if (artistDict) {
 			artistDict.then(function (artistDict) {
 				SubmitToForum(albumDict, artistDict, quality, downloadLinks);
 			});
 		} else {
 			artistDict = {
-				artistUri: '',
 				artist: `[center][forumcolor][b][size=6]Various Artists[/size][/b][/forumcolor][/center]\n`,
-				artistinfo: '',
-				members: '',
+				artistInfo: '',
 				artistLinks: '',
+				members: '',
 			};
 			SubmitToForum(albumDict, artistDict, quality, downloadLinks);
 		}

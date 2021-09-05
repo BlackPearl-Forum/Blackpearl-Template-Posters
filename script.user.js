@@ -229,8 +229,7 @@ function VirusTotalHandler(virustotalSplit) {
 	for (let splitLink of virustotalSplit) {
 		virustotalLinks += `[downcloud]${splitLink}[/downcloud]\n`;
 	}
-	virustotalLinks = `[indent][size=6][color=rgb(26, 162, 96)][B]Virustotal[/B][/color][/size][/indent]\n${virustotalLinks}[hr][/hr]\n`;
-	return virustotalLinks;
+	return `[indent][size=6][color=rgb(26, 162, 96)][B]Virustotal[/B][/color][/size][/indent]\n${virustotalLinks}[hr][/hr]\n`;
 }
 
 // Submit Generated BBCode to the forum

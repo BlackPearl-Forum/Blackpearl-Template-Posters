@@ -2,7 +2,7 @@
 # Blackpearl Music Template Generator
 Music Thread Template Generator userscript
 <!-- keep image height ~ 500px -->
-![](https://i.imgur.com/IdFKONB.png)
+![](https://i.imgur.com/QfZHNmT.png)
 
 ## Requirements:
 A userscript manager + installing the script
@@ -15,8 +15,8 @@ Create your Free Discog Account here: [discogs.com/users/create](https://www.dis
 
 ### 1.
 First you'll want to navigate to the one of Music sections and start to post a thread. Then the interface will show up,  input your Discogs API key and click the "Save Key" button.
-
-![](https://i.imgur.com/dEQNERy.png)
+<!-- keep image height ~ 300px -->
+![](https://i.imgur.com/xYqKIz3.png)
 
 ### 2.
 You can start typing the name of the Album and this will present you with a list to choose from. Simply click the correct one and move to the next step

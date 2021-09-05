@@ -491,12 +491,12 @@ function GenerateTemplate(APIVALUE) {
 			let fullName = `[center][forumcolor][b][size=6][url='https://blackpearl.biz/search/1/?q=${imdbID}&o=date']${title}${year}[/url][/size][/b][/forumcolor][/center]`;
 			imdbID =
 				json.imdbID && json.imdbID !== 'N/A'
-					? `\n[center][url=https://www.imdb.com/title/${json.imdbID}][img width='46px']https://i.imgur.com/KO5Twbs.png[/img][/url][/center]`
-					: '';
+					? `[center][url=https://www.imdb.com/title/${json.imdbID}][img width='46px']https://i.imgur.com/KO5Twbs.png[/img][/url]`
+					: '[center][img width="46px"]https://i.imgur.com/KO5Twbs.png[/img][/url]';
 			let rating =
 				json.imdbRating && json.imdbRating !== 'N/A'
-					? `[center][size=6][b]${json.imdbRating}[/b]/10[/size][/center]\n`
-					: '';
+					? `[size=6][b]${json.imdbRating}[/b]/10[/size][/center]\n`
+					: '[/center]\n';
 			let imdbvotes =
 				json.imdbVotes && json.imdbVotes !== 'N/A'
 					? `[center][img]https://i.imgur.com/sEpKj3O.png[/img][size=6]${json.imdbVotes}[/size][/center]\n`

@@ -320,16 +320,7 @@ function DownloadLinkHandler(downloadLinks) {
 async function AlbumHandler(albumURL) {
 	let response = await RequestUrl(albumURL);
 	var albumjson = JSON.parse(response.responseText);
-	let cover = albumjson.images
-		? `[center][img width="250px"]${albumjson.images[0].uri}[/img][/center]\n`
-		: '';
-	let artistName = albumjson.artists[0].name.replace(/\(\d*\)/g, '');
-	let album =
-		albumjson.uri && albumjson.title
-			? `[center][forumcolor][b][size=6][url=${albumjson.uri}]${albumjson.title}[/url][/size][/b][/forumcolor][/center]\n`
-			: '';
-	let tracknum = `[center][size=6]${albumjson.tracklist.length} Tracks[/size][/center]\n`;
-	let styles = '';
+	let styles = new String();
 	if (albumjson.styles) {
 		styles = '[*][b][forumcolor]Style(s): [/b][/forumcolor] | ';
 		for (let i = 0; i < albumjson.styles.length; i++) {
@@ -338,7 +329,7 @@ async function AlbumHandler(albumURL) {
 			].replace(' ', '+')}]${albumjson.styles[i]}[/url] | `;
 		}
 	}
-	let genres = '';
+	let genres = new String();
 	if (albumjson.genres) {
 		genres = '\n[*][forumcolor][b]Genre(s): [/b][/forumcolor] | ';
 		for (let i = 0; i < albumjson.genres.length; i++) {
@@ -347,11 +338,7 @@ async function AlbumHandler(albumURL) {
 			].replace(' ', '+')}]${albumjson.genres[i]}[/url] | `;
 		}
 	}
-	let year = '';
-	if (albumjson.year) {
-		year = `\n[*][forumcolor][b]Release Year: [/b][/forumcolor]${albumjson.year}`;
-	}
-	let videos = '';
+	let videos = new String();
 	if (albumjson.videos) {
 		videos = '[spoiler="Video(s)"]\n';
 		for (let i = 0; i < albumjson.videos.length; i++) {
@@ -359,7 +346,7 @@ async function AlbumHandler(albumURL) {
 		}
 		videos += '[/spoiler]\n';
 	}
-	let tracks = new String;
+	let tracks = new String();
 	if (albumjson.tracklist) {
 		tracks =
 			'\n[spoiler="Track List"]\n[TABLE=collapse]\n[TR]\n[TH]No.[/TH]\n[TH]Track Name[/TH]\n[TH]Track Duration[/TH]\n[/TR]\n';
@@ -375,22 +362,25 @@ async function AlbumHandler(albumURL) {
 		}
 		tracks += '[/TABLE]\n[/spoiler]\n';
 	}
-	var tags = albumjson.genres.concat(albumjson.styles); //? Find example of "blank" genres or styles, possible error checking needed
-	let forumTitle = `${artistName} - ${albumjson.title} (${albumjson.year})`;
+	let artistName = albumjson.artists[0].name.replace(/\(\d*\)/g, '');
 	return {
-		cover: cover,
+		cover: albumjson.images
+			? `[center][img width="250px"]${albumjson.images[0].uri}[/img][/center]\n`
+			: '',
 		artistName: artistName,
 		artistURL: albumjson.artists[0].resource_url,
-		album: album,
-		tracknum: tracknum,
+		album:
+			albumjson.uri && albumjson.title
+				? `[center][forumcolor][b][size=6][url=${albumjson.uri}]${albumjson.title}[/url][/size][/b][/forumcolor][/center]\n`
+				: '',
+		tracknum: `[center][size=6]${albumjson.tracklist.length} Tracks[/size][/center]\n`,
 		styles: styles,
 		genres: genres,
-		year: year,
 		videos: videos,
-		albumDetails: `[INDENT][size=6][forumcolor][B]Album Details[/B][/forumcolor][/size][/INDENT]\n[list]\n${styles}${genres}${year}\n[/list]\n`,
+		albumDetails: `[INDENT][size=6][forumcolor][B]Album Details[/B][/forumcolor][/size][/INDENT]\n[list]\n${styles}${genres}\n[*][forumcolor][b]Release Year: [/b][/forumcolor]${albumjson.year}\n[/list]\n`,
 		tracks: tracks,
-		tags: tags,
-		forumTitle: forumTitle,
+		tags: albumjson.genres.concat(albumjson.styles), //? Find example of "blank" genres or styles, possible error checking needed
+		forumTitle: `${artistName} - ${albumjson.title} (${albumjson.year})`,
 	};
 }
 
@@ -407,7 +397,7 @@ async function ArtistHandler(artistURL, artistName) {
 		}
 		members += '[/tabs]\n[/spoiler]\n';
 	}
-	let artistLinks = new String;
+	let artistLinks = new String();
 	if (artistjson.urls) {
 		artistLinks = '[spoiler="Artist Links"]\n';
 		for (let link of artistjson.urls) {
@@ -416,8 +406,18 @@ async function ArtistHandler(artistURL, artistName) {
 		artistLinks += '\n[/spoiler]\n[hr][/hr]\n';
 	}
 	return {
-		artist: artistName && artistjson.uri ? `[center][forumcolor][b][size=6][url=${artistjson.uri.replace('http:', 'https:')}]${artistName}[/url][/size][/b][/forumcolor][/center]\n` : '',
-		artistInfo: artistjson.profile ? `[spoiler="About Artist"]\n${artistjson.profile.replace(/\[.=/gm, '').replace(/\[.*?\]/gm, '')}\n[/spoiler]` : '',
+		artist:
+			artistName && artistjson.uri
+				? `[center][forumcolor][b][size=6][url=${artistjson.uri.replace(
+						'http:',
+						'https:'
+				  )}]${artistName}[/url][/size][/b][/forumcolor][/center]\n`
+				: '',
+		artistInfo: artistjson.profile
+			? `[spoiler="About Artist"]\n${artistjson.profile
+					.replace(/\[.=/gm, '')
+					.replace(/\[.*?\]/gm, '')}\n[/spoiler]`
+			: '',
 		members: members,
 		artistLinks: artistLinks,
 	};

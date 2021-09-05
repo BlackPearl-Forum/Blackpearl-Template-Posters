@@ -84,7 +84,6 @@ function Main() {
 		var APIVALUE = value;
 		const htmlpush = document.getElementsByTagName('dd')[0];
 		htmlpush.innerHTML += APIVALUE !== 'foo' ? htmlTemplate : omdbinput;
-		SectionSearch(APIVALUE);
 		document.getElementById('hideTemplate').addEventListener(
 			'click',
 			function () {
@@ -100,6 +99,7 @@ function Main() {
 			false
 		);
 		if (APIVALUE !== 'foo') {
+			SectionSearch(APIVALUE);
 			document.getElementById('generateTemplate').addEventListener(
 				'click',
 				function () {
@@ -162,12 +162,14 @@ function TagsPush(tag) {
 	tagParent2.add(option);
 }
 
+// Removes all Child nodes from a parent | Used for clearing the HTML Render
 function RemoveAllChildNodes(parent) {
 	while (parent.firstChild) {
 		parent.removeChild(parent.firstChild);
 	}
 }
 
+// Displays Search Results
 function SectionSearch(APIVALUE) {
 	const section = parseInt(window.location.href.match(/\d+/, '')[0]);
 	const [movies, series] = [
@@ -230,6 +232,7 @@ function SectionSearch(APIVALUE) {
 	});
 }
 
+// Check and Save API Key if valid
 function SaveApiKey(APIVALUE) {
 	if (APIVALUE == 'foo') {
 		let omdbKey = document.getElementById('omdbKey').value;
@@ -277,6 +280,7 @@ function SaveApiKey(APIVALUE) {
 	}
 }
 
+// Handles BBCode for Download Links
 function DownloadLinkHandler(downloadLinks) {
 	let [hideReactScore, hidePosts] = [
 		document.getElementById('HideReactScore').value,
@@ -306,6 +310,7 @@ function DownloadLinkHandler(downloadLinks) {
 	return downloadLinks;
 }
 
+// Handle BBCode for Screenshots
 function ScreenshotHandler(screenshots) {
 	var screen = `\n[hr][/hr][indent][size=6][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [spoiler='screenshots']\n`;
 	for (let ss of screenshots) {
@@ -315,6 +320,7 @@ function ScreenshotHandler(screenshots) {
 	return screen;
 }
 
+// Parses Mediainfo for Title values
 function ParseMediaInfo(mediaInfo, premadeTitle) {
 	let videoInfo = mediaInfo.match(/(Video|Video #1)$.^[\s\S]*?(?=\n{2,})/ms);
 	if (videoInfo) {
@@ -390,6 +396,7 @@ function ParseMediaInfo(mediaInfo, premadeTitle) {
 	return premadeTitle;
 }
 
+// Handles Generation of BBcode Template
 function GenerateTemplate(APIVALUE) {
 	var [imdbID, screenshots, youtubeLink, downloadLinks, mediaInfo] = [
 		document.getElementById('hiddenIID').value,

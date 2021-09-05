@@ -453,7 +453,7 @@ function GenerateTemplate(APIVALUE) {
 		Popup(errors);
 		return;
 	}
-	downloadLinksBBCode = DownloadLinkHandler(downloadLinks);
+	let downloadLinksBBCode = DownloadLinkHandler(downloadLinks);
 	var screen = screenshots ? ScreenshotHandler(screenshots.split(' ')) : '';
 	var trailer = youtubeLink.match(/[a-z]/)
 		? `\n[hr][/hr][indent][size=6][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n ${youtubeLink}`

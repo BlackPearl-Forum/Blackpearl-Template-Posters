@@ -287,6 +287,7 @@ function SaveApiKey() {
 	}
 }
 
+// Handles BBCode for Download Links
 function DownloadLinkHandler(downloadLinks) {
 	let [hideReactScore, hidePosts] = [
 		document.getElementById('HideReactScore').value,
@@ -313,10 +314,10 @@ function DownloadLinkHandler(downloadLinks) {
 	if (hidePosts !== '0') {
 		downloadLinks = `[hideposts=${hidePosts}]${downloadLinks}[/hideposts]`;
 	}
-	downloadLinks = `[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`;
-	return downloadLinks;
+	return `[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`;
 }
 
+// Handle BBCode for Album Details
 async function AlbumHandler(albumURL) {
 	let response = await RequestUrl(albumURL);
 	var albumjson = JSON.parse(response.responseText);
@@ -384,6 +385,7 @@ async function AlbumHandler(albumURL) {
 	};
 }
 
+// Handle BBCode for Artist Details
 async function ArtistHandler(artistURL, artistName) {
 	let response = await RequestUrl(artistURL);
 	var artistjson = JSON.parse(response.responseText);
@@ -423,6 +425,7 @@ async function ArtistHandler(artistURL, artistName) {
 	};
 }
 
+// Submit Generated BBCode to the forums
 function SubmitToForum(albumDict, artistDict, quality, downloadLinks) {
 	let forumBBcode = `${albumDict.cover}${artistDict.artist}${albumDict.album}${albumDict.tracknum}${artistDict.members}${artistDict.artistInfo}${artistDict.artistLinks}${albumDict.albumDetails}${albumDict.tracks}${albumDict.videos}${quality}${downloadLinks}`;
 	try {
@@ -435,7 +438,7 @@ function SubmitToForum(albumDict, artistDict, quality, downloadLinks) {
 		p.innerText = forumBBcode;
 		document.getElementsByClassName('fr-element fr-view')[0].appendChild(p);
 	} finally {
-		//TODO: Add all Genre's and Styles from Discog to BP Tag System
+		// TODO: Add all Genre's and Styles from Discog to BP Tag System
 		if (albumDict.tags) {
 			document.getElementsByName('tags')[0].value = albumDict.tags.toString();
 			for (let i = 0; i < albumDict.tags.length; i++) {
@@ -449,6 +452,7 @@ function SubmitToForum(albumDict, artistDict, quality, downloadLinks) {
 	}
 }
 
+// Handles Generation of BBcode Template
 async function GenerateTemplate(APIVALUE, lossless) {
 	var [downloadLinks, qualityImages, qualityText, masterUrl] = [
 		document.getElementById('ddl').value,

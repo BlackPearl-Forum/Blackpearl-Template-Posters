@@ -181,7 +181,7 @@ async function RequestUrl(url) {
 }
 
 // Handles BBCode for Download Links
-function DownloadLinkHandler(downloadLinks) {
+async function DownloadLinkHandler(downloadLinks) {
 	let [hideReactScore, hidePosts] = [
 		document.getElementById('HideReactScore').value,
 		document.getElementById('HidePosts').value,
@@ -211,7 +211,7 @@ function DownloadLinkHandler(downloadLinks) {
 }
 
 // Handles BBCode for Screenshots
-function ScreenshotHandler(images) {
+async function ScreenshotHandler(images) {
 	var playStoreImages = [];
 	for (let screen of images) {
 		let screenattr = screen.alt;
@@ -239,7 +239,7 @@ function ScreenshotHandler(images) {
 }
 
 // Handle BBCode for VirusTotal
-function VirusTotalHandler(virustotalSplit) {
+async function VirusTotalHandler(virustotalSplit) {
 	let virustotalLinks = '';
 	for (let splitLink of virustotalSplit) {
 		virustotalLinks += `[downcloud]${splitLink}[/downcloud]\n`;
@@ -291,6 +291,7 @@ async function GenerateBBCode(
 	];
 	// Grab all images & find logo
 	let images = parsedHtml.getElementsByTagName('img');
+	let playStoreImages = ScreenshotHandler(images);
 	for (let logoImage of images) {
 		let logoattr = logoImage.alt;
 		if (logoattr == 'Cover art') {
@@ -299,7 +300,6 @@ async function GenerateBBCode(
 				.replace(' 2x', '')}[/img]\n`;
 		}
 	}
-	let playStoreImages = ScreenshotHandler(images);
 	// App Name
 	let title = gplayjson.name
 		? `[color=rgb(26, 162, 96)][B][size=6]${gplayjson.name}[/size][/B][/color]\n`
@@ -359,10 +359,16 @@ async function GenerateBBCode(
 	modInfo = modInfo
 		? `[indent][size=6][color=rgb(26, 162, 96)][B]Mod Info[/B][/color][/size][/indent]\n${modInfo}[hr][/hr]\n`
 		: '';
-	return {
-		post: `${logo}${title}${rating}${reviewscount}${playStoreImages}${appDescription}${developerName}${playStoreCategory}${ContentRating}${requiredVersion}${appSize}${playStoreVersion}${playStoreLink}${modInfo}${virustotalBBcode}${downloadLinkBBcode}`,
-		title: `${gplayjson.name}${titleExtra}`,
-	};
+	return Promise.all([
+		downloadLinkBBcode,
+		playStoreImages,
+		virustotalBBcode,
+	]).then((results) => {
+		return {
+			post: `${logo}${title}${rating}${reviewscount}${results[1]}${appDescription}${developerName}${playStoreCategory}${ContentRating}${requiredVersion}${appSize}${playStoreVersion}${playStoreLink}${modInfo}${results[2]}${results[0]}`,
+			title: `${gplayjson.name}${titleExtra}`,
+		};
+	});
 }
 
 function TemplateGenerationHandler() {

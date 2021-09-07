@@ -351,6 +351,22 @@ function DownloadLinkHandler(downloadLinks) {
 	return downloadLinks;
 }
 
+function ScreenshotHandler(...screenshots) {
+	if (screenshots.count !== 0) {
+		var screen = `[indent][size=25px][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [Spoiler='Screenshots']\n`;
+		for (let x of screenshots) {
+			for (let i in x.results) {
+				var image = x.results[i].image;
+				screen += `[img]${image}[/img]`;
+			}
+		}
+		screen += `[/Spoiler][HR][/HR]\n`;
+	} else {
+		screen ='';
+	}
+	return screen
+}
+
 /**
  * @deprecated Use the new function `RequestUrl` instead. Remove function once all code is updated.
  */
@@ -422,18 +438,8 @@ function GenerateTemplate(APIVALUE) {
 	}
 	downloadLinkBBcode = DownloadLinkHandler(downloadLinks);
 	let screenshotsURL = `https://api.rawg.io/api/games/${rawgGameID}/screenshots?key=${APIVALUE}`;
-	// TODO: Move to ScreenshotHandler function like other scripts, and remove the HttpGet function
 	var screenshots = JSON.parse(HttpGet(screenshotsURL));
-	if (screenshots.count !== 0) {
-		var screen = `[indent][size=25px][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [Spoiler='Screenshots']\n`;
-		for (let x in screenshots.results) {
-			var img = screenshots.results[x].image;
-			screen += `[img]${img}[/img]`;
-		}
-		screen += `[/Spoiler][HR][/HR]\n`;
-	} else {
-		screen = '';
-	}
+	var screen = ScreenshotHandler(screenshots);
 	var trailer = youtubeLink.match(/[a-z]/)
 		? `[indent][size=25px][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n\n${youtubeLink}\n\n[HR][/HR]\n`
 		: '';

@@ -80,8 +80,7 @@ var tagSelect = `<li class="select2-selection__choice" title="tagname"><span cla
 var sectionType;
 
 function Main() {
-	GM.getValue('APIKEY', 'foo').then((value) => {
-		var APIVALUE = value;
+	GM.getValue('APIKEY', 'foo').then((APIVALUE) => {
 		const htmlpush = document.getElementsByTagName('dd')[0];
 		htmlpush.innerHTML += APIVALUE !== 'foo' ? htmlTemplate : omdbinput;
 		document.getElementById('hideTemplate').addEventListener(
@@ -252,7 +251,7 @@ async function RequestUrl(url) {
 async function CheckApiStatus(url) {
 	return RequestUrl(url)
 		.then(function (response) {
-			if (!response.ok) {
+			if (response.status !== 200) {
 				if (response.status === 401) {
 					let data = JSON.parse(response.responseText);
 					let errors =
@@ -260,11 +259,11 @@ async function CheckApiStatus(url) {
 					errors += `<li>${data.message}</li>`;
 					Popup(errors);
 					throw Error('401 Response');
+				} else {
+					throw Error(
+						`Unable To Verify API Key. \n HTTP STATUS CODE: ${response.status}`
+					);
 				}
-			} else {
-				throw Error(
-					`Unable To Verify API Key. \n HTTP STATUS CODE: ${response.status}`
-				);
 			}
 			return true;
 		})

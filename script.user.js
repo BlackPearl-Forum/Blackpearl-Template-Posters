@@ -249,8 +249,8 @@ async function RequestUrl(url) {
 }
 
 // Check response status from API
-function CheckApiStatus(url) {
-	let returnResult = RequestUrl(url)
+async function CheckApiStatus(url) {
+	return RequestUrl(url)
 		.then(function (response) {
 			if (!response.ok) {
 				if (response.status === 401) {
@@ -266,9 +266,6 @@ function CheckApiStatus(url) {
 					`Unable To Verify API Key. \n HTTP STATUS CODE: ${response.status}`
 				);
 			}
-			return response;
-		})
-		.then(function (response) {
 			return true;
 		})
 		.catch(function (error) {
@@ -281,7 +278,6 @@ function CheckApiStatus(url) {
 			console.error(error);
 			return false;
 		});
-	return returnResult;
 }
 
 // Check and Save API Key if valid
@@ -427,17 +423,16 @@ function ParseMediaInfo(mediaInfo, premadeTitle) {
 // Handles Generation of BBcode Template
 function GenerateTemplate(APIVALUE) {
 	var [imdbID, screenshots, youtubeLink, downloadLinks, mediaInfo] = [
-		document.getElementById('hiddenIID').value,
+		document.getElementById('hiddenIID').value
+			? document.getElementById('hiddenIID').value
+			: document.getElementById('searchID').value,
 		document.getElementById('screensLinks').value,
 		document.getElementById('ytLink').value,
 		document.getElementById('ddl').value,
 		document.getElementById('mediaInfo').value,
 	];
-	if (!imdbID) {
-		imdbID = document.getElementById('searchID').value;
-		if (imdbID.includes('imdb')) {
-			imdbID = imdbID.match(/tt\d+/)[0];
-		}
+	if (imdbID.includes('imdb')) {
+		imdbID = imdbID.match(/tt\d+/)[0];
 	}
 	if (!imdbID | !downloadLinks | !mediaInfo) {
 		let errors = '';

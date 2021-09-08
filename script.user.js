@@ -351,20 +351,20 @@ function DownloadLinkHandler(downloadLinks) {
 	return downloadLinks;
 }
 
-function ScreenshotHandler(...screenshots) {
-	if (screenshots.count !== 0) {
+async function ScreenshotHandler(url) {
+	let response = await RequestUrl(url);
+	let screenshots = JSON.parse(response.responseText).results;
+	if (screenshots && screenshots.length !== 0) {
 		var screen = `[indent][size=25px][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [Spoiler='Screenshots']\n`;
-		for (let x of screenshots) {
-			for (let i in x.results) {
-				var image = x.results[i].image;
-				screen += `[img]${image}[/img]`;
-			}
+		for (let x in screenshots) {
+			var image = screenshots[x].image;
+			screen += `[img]${image}[/img]`;
 		}
 		screen += `[/Spoiler][HR][/HR]\n`;
 	} else {
-		screen ='';
+		screen = '';
 	}
-	return screen
+	return screen;
 }
 
 /**
@@ -387,7 +387,7 @@ function VirusTotalHandler(virustotalSplit) {
 	return virustotalLinks;
 }
 
-function SubmitToForum(forumBBCode) {
+async function SubmitToForum(forumBBCode, title) {
 	try {
 		document.getElementsByName('message')[0].value = forumBBCode;
 	} catch (err) {
@@ -396,38 +396,33 @@ function SubmitToForum(forumBBCode) {
 		);
 		let p = document.createElement('p');
 		p.innerText = forumBBCode;
-		document
-			.getElementsByClassName('fr-element fr-view')[0]
-			.appendChild(p);
+		document.getElementsByClassName('fr-element fr-view')[0].appendChild(p);
 	} finally {
 		if (!document.getElementsByClassName('js-titleInput')[0].value) {
-			document.getElementsByClassName(
-				'js-titleInput'
-			)[0].value = `${json.name} - (${json.released})`;
+			document.getElementsByClassName('js-titleInput')[0].value = title;
 		}
 	}
 }
 
 function GenerateTemplate(APIVALUE) {
 	var [rawgGameID, youtubeLink, releaseInfo, virustotalLinks, downloadLinks] = [
-		document.getElementById('hiddenIID').value,
+		document.getElementById('hiddenIID').value
+			? document.getElementById('hiddenIID').value
+			: document.getElementById('searchID').value,
 		document.getElementById('ytLink').value,
 		document.getElementById('info').value,
 		document.getElementById('vtLink').value,
 		document.getElementById('ddl').value,
 	];
-	if (!rawgGameID) {
-		rawgGameID = document.getElementById('searchID').value;
-		if (rawgGameID.includes('rawg')) {
-			rawgGameID = rawgGameID.match(/(?<=games\/).*(?<!\/)/)[0];
-		}
+	if (rawgGameID.includes('rawg')) {
+		rawgGameID = rawgGameID.match(/(?<=games\/).*(?<!\/)/)[0];
 	}
-	if (!rawgGameID | !downloadLinks | !vtLink) {
+	if (!rawgGameID | !downloadLinks | !virustotalLinks) {
 		var errors = '';
 		errors += !rawgGameID
 			? "<li>You Didn't Select A Title or Enter a Rawg.io Link!</li>"
 			: '';
-		errors += !vtLink
+		errors += !virustotalLinks
 			? "<li>You Forgot Your VirusTotal Link! That's Pretty Important...!</li>"
 			: '';
 		errors += !downloadLinks
@@ -436,10 +431,10 @@ function GenerateTemplate(APIVALUE) {
 		Popup(errors);
 		return;
 	}
-	downloadLinkBBcode = DownloadLinkHandler(downloadLinks);
-	let screenshotsURL = `https://api.rawg.io/api/games/${rawgGameID}/screenshots?key=${APIVALUE}`;
-	var screenshots = JSON.parse(HttpGet(screenshotsURL));
-	var screen = ScreenshotHandler(screenshots);
+	let downloadLinkBBcode = DownloadLinkHandler(downloadLinks);
+	let screenshotPromise = ScreenshotHandler(
+		`https://api.rawg.io/api/games/${rawgGameID}/screenshots?key=${APIVALUE}`
+	);
 	var trailer = youtubeLink.match(/[a-z]/)
 		? `[indent][size=25px][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n\n${youtubeLink}\n\n[HR][/HR]\n`
 		: '';
@@ -475,7 +470,7 @@ function GenerateTemplate(APIVALUE) {
 				var title = `[forumcolor][b][size=25px]${json.name}`;
 			} else {
 				errors =
-					"You Messed Up! Check That You've Entered Something Into The IMDB Field!"; // TODO: Update with latest error handling for this
+					"You Messed Up! Check That You've Entered Something Into The Rawg Search Field!"; // TODO: Update with latest error handling for this
 				Popup(errors);
 			}
 			let year =
@@ -513,9 +508,9 @@ function GenerateTemplate(APIVALUE) {
 				}
 			}
 			ratings += `[SIZE=12px]Source: https://rawg.io/games/${rawgGameID}[/SIZE][/LIST]\n[/size]\n[HR][/HR]\n`;
-			steamPromise.then((steamBBCode) => {
-				let dump = `${backgroundimage}${title} ${year} ${steamBBCode} ${description}${trailer}${screen}${ratings}${releaseInfo}${virustotalBBcode}${downloadLinkBBcode}`;
-				SubmitToForum(dump);
+			Promise.all([steamPromise, screenshotPromise]).then((result) => {
+				let dump = `${backgroundimage}${title} ${year} ${result[0]} ${description}${trailer}${result[1]}${ratings}${releaseInfo}${virustotalBBcode}${downloadLinkBBcode}`;
+				SubmitToForum(dump, `${json.name} - (${json.released})`);
 			});
 		},
 	});

@@ -393,13 +393,14 @@ async function SubmitToForum(forumBBCode, title) {
 	}
 }
 async function GenerateBBCode(
-	url,
+	downloadLinkBBcode,
 	rawgGameID,
+	releaseInfo,
 	steamStoreLink,
 	screenshots,
-	downloadLinkBBcode,
-	virustotalBBcode,
-	trailer
+	trailer,
+	url,
+	virustotalBBcode
 ) {
 	let response = await RequestUrl(url);
 	let json = JSON.parse(response.responseText);
@@ -507,13 +508,14 @@ function GenerateTemplate(apiKey) {
 		? `[indent][size=25px][forumcolor][b]Release Infos[/b][/forumcolor][/size][/indent]\n[spoiler='Click here to view Release Info']\n${releaseInfo}\n[/spoiler]\n[HR][/HR]\n`
 		: '';
 	let bbcode = GenerateBBCode(
-		(downloadLinkBBcode = downloadLinkBBcode),
-		(rawgGameID = rawgGameID),
-		(steamStoreLink = steamPromise),
-		(screenshots = screenshotPromise),
-		(trailer = trailer),
-		(url = `https://api.rawg.io/api/games/${rawgGameID}?key=${apiKey}`),
-		(virustotalBBcode = virustotalBBcode)
+		downloadLinkBBcode,
+		rawgGameID,
+		releaseInfo,
+		steamPromise,
+		screenshotPromise,
+		trailer,
+		`https://api.rawg.io/api/games/${rawgGameID}?key=${apiKey}`,
+		virustotalBBcode
 	);
 	bbcode.then((bbcode) => {
 		SubmitToForum(bbcode.post, bbcode.title);

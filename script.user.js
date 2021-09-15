@@ -90,73 +90,44 @@ const datesAreOnSameDay = (first, second) =>
 // End Var Declarations
 
 function Main() {
-	GM.getValue('APIKEY', 'foo').then((value) => {
-		var APIVALUE = value;
+	GM.getValue('APIKEY', 'foo').then((apiKey) => {
 		const htmlpush = document.getElementsByTagName('dd')[0];
-		htmlpush.innerHTML += APIVALUE !== 'foo' ? htmlTemplate : rawginput;
+		htmlpush.innerHTML += apiKey !== 'foo' ? htmlTemplate : rawginput;
 		document.getElementById('hideTemplate').addEventListener(
 			'click',
-			function () {
+			() => {
 				HideTemplate();
 			},
 			false
 		);
 		document.getElementById('showTemplate').addEventListener(
 			'click',
-			function () {
+			() => {
 				ShowTemplate();
 			},
 			false
 		);
-		if (APIVALUE === 'foo') {
+		if (apiKey === 'foo') {
 			document.getElementById('saveKey').addEventListener(
 				'click',
-				function () {
+				() => {
 					SaveApiKey();
 				},
 				false
 			);
 		} else {
-			SectionSearch(APIVALUE);
+			SectionSearch(apiKey);
 			document.getElementById('generateTemplate').addEventListener(
 				'click',
-				function () {
-					GenerateTemplate(APIVALUE);
+				() => {
+					GenerateTemplate(apiKey);
 				},
 				false
 			);
 			if (!apiKeyChecked) {
-				CheckKeyStatus(APIVALUE);
+				CheckKeyStatus(apiKey);
 				apiKeyChecked = true;
 			}
-		}
-	});
-}
-
-// Check status of RAWG key once per day, Remove key if invalid
-function CheckKeyStatus(APIVALUE) {
-	GM.getValue('lastChecked', 'foo').then((lastChecked) => {
-		if (lastChecked === 'foo') {
-			GM.setValue('lastChecked', today);
-		} else {
-			sameDate = datesAreOnSameDay(new Date(), new Date(lastChecked));
-		}
-		if (!sameDate) {
-			let apiStatus = CheckApiStatus(
-				`https://api.rawg.io/api/games?search=4200&key=${APIVALUE}`
-			);
-			apiStatus.then((result) => {
-				if (!result) {
-					let errors =
-						'<li>API Key appears to be invalid. We have removed your key from the script. Please re-enter a valid key.<li>';
-					errors +=
-						'<li>Grab your new API Key <a href="https://rawg.io/login/?forward=developer" target="_blank">Here</a>!';
-					Popup(errors);
-					GM.deleteValue('APIKEY');
-					apiKeyChecked = true;
-					Main();
-				}
-			});
 		}
 	});
 }
@@ -198,8 +169,32 @@ function Popup(errors) {
 	body.insertAdjacentHTML('beforeend', errOutput);
 }
 
-function SectionSearch(APIVALUE) {
-	var query = `https://rawg.io/api/games?search={query}&key=${APIVALUE}`;
+// Removed every Child node from parent, Used for removing HTML Render mode content
+function RemoveAllChildNodes(parent) {
+	while (parent.firstChild) {
+		parent.removeChild(parent.firstChild);
+	}
+}
+
+// Asyncronous http requests
+async function RequestUrl(url) {
+	return await new Promise((resolve, reject) => {
+		GM_xmlhttpRequest({
+			method: 'GET',
+			url: url,
+			onload: (response) => {
+				resolve(response);
+			},
+			onerror: (response) => {
+				reject(response);
+			},
+		});
+	});
+}
+
+// Searches api with query and returns list
+function SectionSearch(apiKey) {
+	var query = `https://rawg.io/api/games?search={query}&key=${apiKey}`;
 	$('#rawgSearch').search({
 		apiSettings: {
 			url: query,
@@ -237,19 +232,31 @@ function SectionSearch(APIVALUE) {
 	});
 }
 
-// Asyncronous http requests
-async function RequestUrl(url) {
-	return await new Promise((resolve, reject) => {
-		GM_xmlhttpRequest({
-			method: 'GET',
-			url: url,
-			onload: (response) => {
-				resolve(response);
-			},
-			onerror: (response) => {
-				reject(response);
-			},
-		});
+// Check status of RAWG key once per day, Remove key if invalid
+function CheckKeyStatus(apiKey) {
+	GM.getValue('lastChecked', 'foo').then((lastChecked) => {
+		if (lastChecked === 'foo') {
+			GM.setValue('lastChecked', today);
+		} else {
+			sameDate = datesAreOnSameDay(new Date(), new Date(lastChecked));
+		}
+		if (!sameDate) {
+			let apiStatus = CheckApiStatus(
+				`https://api.rawg.io/api/games?search=4200&key=${apiKey}`
+			);
+			apiStatus.then((result) => {
+				if (!result) {
+					let errors =
+						'<li>API Key appears to be invalid. We have removed your key from the script. Please re-enter a valid key.<li>';
+					errors +=
+						'<li>Grab your new API Key <a href="https://rawg.io/login/?forward=developer" target="_blank">Here</a>!';
+					Popup(errors);
+					GM.deleteValue('APIKEY');
+					apiKeyChecked = true;
+					Main();
+				}
+			});
+		}
 	});
 }
 
@@ -313,13 +320,6 @@ function SaveApiKey() {
 	}
 }
 
-// Removed every Child node from parent, Used for removing HTML Render mode content
-function RemoveAllChildNodes(parent) {
-	while (parent.firstChild) {
-		parent.removeChild(parent.firstChild);
-	}
-}
-
 // Handles BBCode for Download Links
 function DownloadLinkHandler(downloadLinks) {
 	let [hideReactScore, hidePosts] = [
@@ -367,17 +367,6 @@ async function ScreenshotHandler(url) {
 	return screen;
 }
 
-/**
- * @deprecated Use the new function `RequestUrl` instead. Remove function once all code is updated.
- */
-function HttpGet(url) {
-	console.warn('[Deprecation] Use Asyncronous "RequestUrl" function instead.');
-	let xmlHttp = new XMLHttpRequest();
-	xmlHttp.open('GET', url, false);
-	xmlHttp.send(null);
-	return xmlHttp.response;
-}
-
 function VirusTotalHandler(virustotalSplit) {
 	let virustotalLinks = '';
 	for (let splitLink of virustotalSplit) {
@@ -404,7 +393,7 @@ async function SubmitToForum(forumBBCode, title) {
 	}
 }
 
-function GenerateTemplate(APIVALUE) {
+function GenerateTemplate(apiKey) {
 	var [rawgGameID, youtubeLink, releaseInfo, virustotalLinks, downloadLinks] = [
 		document.getElementById('hiddenIID').value
 			? document.getElementById('hiddenIID').value
@@ -433,17 +422,11 @@ function GenerateTemplate(APIVALUE) {
 	}
 	let downloadLinkBBcode = DownloadLinkHandler(downloadLinks);
 	let screenshotPromise = ScreenshotHandler(
-		`https://api.rawg.io/api/games/${rawgGameID}/screenshots?key=${APIVALUE}`
+		`https://api.rawg.io/api/games/${rawgGameID}/screenshots?key=${apiKey}`
 	);
-	var trailer = youtubeLink.match(/[a-z]/)
-		? `[indent][size=25px][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n\n${youtubeLink}\n\n[HR][/HR]\n`
-		: '';
 	let virustotalBBcode = VirusTotalHandler(virustotalLinks.split(' '));
-	releaseInfo = releaseInfo.match(/[a-z]/)
-		? `[indent][size=25px][forumcolor][b]Release Infos[/b][/forumcolor][/size][/indent]\n[spoiler='Click here to view Release Info']\n${releaseInfo}\n[/spoiler]\n[HR][/HR]\n`
-		: '';
 	let steamPromise = RequestUrl(
-		`https://api.rawg.io/api/games/${rawgGameID}/stores?key=${APIVALUE}`
+		`https://api.rawg.io/api/games/${rawgGameID}/stores?key=${apiKey}`
 	).then((response) => {
 		let storeUrl;
 		JSON.parse(response.responseText).results.every((store) => {
@@ -457,9 +440,15 @@ function GenerateTemplate(APIVALUE) {
 		});
 		return (storeUrl = !storeUrl ? '[/center]\n[HR][/HR]\n' : storeUrl);
 	});
+	let trailer = youtubeLink.match(/[a-z]/)
+		? `[indent][size=25px][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n\n${youtubeLink}\n\n[HR][/HR]\n`
+		: '';
+	releaseInfo = releaseInfo.match(/[a-z]/)
+		? `[indent][size=25px][forumcolor][b]Release Infos[/b][/forumcolor][/size][/indent]\n[spoiler='Click here to view Release Info']\n${releaseInfo}\n[/spoiler]\n[HR][/HR]\n`
+		: '';
 	GM_xmlhttpRequest({
 		method: 'GET',
-		url: `https://api.rawg.io/api/games/${rawgGameID}?key=${APIVALUE}`,
+		url: `https://api.rawg.io/api/games/${rawgGameID}?key=${apiKey}`,
 		onload: function (response) {
 			let json = JSON.parse(response.responseText);
 			let backgroundimage =

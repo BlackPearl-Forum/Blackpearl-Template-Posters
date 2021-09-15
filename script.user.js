@@ -392,6 +392,66 @@ async function SubmitToForum(forumBBCode, title) {
 		}
 	}
 }
+async function GenerateBBCode(
+	url,
+	rawgGameID,
+	steamStoreLink,
+	screenshots,
+	downloadLinkBBcode,
+	virustotalBBcode,
+	trailer
+) {
+	let response = await RequestUrl(url);
+	let json = JSON.parse(response.responseText);
+	let backgroundimage =
+		json.background_image && json.background_image !== ''
+			? `[center][img width="548px"]${json.background_image}[/img]\n`
+			: '';
+	if (json.name && json.name !== '') {
+		var title = `[forumcolor][b][size=25px]${json.name}`;
+	}
+	let year =
+		json.released && json.released !== ''
+			? ` - (${json.released.substring(0, 4)})[/size][/b][/forumcolor]\n`
+			: '[/b][/size][/forumcolor]\n[HR][/HR]\n';
+	let description = `[indent][forumcolor][b][size=25px]Description[/size][/b][/forumcolor][/indent]\n${json.description_raw}\n[HR][/HR]\n`;
+	let ratings =
+		'[indent][forumcolor][b][size=25px]Ratings[/size][/b][/forumcolor][/indent]\n[size=16px]\n[list]\n';
+	if (json.ratings == '') {
+		ratings +=
+			'[*][img width="24px"]https://i.ibb.co/nrdc7M8/noreviews.png[/img][color=rgb(126, 129, 129)]No reviews[/color]\n';
+	} else {
+		for (let x of json.ratings) {
+			var img;
+			var color;
+			switch (x.title.toString()) {
+				case 'exceptional':
+					img = 'https://i.ibb.co/XZ0sVDf/exceptional.png';
+					color = '(97, 189, 109)';
+					break;
+				case 'recommended':
+					img = 'https://i.ibb.co/g3GKQ6B/recommended.png';
+					color = '(82, 116, 216)';
+					break;
+				case 'meh':
+					img = 'https://i.ibb.co/xG5772d/meh.png';
+					color = '(248, 157, 59)';
+					break;
+				default:
+					img = 'https://i.ibb.co/cQ65F2b/skip.png';
+					color = '(251, 69, 83)';
+			}
+			ratings += `[*][img width="24px"]${img}[/img][color=rgb${color}]${x.title.toString()}: ${x.count.toString()} (${x.percent.toString()}%)[/color]\n`;
+		}
+	}
+	ratings += `[size=12px]Source: https://rawg.io/games/${rawgGameID}[/size][/list]\n[/size]\n[HR][/HR]\n`;
+	return Promise.all([steamStoreLink, screenshots]).then((result) => {
+		return {
+			post: `${backgroundimage}${title} ${year} ${result[0]} ${description}${trailer}${result[1]}${ratings}${releaseInfo}${virustotalBBcode}${downloadLinkBBcode}`,
+			title: `${json.name} - (${json.released})`,
+		};
+	});
+}
 
 function GenerateTemplate(apiKey) {
 	var [rawgGameID, youtubeLink, releaseInfo, virustotalLinks, downloadLinks] = [
@@ -446,62 +506,17 @@ function GenerateTemplate(apiKey) {
 	releaseInfo = releaseInfo.match(/[a-z]/)
 		? `[indent][size=25px][forumcolor][b]Release Infos[/b][/forumcolor][/size][/indent]\n[spoiler='Click here to view Release Info']\n${releaseInfo}\n[/spoiler]\n[HR][/HR]\n`
 		: '';
-	GM_xmlhttpRequest({
-		method: 'GET',
-		url: `https://api.rawg.io/api/games/${rawgGameID}?key=${apiKey}`,
-		onload: function (response) {
-			let json = JSON.parse(response.responseText);
-			let backgroundimage =
-				json.background_image && json.background_image !== ''
-					? `[center][img width="548px"]${json.background_image}[/img]\n`
-					: '';
-			if (json.name && json.name !== '') {
-				var title = `[forumcolor][b][size=25px]${json.name}`;
-			} else {
-				errors =
-					"You Messed Up! Check That You've Entered Something Into The Rawg Search Field!"; // TODO: Update with latest error handling for this
-				Popup(errors);
-			}
-			let year =
-				json.released && json.released !== ''
-					? ` - (${json.released.substring(0, 4)})[/size][/b][/forumcolor]\n`
-					: '[/b][/size][/forumcolor]\n[HR][/HR]\n';
-			let description = `[indent][forumcolor][b][size=25px]Description[/size][/b][/forumcolor][/indent]\n${json.description_raw}\n[HR][/HR]\n`;
-			let ratings =
-				'[indent][forumcolor][b][size=25px]Ratings[/size][/b][/forumcolor][/indent]\n[size=16px]\n[list]\n';
-			if (json.ratings == '') {
-				ratings +=
-					'[*][img width="24px"]https://i.ibb.co/nrdc7M8/noreviews.png[/img][color=rgb(126, 129, 129)]No reviews[/color]\n';
-			} else {
-				for (let x of json.ratings) {
-					var img;
-					var color;
-					switch (x.title.toString()) {
-						case 'exceptional':
-							img = 'https://i.ibb.co/XZ0sVDf/exceptional.png';
-							color = '(97, 189, 109)';
-							break;
-						case 'recommended':
-							img = 'https://i.ibb.co/g3GKQ6B/recommended.png';
-							color = '(82, 116, 216)';
-							break;
-						case 'meh':
-							img = 'https://i.ibb.co/xG5772d/meh.png';
-							color = '(248, 157, 59)';
-							break;
-						default:
-							img = 'https://i.ibb.co/cQ65F2b/skip.png';
-							color = '(251, 69, 83)';
-					}
-					ratings += `[*][img width="24px"]${img}[/img][color=rgb${color}]${x.title.toString()}: ${x.count.toString()} (${x.percent.toString()}%)[/color]\n`;
-				}
-			}
-			ratings += `[SIZE=12px]Source: https://rawg.io/games/${rawgGameID}[/SIZE][/LIST]\n[/size]\n[HR][/HR]\n`;
-			Promise.all([steamPromise, screenshotPromise]).then((result) => {
-				let dump = `${backgroundimage}${title} ${year} ${result[0]} ${description}${trailer}${result[1]}${ratings}${releaseInfo}${virustotalBBcode}${downloadLinkBBcode}`;
-				SubmitToForum(dump, `${json.name} - (${json.released})`);
-			});
-		},
+	let bbcode = GenerateBBCode(
+		(downloadLinkBBcode = downloadLinkBBcode),
+		(rawgGameID = rawgGameID),
+		(steamStoreLink = steamPromise),
+		(screenshots = screenshotPromise),
+		(trailer = trailer),
+		(url = `https://api.rawg.io/api/games/${rawgGameID}?key=${apiKey}`),
+		(virustotalBBcode = virustotalBBcode)
+	);
+	bbcode.then((bbcode) => {
+		SubmitToForum(bbcode.post, bbcode.title);
 	});
 }
 

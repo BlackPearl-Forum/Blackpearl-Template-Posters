@@ -197,7 +197,7 @@ async function DownloadLinkHandler(downloadLinks) {
 	} else {
 		downloadLinks = downloadLinks.replace(/\ /g, '\n');
 	}
-	downloadLinks = `[hidereact=1,2,3,4,5,6]${downloadLinks.replace(
+	downloadLinks = `[hidereact=1,2,3,4,5,6,7,8]${downloadLinks.replace(
 		/\n+$/,
 		''
 	)}[/hidereact]`; // Remove extra newline at end of string

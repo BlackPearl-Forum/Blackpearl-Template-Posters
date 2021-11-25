@@ -121,7 +121,7 @@ function Main() {
 // Close Error Popup if overlay clicked
 $(document).click(function (e) {
 	if (
-		(!$('#errBox').is(e.target) & $('#js-XFUniqueId2').is(e.target)) |
+		(!$('#errBox').is(e.target) && $('#js-XFUniqueId2').is(e.target)) |
 		$('.js-overlayClose').is(e.target)
 	) {
 		document.getElementsByName('errorpopup')[0].remove();
@@ -362,8 +362,8 @@ function ParseMediaInfo(mediaInfo, premadeTitle) {
 		}
 		let videoWritingLib = videoInfo.match(/Writing library.*/);
 		if (
-			videoWritingLib &
-			(videoWritingLib[0].includes('x265') |
+			videoWritingLib &&
+			(videoWritingLib[0].includes('x265') ||
 				videoWritingLib[0].includes('x264'))
 		) {
 			videoWritingLib = videoWritingLib[0];
@@ -432,7 +432,7 @@ function GenerateTemplate(APIVALUE) {
 	if (imdbID.includes('imdb')) {
 		imdbID = imdbID.match(/tt\d+/)[0];
 	}
-	if (!imdbID | !downloadLinks | !mediaInfo) {
+	if (!imdbID || !downloadLinks || !mediaInfo) {
 		let errors = '';
 		errors += !imdbID
 			? "<li>You Didn't Select A Title or Enter a IMDB ID!</li>"
@@ -566,7 +566,7 @@ function GenerateTemplate(APIVALUE) {
 					document.getElementsByName('tags')[0].value = tags;
 					tags = tags.split(', ');
 					for (let tag of tags) {
-						TagsPush(tag)
+						TagsPush(tag);
 					}
 				}
 				if (titleBool) {
@@ -708,5 +708,4 @@ GM_addStyle(`
 	.slider.round:before {
 		border-radius: 50%;
 	}
-}                                        
-`);
+}`);

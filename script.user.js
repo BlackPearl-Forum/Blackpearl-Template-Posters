@@ -299,7 +299,6 @@ function SaveApiKey() {
 		errors +=
 			'<li>No API Key found. Please check that you have entered your key and try again.</li>';
 		Popup(errors);
-		return;
 	}
 }
 

@@ -409,13 +409,13 @@ function ParseMediaInfo(mediaInfo, premadeTitle) {
 			let mediaSize = generalInfo.match(/File size.*/);
 			if (mediaSize) {
 				mediaSize = mediaSize[0];
-				premadeTitle += mediaSize.match(/\d.*/)
+				var size = mediaSize.match(/\d.*/)
 					? ` [${mediaSize.match(/\d.*/)[0]}]`
 					: '';
 			}
 		}
 	}
-	return premadeTitle;
+	return { title: premadeTitle, size: size };
 }
 
 // Handles Generation of BBcode Template
@@ -531,21 +531,23 @@ function GenerateTemplate(APIVALUE) {
 				: '';
 			let titleBool =
 				!document.getElementsByClassName('js-titleInput')[0].value;
-			let premadeTitle = titleBool ? `${json.Title} (${json.Year})` : '';
 			if (titleBool) {
-				premadeTitle = ParseMediaInfo(mediaInfo, premadeTitle);
+				var premadeTitle = ParseMediaInfo(mediaInfo, `${json.Title} (${json.Year})`);
 			}
 			let tags = json.Genre && json.Genre !== 'N/A' ? json.Genre : '';
 			if (mediaInfo.includes('Dolby Vision')) {
 				tags += ', Dolby Vision';
-				premadeTitle += titleBool ? ' Dolby Vision' : '';
+				premadeTitle.title += titleBool ? ' Dolby Vision' : '';
 			}
 			if (mediaInfo.includes('HDR10+ Profile')) {
 				tags += ', hdr10plus';
-				premadeTitle += titleBool ? ' HDR10Plus' : '';
+				premadeTitle.title += titleBool ? ' HDR10Plus' : '';
 			} else if (mediaInfo.includes('HDR10 Compatible')) {
 				tags += ', hdr10';
-				premadeTitle += titleBool ? ' HDR10' : '';
+				premadeTitle.title += titleBool ? ' HDR10' : '';
+			}
+			if (premadeTitle.size) {
+				premadeTitle.title += premadeTitle.size
 			}
 			tags = tags.replace(/^([, ]*)/g, '');
 			mediaInfo =
@@ -571,7 +573,7 @@ function GenerateTemplate(APIVALUE) {
 				}
 				if (titleBool) {
 					document.getElementsByClassName('js-titleInput')[0].value =
-						premadeTitle;
+						premadeTitle.title;
 				}
 			}
 		},

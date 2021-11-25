@@ -344,7 +344,7 @@ function ScreenshotHandler(screenshots) {
 
 // Parses Mediainfo for Title values
 function ParseMediaInfo(mediaInfo, premadeTitle) {
-	let videoInfo = mediaInfo.match(/(Video|Video #1)$.^[\s\S]*?(?=\n{2,})/ms);
+	let videoInfo = mediaInfo.match(/(Video|Video #1)$.*?(?=\n{2,})/ms);
 	if (videoInfo) {
 		videoInfo = videoInfo[0];
 		let videoWidth = videoInfo.match(/Width.*/);
@@ -391,7 +391,7 @@ function ParseMediaInfo(mediaInfo, premadeTitle) {
 				: '';
 		}
 	}
-	let audioInfo = mediaInfo.match(/(Audio|Audio #1)$.^[\s\S]*?(?=\n{2,})/ms);
+	let audioInfo = mediaInfo.match(/(Audio|Audio #1)$.*?(?=\n{2,})/ms);
 	if (audioInfo) {
 		audioInfo = audioInfo[0];
 		let audioCodec = audioInfo.match(/Codec ID.*/);
@@ -403,7 +403,7 @@ function ParseMediaInfo(mediaInfo, premadeTitle) {
 		}
 	}
 	if (sectionType === 'movies') {
-		let generalInfo = mediaInfo.match(/General$.^[\s\S]*?(?=\n{2,})/ms);
+		let generalInfo = mediaInfo.match(/General$.*?(?=\n{2,})/ms);
 		if (generalInfo) {
 			generalInfo = generalInfo[0];
 			let mediaSize = generalInfo.match(/File size.*/);

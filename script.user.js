@@ -233,7 +233,7 @@ function SectionSearch(APIVALUE) {
 
 // Asyncronous http requests
 async function RequestUrl(url) {
-	return await new Promise((resolve, reject) => {
+	return new Promise((resolve, reject) => {
 		GM_xmlhttpRequest({
 			method: 'GET',
 			url: url,

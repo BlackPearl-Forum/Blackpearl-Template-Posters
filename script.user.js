@@ -121,7 +121,7 @@ function Main() {
 // Close Error Popup if overlay clicked
 $(document).click(function (e) {
 	if (
-		(!$('#errBox').is(e.target) && $('#js-XFUniqueId2').is(e.target)) |
+		(!$('#errBox').is(e.target) && $('#js-XFUniqueId2').is(e.target)) ||
 		$('.js-overlayClose').is(e.target)
 	) {
 		document.getElementsByName('errorpopup')[0].remove();

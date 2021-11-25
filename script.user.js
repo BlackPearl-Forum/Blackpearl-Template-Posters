@@ -565,8 +565,8 @@ function GenerateTemplate(APIVALUE) {
 				if (tags) {
 					document.getElementsByName('tags')[0].value = tags;
 					tags = tags.split(', ');
-					for (let i = 0; i < tags.length; i++) {
-						TagsPush(tags[i]);
+					for (let tag of tags) {
+						TagsPush(tag)
 					}
 				}
 				if (titleBool) {

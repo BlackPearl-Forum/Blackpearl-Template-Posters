@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Blackpearl Movie/TV Template Generator
-// @version     3.1.1
+// @version     3.1.2
 // @description Template Maker
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png
@@ -402,6 +402,7 @@ function ParseMediaInfo(mediaInfo, premadeTitle) {
 				: '';
 		}
 	}
+	let size = '';
 	if (sectionType === 'movies') {
 		let generalInfo = mediaInfo.match(/General$.*?(?=\n{2,})/ms);
 		if (generalInfo) {
@@ -409,7 +410,7 @@ function ParseMediaInfo(mediaInfo, premadeTitle) {
 			let mediaSize = generalInfo.match(/File size.*/);
 			if (mediaSize) {
 				mediaSize = mediaSize[0];
-				var size = mediaSize.match(/\d.*/)
+				size = mediaSize.match(/\d.*/)
 					? ` [${mediaSize.match(/\d.*/)[0]}]`
 					: '';
 			}
@@ -453,7 +454,7 @@ function GenerateTemplate(APIVALUE) {
 		: '';
 	GM_xmlhttpRequest({
 		method: 'GET',
-		url: `http://www.omdbapi.com/?apikey=${APIVALUE}&i=${imdbID}&plot=full&y&r=json`,
+		url: `https://www.omdbapi.com/?apikey=${APIVALUE}&i=${imdbID}&plot=full&y&r=json`,
 		onload: function (response) {
 			try {
 				var json = JSON.parse(response.responseText);
@@ -531,8 +532,9 @@ function GenerateTemplate(APIVALUE) {
 				: '';
 			let titleBool =
 				!document.getElementsByClassName('js-titleInput')[0].value;
+			let premadeTitle = '';
 			if (titleBool) {
-				var premadeTitle = ParseMediaInfo(mediaInfo, `${json.Title} (${json.Year})`);
+				premadeTitle = ParseMediaInfo(mediaInfo, `${json.Title} (${json.Year})`);
 			}
 			let tags = json.Genre && json.Genre !== 'N/A' ? json.Genre : '';
 			if (mediaInfo.includes('Dolby Vision')) {

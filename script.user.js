@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Blackpearl Movie/TV Template Generator
-// @version     3.1.2
+// @version     3.1.3
 // @description Template Maker
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png
@@ -10,18 +10,15 @@
 // @downloadURL https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/raw/Omdb/script.user.js
 // @include     /^https:\/\/blackpearl\.biz\/forums\/(129|172|173|174|175|176|178|179|180|181|183|184|187|188|189|190|193|194|197|198|199|200|203|204|206|207|208|210|223)\/post-thread/
 // @require     https://code.jquery.com/jquery-3.6.0.min.js
-// @require     https://code.jquery.com/ui/1.12.1/jquery-ui.min.js
-// @require     https://raw.githubusercontent.com/Semantic-Org/UI-Search/master/search.js
-// @require     https://raw.githubusercontent.com/Semantic-Org/UI-Api/master/api.js
 // @grant       GM_addStyle
-// @grant       GM_xmlhttpRequest
-// @grant       GM.setValue
-// @grant       GM.getValue
+// @grant       GM.xmlHttpRequest
 // @run-at      document-end
-// @connect     omdbapi.com
+// @connect     imdb.com
 // ==/UserScript==
 
-Main();
+///////////////////////////////////////////////////////////////////////////
+//                                  HTML                                 //
+///////////////////////////////////////////////////////////////////////////
 
 const htmlTemplate = `
 <div id="textareaDivider" name="showDivider" style="display:none">&nbsp;</div>
@@ -29,7 +26,7 @@ const htmlTemplate = `
 <div id="OmdbGenerator">
 <input type="text" id="hiddenIID" value="" style="display:none">
 <div class="ui search" id="omdbSearch">
-<input type="text" class="prompt input" id="searchID" placeholder="IMDB ID, Title, or Link"  onfocus="this.placeholder = ''" onblur="this.placeholder = 'IMDB ID, Title, or Link'">
+<input type="text" class="prompt input" id="searchID" placeholder="Enter Imdb ID or Link"  onfocus="this.placeholder = ''" onblur="this.placeholder = 'Enter Imdb ID or Link'">
 <div class="results input" style="display:none"></div>
 </div>
 <input type="text" id="screensLinks" value="" class="input" placeholder="Screenshot Links" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Screenshot Links'">
@@ -77,46 +74,262 @@ errormessages
 
 var tagSelect = `<li class="select2-selection__choice" title="tagname"><span class="select2-selection__choice__remove" role="presentation">×</span>tagname</li>`;
 
-var sectionType;
+///////////////////////////////////////////////////////////////////////////
+//                               IMDB Scraper                            //
+///////////////////////////////////////////////////////////////////////////
+class Imdb {
+	regexSplit = /([a-z])([A-Z])/g;
 
-function Main() {
-	GM.getValue('APIKEY', 'foo').then((APIVALUE) => {
-		const htmlpush = document.getElementsByTagName('dd')[0];
-		htmlpush.innerHTML += APIVALUE !== 'foo' ? htmlTemplate : omdbinput;
-		document.getElementById('hideTemplate').addEventListener(
-			'click',
-			() => {
-				HideTemplate();
+	async requestUrl(imdb) {
+		this.imdbID = imdb?.match(/tt\d+/)[0] || null;
+		if (!this.imdbID) {
+			this.imdbDocument = { Error: 'Unable To Find IMDB TT ID' };
+			return;
+		}
+		this.imdbURL = 'https://imdb.com/title/' + this.imdbID;
+		const req = await RequestUrl('GET', this.imdbURL, null, {
+			'accept-language': 'en-US,en',
+		});
+		const parser = new DOMParser();
+		this.imdbDocument = parser.parseFromString(req.response, 'text/html');
+	}
+
+	createJSON() {
+		return {
+			Title: this.title,
+			Name: this.name,
+			Poster: this.poster,
+			Ratings: {
+				Star: this.starRating,
+				Total: this.totalRatings,
+				Metascore: this.metascore,
 			},
-			false
+			Plot: this.plot,
+			Genres: this.genres,
+			Taglines: this.taglines,
+			ContentRating: this.mpaa,
+			DidYouKnow: this.didYouKnow,
+			Details: this.details,
+			TechSpecs: this.techSpecs,
+			Staff: this.staff,
+			Trailer: this.trailer,
+			Url: this.imdbURL,
+			ID: this.imdbID,
+		};
+	}
+	get title() {
+		return (
+			this.imdbDocument
+				.querySelector('title')
+				?.innerText.replace(' - IMDb', '')
+				.replace('TV Series ', '') || null
 		);
-		document.getElementById('showTemplate').addEventListener(
-			'click',
-			() => {
-				ShowTemplate();
-			},
-			false
+	}
+	get name() {
+		return (
+			this.imdbDocument.querySelector('[data-testid=hero-title-block__title]')
+				?.innerText || null
 		);
-		if (APIVALUE !== 'foo') {
-			SectionSearch(APIVALUE);
-			document.getElementById('generateTemplate').addEventListener(
-				'click',
-				() => {
-					GenerateTemplate(APIVALUE);
-				},
-				false
+	}
+
+	get poster() {
+		return (
+			this.imdbDocument
+				.querySelector('.ipc-image')
+				?.src?.replace(/(?!=\.)_V1_.*(?=\.jpg)/, '_V1_SX1000') || null
+		);
+	}
+
+	get starRating() {
+		return (
+			this.imdbDocument.querySelector(
+				'[data-testid=hero-rating-bar__aggregate-rating__score]'
+			)?.innerText || null
+		);
+	}
+
+	get totalRatings() {
+		return (
+			this.imdbDocument.querySelector(
+				'[data-testid=hero-rating-bar__aggregate-rating__score]'
+			)?.nextElementSibling?.nextElementSibling?.innerText || null
+		);
+	}
+
+	get plot() {
+		return (
+			this.imdbDocument
+				.querySelector('[class="ipc-html-content ipc-html-content--base"]')
+				?.innerText.split('—')[0] || null
+		);
+	}
+
+	get genres() {
+		return (
+			this.imdbDocument
+				.querySelector('[data-testid="storyline-genres"]')
+				?.innerText.replace(this.regexSplit, '$1,$2')
+				?.split(',')
+				?.slice(1, -1) || null
+		);
+	}
+
+	get taglines() {
+		return (
+			this.imdbDocument.querySelector(
+				'[data-testid="storyline-taglines"] .ipc-metadata-list-item__list-content-item'
+			)?.innerText || null
+		);
+	}
+
+	get mpaa() {
+		return (
+			this.imdbDocument
+				.querySelector(
+					'[data-testid="storyline-certificate"] .ipc-metadata-list-item__list-content-item'
+				)
+				?.innerText?.split(' ')[1] || null
+		);
+	}
+
+	get didYouKnow() {
+		const nodes =
+			this.imdbDocument
+				.querySelector('[data-testid="DidYouKnow"]')
+				?.querySelectorAll('.ipc-list-card--border-line') || null;
+		if (!nodes) {
+			return null;
+		}
+		var didYouKnow = {};
+		for (const node of nodes) {
+			const section =
+				node.querySelector('.ipc-metadata-list-item__label')?.innerText || null;
+			let content = node.querySelector('.ipc-html-content');
+			didYouKnow[titleCase(section).replace(/ /g, '')] =
+				section != 'Soundtracks'
+					? content?.innerText || null
+					: [...content?.children[0]?.children].map((item) => {
+							return section == 'Official sites' ? item.href : item.innerText;
+					  });
+		}
+		return didYouKnow;
+	}
+
+	get details() {
+		const nodes =
+			this.imdbDocument.querySelector('[data-testid="title-details-section"]')
+				?.children[0]?.children || null;
+		if (!nodes || nodes.length === 0) {
+			return null;
+		}
+		var details = {};
+		for (let node of nodes) {
+			const section =
+				node.querySelector('.ipc-metadata-list-item__label')?.innerText || null;
+			let content = node.querySelectorAll(
+				'.ipc-metadata-list-item__list-content-item'
 			);
-		} else {
-			document.getElementById('saveKey').addEventListener(
-				'click',
-				() => {
-					SaveApiKey();
-				},
-				false
+			if (!section || section.length === 0 || content.length === 0) {
+				continue;
+			}
+			details[titleCase(section).replace(/ /g, '')] = [...content].map(
+				(item) => {
+					return section == 'Official sites' ? item.href : item.innerText;
+				}
 			);
 		}
-	});
+		return details;
+	}
+
+	get techSpecs() {
+		const nodes = this.imdbDocument?.querySelectorAll(
+			'[data-testid="TechSpecs"] .ipc-metadata-list__item'
+		);
+		if (nodes.length === 0) {
+			return null;
+		}
+		var specs = {};
+		for (const node of nodes) {
+			const sectionNode = node?.children[0]?.innerText || null;
+			let content = node?.children[1] || null;
+			if (!sectionNode || !content || content.length === 0) {
+				continue;
+			}
+			specs[titleCase(sectionNode).replace(/ /g, '')] =
+				content?.children.length === 0
+					? content.innerText
+					: [...content.querySelectorAll('.ipc-inline-list__item')].map(
+							(item) => {
+								return item.innerText;
+							}
+					  );
+		}
+		return specs;
+	}
+
+	get metascore() {
+		return (
+			this.imdbDocument?.querySelector('span.score-meta')?.innerText || null
+		);
+	}
+
+	get staff() {
+		const nodes =
+			this.imdbDocument.querySelector('[data-testid="title-pc-wide-screen"]')
+				?.children[0]?.children || null;
+		if (nodes?.length == 0) {
+			return null;
+		}
+		var staff = {};
+		for (const node of nodes) {
+			const jobTitle =
+				node?.querySelector('.ipc-metadata-list-item__label')?.innerText ||
+				null;
+			let people =
+				node?.querySelectorAll('.ipc-metadata-list-item__list-content-item') ||
+				null;
+			if (!jobTitle || !people) {
+				continue;
+			}
+			staff[titleCase(jobTitle).replace(/ /g, '')] = [...people].map((item) => {
+				return item.innerText;
+			});
+		}
+		return staff;
+	}
+	get trailer() {
+		let video =
+			this.imdbDocument.querySelector('[aria-label="Watch {VideoTitle}"]')
+				?.href || null;
+		if (video) {
+			video = video.replace(/.*(?=\/video)/, 'https://imdb.com');
+		}
+		return video;
+	}
 }
+
+///////////////////////////////////////////////////////////////////////////
+//                                Utility                                //
+///////////////////////////////////////////////////////////////////////////
+
+/**
+ * Converts the text in a string to TitleCase
+ * @param str String that contains text.
+ */
+const titleCase = (str) => {
+	if (!str) {
+		return str;
+	}
+	str = str.toLowerCase().split(' ');
+	for (var i = 0; i < str.length; i++) {
+		str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1);
+	}
+	return str.join(' ');
+};
+
+const splitPascalCase = (word) => {
+	return word.match(/($[a-z])|[A-Z][^A-Z]+/g).join(' ');
+};
 
 // Close Error Popup if overlay clicked
 $(document).click(function (e) {
@@ -128,27 +341,39 @@ $(document).click(function (e) {
 	}
 });
 
-function ShowTemplate() {
+/**
+ * Changes template to "shown" state
+ */
+const ShowTemplate = () => {
 	document.getElementById('showTemplate').style.display = 'none';
 	document.getElementsByName('showDivider')[0].style.display = 'none';
 	document.getElementById('OmdbGenerator').style.display = 'block';
-}
+};
 
-function HideTemplate() {
+/**
+ * Changes template to "hidden" state
+ */
+const HideTemplate = () => {
 	document.getElementById('showTemplate').style.display = 'block';
 	document.getElementsByName('showDivider')[0].style.display = 'block';
 	document.getElementById('OmdbGenerator').style.display = 'none';
-}
+};
 
-// Popup for Errors
-function Popup(errors) {
+/**
+ * Adds a tag to the page.
+ * @param tag String containing tag that should be added to the forum.
+ */
+const Popup = (errors) => {
 	let errOutput = errPopup.replace('errormessages', errors);
 	var body = document.getElementsByTagName('Body')[0];
 	body.insertAdjacentHTML('beforeend', errOutput);
-}
+};
 
-// Push Genre Tags to HTML
-function TagsPush(tag) {
+/**
+ * Adds a tag to the page.
+ * @param tag String containing tag that should be added to the forum.
+ */
+const TagsPush = (tag) => {
 	let tagOutput = tagSelect.replace(/tagname/g, tag);
 	let tagParent = document.getElementsByClassName(
 		'select2-selection__rendered'
@@ -159,84 +384,32 @@ function TagsPush(tag) {
 	option.value = tag;
 	tagParent.insertAdjacentHTML('afterbegin', tagOutput);
 	tagParent2.add(option);
-}
+};
 
-// Removes all Child nodes from a parent | Used for clearing the HTML Render
-function RemoveAllChildNodes(parent) {
+/**
+ * Removes all children from a Node.
+ * @param parent Node where the children should be removed from.
+ */
+const RemoveAllChildNodes = (parent) => {
 	while (parent.firstChild) {
 		parent.removeChild(parent.firstChild);
 	}
-}
+};
 
-// Displays Search Results
-function SectionSearch(APIVALUE) {
-	const section = parseInt(window.location.href.match(/\d+/, '')[0]);
-	const [movies, series] = [
-		[129, 172, 173, 174, 175, 176, 178, 179, 180, 181, 183, 184, 202, 204],
-		[187, 188, 189, 190, 193, 194, 197, 198, 199, 200, 203, 206, 208, 209, 223],
-	];
-	var query;
-	if (series.includes(section)) {
-		query = `https://www.omdbapi.com/?apikey=${APIVALUE}&r=JSON&s={query}&type=series`;
-		sectionType = 'series';
-	} else if (movies.includes(section)) {
-		query = `https://www.omdbapi.com/?apikey=${APIVALUE}&r=JSON&s={query}&type=movie`;
-		sectionType = 'movies';
-	} else {
-		query = `https://www.omdbapi.com/?apikey=${APIVALUE}&r=JSON&s={query}`;
-	}
-	$('#omdbSearch').search({
-		type: 'category',
-		apiSettings: {
-			url: query,
-			onResponse: function (myfunc) {
-				var response = {
-					results: {},
-				};
-				$.each(myfunc.Search, function (index, item) {
-					var category =
-							item.Type.replace('movie', 'Movies').replace(
-								'series',
-								'TV Shows'
-							) || 'Unknown',
-						maxResults = 10;
-					if (index >= maxResults) {
-						return false;
-					}
-					if (response.results[category] === undefined) {
-						response.results[category] = {
-							name: '~~~~~~~~~~' + category + '~~~~~~~~~~',
-							results: [],
-						};
-					}
-					var Name = item.Title + ' (' + item.Year + ')';
-					response.results[category].results.push({
-						title: Name,
-						description: Name,
-						imdbID: item.imdbID,
-					});
-				});
-				return response;
-			},
-		},
-		fields: {
-			results: 'results',
-			title: 'name',
-		},
-		onSelect: function (response) {
-			document.getElementById('hiddenIID').value = response.imdbID;
-			document.getElementById('searchID').value = response.title;
-		},
-		minCharacters: 3,
-	});
-}
-
-// Asyncronous http requests
-async function RequestUrl(url) {
+/**
+ * Asyncronous XHR returning a Promise.
+ * @param method String defining what request method should be used.
+ * @param url String containing URL where the request should be sent.
+ * @param data Any data to be sent with your request.
+ * @param headers Object containing key and values to used as your header.
+ */
+const RequestUrl = async (method, url, data, headers) => {
 	return new Promise((resolve, reject) => {
-		GM_xmlhttpRequest({
-			method: 'GET',
+		GM.xmlHttpRequest({
+			method: method,
 			url: url,
+			data: data,
+			headers: headers,
 			onload: (response) => {
 				resolve(response);
 			},
@@ -245,199 +418,266 @@ async function RequestUrl(url) {
 			},
 		});
 	});
-}
+};
 
-// Check response status from API
-async function CheckApiStatus(url) {
-	return RequestUrl(url)
-		.then(function (response) {
-			if (response.status !== 200) {
-				if (response.status === 401) {
-					let data = JSON.parse(response.responseText);
-					let errors =
-						'<li>Something Messed Up! Check The Omdb Error Below.</li>';
-					errors += `<li>${data.message}</li>`;
-					Popup(errors);
-					throw Error('401 Response');
-				} else {
-					throw Error(
-						`Unable To Verify API Key. \n HTTP STATUS CODE: ${response.status}`
-					);
-				}
-			}
-			return true;
-		})
-		.catch(function (error) {
-			if (error.message !== '401 Response') {
-				let errors =
-					'<li>Something Messed Up! Check The Omdb Error Below.</li>';
-				errors += `<li>${error.message}</li>`;
-				Popup(errors);
-			}
-			console.error(error);
-			return false;
-		});
-}
+///////////////////////////////////////////////////////////////////////////
+//                                 Mediainfo                             //
+///////////////////////////////////////////////////////////////////////////
+/**
+ * Handles scraping of Mediainfo
+ * @param mediainfo String that contains FULL mediainfo from Mediainfo Application
+ */
+class Mediainfo {
+	constructor(mediainfo) {
+		this.video = mediainfo.match(/(Video|Video #1)$.*?(?=\n{2,})/ms)?.[0];
+		this.audio = mediainfo.match(/(Audio|Audio #1)$.*?(?=\n{2,})/ms)?.[0];
+		this.general = mediainfo.match(/General$.*?(?=\n{2,})/ms)?.[0];
+	}
 
-// Check and Save API Key if valid
-function SaveApiKey() {
-	let omdbKey = document.getElementById('omdbKey').value;
-	if (omdbKey) {
-		let apiResult = CheckApiStatus(
-			`https://www.omdbapi.com/?apikey=${omdbKey}`
+	create() {
+		return {
+			video: this.video,
+			audio: this.audio,
+			general: this.general,
+			VideoResolution: this.videoResolution,
+			VideoLibrary: this.videoWritingLib,
+			BitDepth: this.videoBitDepth,
+			AudioCodec: this.audioCodec,
+			Size: this.fileSize,
+		};
+	}
+	/**
+	 * Returns String of the corresponding resolution based on Video Width.
+	 *
+	 * Returns Null if Invalid or Unknown
+	 */
+	get videoResolution() {
+		switch (this.video?.match(/(?<=Width.*)\d(\s)?\d+/)[0] || null) {
+			case '3 840':
+				return '2160p';
+			case '1 920':
+				return '1080p';
+			case '1 280':
+				return '720p';
+			case '720':
+				return '480p';
+			default:
+				return null;
+		}
+	}
+
+	/**
+	 * Returns String containing first video Libaray or Format
+	 *
+	 * Returns Null if Invalid or Unknown
+	 */
+	get videoWritingLib() {
+		const videoLib = this.video?.match(/(?<=Writing library.*)x\d+/)[0] || null;
+		return videoLib
+			? videoLib
+			: this.video?.match(/(?<=Format.*\s)\w{3,4}\n/)[0] || null;
+	}
+
+	/**
+	 * Returns String containing first video Bit Depth
+	 *
+	 * Returns Null if Invalid or Unknown
+	 */
+	get videoBitDepth() {
+		return this.video?.match(/(?<=Bit depth.*)\d+/)[0]?.concat('Bit') || null;
+	}
+
+	/**
+	 * Returns String containing first audio Codec
+	 *
+	 * Returns Null if Invalid or Unknown
+	 */
+	get audioCodec() {
+		return this.audio?.match(/(?<=Codec ID.*A_)\w+/)[0] || null;
+	}
+
+	/**
+	 * Returns String containing the File Size.
+	 *
+	 * Returns Null if Invalid or Unknown
+	 */
+	get fileSize() {
+		return (
+			this.general?.match(/(?<=File size.*)\d+\s\w+/).replace('i', '') || null
 		);
-		apiResult.then(function (result) {
-			if (result) {
-				GM.setValue('APIKEY', omdbKey);
-				document.getElementById('OmdbGenerator').remove();
-				document.getElementById('showTemplate').remove();
-				Main();
-			}
-		});
-	} else {
-		let errors = '<li>Something Messed Up! Check The Error Below.</li>';
-		errors +=
-			'<li>No API Key found. Please check that you have entered your key and try again.</li>';
-		Popup(errors);
 	}
 }
 
-// Handles BBCode for Download Links
-function DownloadLinkHandler(downloadLinks) {
-	let [hideReactScore, hidePosts] = [
-		document.getElementById('HideReactScore').value,
-		document.getElementById('HidePosts').value,
-	];
-	if (document.getElementById('Downcloud').checked) {
-		let ddlSplit = downloadLinks.split(' ');
-		downloadLinks = '';
-		for (let singleLink of ddlSplit) {
-			if (singleLink) {
-				downloadLinks += `[downcloud]${singleLink}[/downcloud]\n`;
-			}
+///////////////////////////////////////////////////////////////////////////
+//                                 BBCode                                //
+///////////////////////////////////////////////////////////////////////////
+
+/**
+ * Handles all generation of BBCode
+ */
+class BBCodeGenerator {
+	download(links) {
+		links = document.getElementById('Downcloud').checked
+			? links.split(' ').map((link) => `[downcloud]${link}[/downcloud]\n`)
+			: links.split(' ');
+		var prefix = [
+			'[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n[hidereact=1,2,3,4,5,6,7,8]',
+		];
+		var suffix = ['\n[/center]', '[/hidereact]'];
+		const reactCount = document.getElementById('HideReactScore').value;
+		if (reactCount !== '0') {
+			BBcodePrefix.push(`[hidereactscore=${reactCount}]`);
+			BBCodeSuffix.unshift('[/hidereactscore]');
 		}
-	} else {
-		downloadLinks = downloadLinks.replace(/\ /g, '\n');
+		const postsCount = document.getElementById('HidePosts').value;
+		if (postsCount !== '0') {
+			prefix.push(`[hideposts=${postsCount}]`);
+			suffix.unshift('[/hideposts]');
+		}
+		return prefix.join('') + links.join('') + suffix.join('');
 	}
-	downloadLinks = `[hidereact=1,2,3,4,5,6,7,8]${downloadLinks.replace(
-		/\n+$/,
-		''
-	)}[/hidereact]`; // Remove extra newline at end of string
-	if (hideReactScore !== '0') {
-		downloadLinks = `[hidereactscore=${hideReactScore}]${downloadLinks}[/hidereactscore]`;
+
+	screenshots(links) {
+		if (!links) return;
+		const imageBBCode = links
+			.split(' ')
+			.map((link) => `[img]${link}[/img]`)
+			.join('');
+		return `\n[hr][/hr][indent][size=6][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [spoiler='Screenshots']\n${imageBBCode}[/spoiler]`;
 	}
-	if (hidePosts !== '0') {
-		downloadLinks = `[hideposts=${hidePosts}]${downloadLinks}[/hideposts]`;
+
+	async imdb(link) {
+		const scraper = new Imdb();
+		await scraper.requestUrl(link);
+		if (scraper.imdbDocument?.Error) {
+			return null;
+		}
+		const imdbInfo = scraper.createJSON();
+		// Update to show all ratings avaliable
+		let movieInfo = '';
+		if (imdbInfo?.Staff) {
+			movieInfo += Object.entries(imdbInfo.Staff)
+				.map(
+					(staff) =>
+						`[*][B]${splitPascalCase(staff[0])}: [/B] ${staff[1].join(', ')}\n`
+				)
+				.join('');
+		}
+		if (imdbInfo?.ContentRating) {
+			movieInfo += `[*][B]Content Rating: [/B] ${imdbInfo.ContentRating}\n`;
+		}
+		if (imdbInfo?.Genres) {
+			movieInfo += `[*][B]Genre: [/B] ${imdbInfo.Genres.join(', ')}\n`;
+		}
+		if (imdbInfo?.Details?.ReleaseDate) {
+			movieInfo += `[*][B]Release Date: [/B] ${imdbInfo.Details.ReleaseDate.join(
+				', '
+			)}\n`;
+		}
+		if (imdbInfo?.TechSpecs) {
+			movieInfo += Object.entries(imdbInfo.TechSpecs)
+				.map(
+					(detail) =>
+						`[*][B]${splitPascalCase(detail[0])}: [/B] ${
+							Array.isArray(detail[1]) ? detail[1]?.join(', ') : detail[1]
+						}\n`
+				)
+				.join('');
+		}
+		if (imdbInfo?.Details?.ProductionCompanies) {
+			movieInfo += `[*][B]Production: [/B] ${imdbInfo.Details.ProductionCompanies.join(
+				', '
+			)}\n`;
+		}
+		movieInfo = movieInfo
+			? `\n[hr][/hr][indent][size=6][forumcolor][b]Movie Info[/b][/forumcolor][/size][/indent]\n[LIST]${movieInfo}[/LIST]\n`
+			: '';
+		return {
+			Poster: imdbInfo?.Poster
+				? `[center][img width='350px']${imdbInfo.Poster}[/img][/center]\n`
+				: '',
+			Title: `[center][forumcolor][b][size=6][url='https://blackpearl.biz/search/1/?q=${
+				imdbInfo?.ID || ''
+			}&o=date']${
+				imdbInfo?.Title || ''
+			}[/url][/size][/b][/forumcolor][/center]\n`,
+			Rating: imdbInfo?.Ratings?.Star
+				? `[size=6]${imdbInfo.Ratings.Star}[/size][/center]\n`
+				: '[/center]\n',
+			TotalRatings: imdbInfo?.Ratings?.Total
+				? `[center][img]https://i.imgur.com/sEpKj3O.png[/img][size=6]${imdbInfo.Ratings.Total}[/size][/center]\n`
+				: '',
+			Plot: imdbInfo?.Plot
+				? `[hr][/hr][indent][size=6][forumcolor][b]Plot[/b][/forumcolor][/size][/indent]\n\n${imdbInfo.Plot}`
+				: '',
+			Search: imdbInfo?.ID
+				? `[center][url=https://www.imdb.com/title/${imdbInfo.ID}][img width='46px']https://i.imgur.com/KO5Twbs.png[/img][/url]`
+				: '[center][img width="46px"]https://i.imgur.com/KO5Twbs.png[/img][/url]',
+			Details: movieInfo,
+			Genres: imdbInfo?.Genres,
+			TitleSimple: imdbInfo?.Title,
+		};
 	}
-	return `[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`;
 }
 
-// Handle BBCode for Screenshots
-function ScreenshotHandler(screenshots) {
-	var screen = `\n[hr][/hr][indent][size=6][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [spoiler='screenshots']\n`;
-	for (let ss of screenshots) {
-		screen += `[img]${ss}[/img]`;
+///////////////////////////////////////////////////////////////////////////
+//                                Undefined                              //
+///////////////////////////////////////////////////////////////////////////
+const GenerateExtras = (titleBool, mediainfo, title, genres) => {
+	const mediaScraper = new Mediainfo(mediainfo);
+	const media = mediaScraper.create();
+	let tags = genres ? genres : [];
+	if (media.video?.includes('Dolby Vision')) {
+		tags.push('Dolby Vision');
+		title += titleBool ? ' Dolby Vision' : '';
 	}
-	screen += `[/spoiler]`;
-	return screen;
-}
+	if (media.video?.includes('HDR10+ Profile')) {
+		tags.push('hdr10plus');
+		title += titleBool ? ' HDR10Plus' : '';
+	} else if (media.video?.includes('HDR10 Compatible')) {
+		tags.push('hdr10');
+		title += titleBool ? ' HDR10' : '';
+	}
+	return {
+		title: title,
+		tags: tags,
+		mediainfo: `[hr][/hr][indent][size=6][forumcolor][b]Media Info[/b][/forumcolor][/size][/indent]\n[spoiler='Click here to view Media Info']\n${mediainfo}\n[/spoiler]\n`,
+	};
+};
 
-// Parses Mediainfo for Title values
-function ParseMediaInfo(mediaInfo, premadeTitle) {
-	let videoInfo = mediaInfo.match(/(Video|Video #1)$.*?(?=\n{2,})/ms);
-	if (videoInfo) {
-		videoInfo = videoInfo[0];
-		let videoWidth = videoInfo.match(/Width.*/);
-		if (videoWidth) {
-			videoWidth = videoWidth[0];
-			if (videoWidth.includes('3 840')) {
-				premadeTitle += ' 2160p';
-			} else if (videoWidth.includes('1 920')) {
-				premadeTitle += ' 1080p';
-			} else if (videoWidth.includes('1 280')) {
-				premadeTitle += ' 720p';
-			} else if (videoWidth.includes('720')) {
-				premadeTitle += ' 480p';
+const PasteToForum = (forumBBcode, tags, title, titleBool) => {
+	try {
+		document.getElementsByName('message')[0].value = forumBBcode;
+	} catch (err) {
+		RemoveAllChildNodes(
+			document.getElementsByClassName('fr-element fr-view')[0]
+		);
+		let p = document.createElement('p');
+		p.innerText = forumBBcode;
+		document.getElementsByClassName('fr-element fr-view')[0].appendChild(p);
+	} finally {
+		if (tags) {
+			document.getElementsByName('tags')[0].value = tags.join(', ');
+			for (let tag of tags) {
+				TagsPush(tag);
 			}
 		}
-		let videoWritingLib = videoInfo.match(/Writing library.*/);
-		if (
-			videoWritingLib &&
-			(videoWritingLib[0].includes('x265') ||
-				videoWritingLib[0].includes('x264'))
-		) {
-			videoWritingLib = videoWritingLib[0];
-			if (videoWritingLib.includes('x265')) {
-				premadeTitle += ' x265';
-			} else if (videoWritingLib.includes('x264')) {
-				premadeTitle += ' x264';
-			}
-		} else {
-			let videoFormat = videoInfo.match(/Format.*/);
-			if (videoFormat) {
-				videoFormat = videoFormat[0];
-				if (videoFormat.includes('HEVC')) {
-					premadeTitle += ' HEVC';
-				} else if (videoFormat.includes('AVC')) {
-					premadeTitle += ' AVC';
-				}
-			}
-		}
-		let videoBitDepth = videoInfo.match(/Bit depth.*/);
-		if (videoBitDepth) {
-			videoBitDepth = videoBitDepth[0];
-			premadeTitle += videoBitDepth.match(/\d.*/)
-				? ` ${videoBitDepth.match(/\d.*/)[0].replace(' bits', 'bit')}`
-				: '';
+		if (titleBool) {
+			document.getElementsByClassName('js-titleInput')[0].value =
+				premadeTitle.title;
 		}
 	}
-	let audioInfo = mediaInfo.match(/(Audio|Audio #1)$.*?(?=\n{2,})/ms);
-	if (audioInfo) {
-		audioInfo = audioInfo[0];
-		let audioCodec = audioInfo.match(/Codec ID.*/);
-		if (audioCodec) {
-			audioCodec = audioCodec[0];
-			premadeTitle += audioCodec.match(/(?<=A_).*/)
-				? ` ${audioCodec.match(/(?<=A_).*/)[0]}`
-				: '';
-		}
-	}
-	let size = '';
-	if (sectionType === 'movies') {
-		let generalInfo = mediaInfo.match(/General$.*?(?=\n{2,})/ms);
-		if (generalInfo) {
-			generalInfo = generalInfo[0];
-			let mediaSize = generalInfo.match(/File size.*/);
-			if (mediaSize) {
-				mediaSize = mediaSize[0];
-				size = mediaSize.match(/\d.*/)
-					? ` [${mediaSize.match(/\d.*/)[0]}]`
-					: '';
-			}
-		}
-	}
-	return { title: premadeTitle, size: size };
-}
+};
 
-// Handles Generation of BBcode Template
-function GenerateTemplate(APIVALUE) {
-	var [imdbID, screenshots, youtubeLink, downloadLinks, mediaInfo] = [
-		document.getElementById('hiddenIID').value
-			? document.getElementById('hiddenIID').value
-			: document.getElementById('searchID').value,
-		document.getElementById('screensLinks').value,
-		document.getElementById('ytLink').value,
+const generateTemplate = async () => {
+	var [imdbInput, downloadLinks, mediaInfo] = [
+		document.getElementById('searchID').value,
 		document.getElementById('ddl').value,
 		document.getElementById('mediaInfo').value,
 	];
-	if (imdbID.includes('imdb')) {
-		imdbID = imdbID.match(/tt\d+/)[0];
-	}
-	if (!imdbID || !downloadLinks || !mediaInfo) {
+	if (!imdbInput || !downloadLinks || !mediaInfo) {
 		let errors = '';
-		errors += !imdbID
-			? "<li>You Didn't Select A Title or Enter a IMDB ID!</li>"
-			: '';
+		errors += !imdbInput ? "<li>You Didn't Enter an IMDB ID or Link!</li>" : '';
 		errors += !downloadLinks
 			? "<li>You Forgot Your Download Link! That's Pretty Important...!</li>"
 			: '';
@@ -447,142 +687,63 @@ function GenerateTemplate(APIVALUE) {
 		Popup(errors);
 		return;
 	}
-	let downloadLinksBBCode = DownloadLinkHandler(downloadLinks);
-	var screen = screenshots ? ScreenshotHandler(screenshots.split(' ')) : '';
+	const bbcodeHandler = new BBCodeGenerator();
+	const downloadBBCode = bbcodeHandler.download(downloadLinks);
+	const screenshotsBBCode = bbcodeHandler.screenshots(
+		document.querySelector('#screensLinks').value
+	);
+	let youtubeLink = document.getElementById('ytLink').value;
+
 	var trailer = youtubeLink.match(/[a-z]/)
 		? `\n[hr][/hr][indent][size=6][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n ${youtubeLink}`
 		: '';
-	GM_xmlhttpRequest({
-		method: 'GET',
-		url: `https://www.omdbapi.com/?apikey=${APIVALUE}&i=${imdbID}&plot=full&y&r=json`,
-		onload: function (response) {
-			try {
-				var json = JSON.parse(response.responseText);
-			} catch (e) {
-				let errors =
-					'<li>Something Messed Up! Check The OMDB Error Below.</li>';
-				errors += `<li>${response.responseText}</li>`;
-				Popup(errors);
-				return;
-			}
-			let poster =
-				json.Poster && json.Poster !== 'N/A'
-					? `[center][img width='350px']${json.Poster.replace(
-							/._V1_SX\d+.jpg/g,
-							'._V1_SX1000.png'
-					  )}[/img][/center]\n`
-					: '';
-			if (json.Title) {
-				var title = json.Title && json.Title !== 'N/A' ? json.Title : '';
-			} else {
-				let errors =
-					'<li>Something Messed Up! Check The OMDB Error Below.</li>';
-				errors += `<li>${json.Error}</li>`;
-				Popup(errors);
-				return;
-			}
-			let year = json.Year && json.Year !== 'N/A' ? ` (${json.Year})` : '';
-			let fullName = `[center][forumcolor][b][size=6][url='https://blackpearl.biz/search/1/?q=${imdbID}&o=date']${title}${year}[/url][/size][/b][/forumcolor][/center]`;
-			imdbID =
-				json.imdbID && json.imdbID !== 'N/A'
-					? `[center][url=https://www.imdb.com/title/${json.imdbID}][img width='46px']https://i.imgur.com/KO5Twbs.png[/img][/url]`
-					: '[center][img width="46px"]https://i.imgur.com/KO5Twbs.png[/img][/url]';
-			let rating =
-				json.imdbRating && json.imdbRating !== 'N/A'
-					? `[size=6][b]${json.imdbRating}[/b]/10[/size][/center]\n`
-					: '[/center]\n';
-			let imdbvotes =
-				json.imdbVotes && json.imdbVotes !== 'N/A'
-					? `[center][img]https://i.imgur.com/sEpKj3O.png[/img][size=6]${json.imdbVotes}[/size][/center]\n`
-					: '';
-			let plot =
-				json.Plot && json.Plot !== 'N/A'
-					? `[hr][/hr][indent][size=6][forumcolor][b]Plot[/b][/forumcolor][/size][/indent]\n\n${json.Plot}`
-					: '';
-			let movieInfo = '';
-			if (json.Rated && json.Rated !== 'N/A') {
-				movieInfo += `[*][B]Rating: [/B] ${json.Rated}\n`;
-			}
-			if (json.Genre && json.Genre !== 'N/A') {
-				movieInfo += `[*][B]Genre: [/B] ${json.Genre}\n`;
-			}
-			if (json.Director && json.Director !== 'N/A') {
-				movieInfo += `[*][B]Directed By: [/B] ${json.Director}\n`;
-			}
-			if (json.Writer && json.Writer !== 'N/A') {
-				movieInfo += `[*][B]Written By: [/B] ${json.Writer}\n`;
-			}
-			if (json.Actors && json.Actors !== 'N/A') {
-				movieInfo += `[*][B]Starring: [/B] ${json.Actors}\n`;
-			}
-			if (json.Released && json.Released !== 'N/A') {
-				movieInfo += `[*][B]Release Date: [/B] ${json.Released}\n`;
-			}
-			if (json.Awards && json.Awards !== 'N/A') {
-				movieInfo += `[*][B]Awards: [/B] ${json.Awards}\n`;
-			}
-			if (json.Runtime && json.Runtime !== 'N/A') {
-				movieInfo += `[*][B]Runtime: [/B] ${json.Runtime}\n`;
-			}
-			if (json.Production && json.Production !== 'N/A') {
-				movieInfo += `[*][B]Production: [/B] ${json.Production}\n`;
-			}
-			movieInfo = movieInfo
-				? `\n[hr][/hr][indent][size=6][forumcolor][b]Movie Info[/b][/forumcolor][/size][/indent]\n[LIST]${movieInfo}[/LIST]\n`
-				: '';
-			let titleBool =
-				!document.getElementsByClassName('js-titleInput')[0].value;
-			let premadeTitle = '';
-			if (titleBool) {
-				premadeTitle = ParseMediaInfo(mediaInfo, `${json.Title} (${json.Year})`);
-			}
-			let tags = json.Genre && json.Genre !== 'N/A' ? json.Genre : '';
-			if (mediaInfo.includes('Dolby Vision')) {
-				tags += ', Dolby Vision';
-				premadeTitle.title += titleBool ? ' Dolby Vision' : '';
-			}
-			if (mediaInfo.includes('HDR10+ Profile')) {
-				tags += ', hdr10plus';
-				premadeTitle.title += titleBool ? ' HDR10Plus' : '';
-			} else if (mediaInfo.includes('HDR10 Compatible')) {
-				tags += ', hdr10';
-				premadeTitle.title += titleBool ? ' HDR10' : '';
-			}
-			if (premadeTitle.size) {
-				premadeTitle.title += premadeTitle.size
-			}
-			tags = tags.replace(/^([, ]*)/g, '');
-			mediaInfo =
-				'[hr][/hr][indent][size=6][forumcolor][b]Media Info[/b][/forumcolor][/size][/indent]\n' +
-				`[spoiler='Click here to view Media Info']\n${mediaInfo}\n[/spoiler]\n`;
-			let forumBBcode = `${poster}${fullName}${imdbID} ${rating}${imdbvotes}${plot}${trailer}${screen}${movieInfo}${mediaInfo}${downloadLinksBBCode}`;
-			try {
-				document.getElementsByName('message')[0].value = forumBBcode;
-			} catch (err) {
-				RemoveAllChildNodes(
-					document.getElementsByClassName('fr-element fr-view')[0]
-				);
-				let p = document.createElement('p');
-				p.innerText = forumBBcode;
-				document.getElementsByClassName('fr-element fr-view')[0].appendChild(p);
-			} finally {
-				if (tags) {
-					document.getElementsByName('tags')[0].value = tags;
-					tags = tags.split(', ');
-					for (let tag of tags) {
-						TagsPush(tag);
-					}
-				}
-				if (titleBool) {
-					document.getElementsByClassName('js-titleInput')[0].value =
-						premadeTitle.title;
-				}
-			}
-		},
-	});
-}
+	const imdbInfo = await bbcodeHandler.imdb(imdbInput);
+	/*
+	 *
+	 * Everything below needs fixing
+	 *
+	 */
+	let titleBool = !document.getElementsByClassName('js-titleInput')[0].value;
+	const extras = GenerateExtras(
+		titleBool,
+		mediaInfo,
+		imdbInfo.TitleSimple,
+		imdbInfo.Genres
+	);
+	PasteToForum(
+		`${imdbInfo.Poster}${imdbInfo.Title}${imdbInfo.Search} ${imdbInfo.Rating}${imdbInfo.TotalRatings}${imdbInfo.Plot}${trailer}${screenshotsBBCode}${imdbInfo.Details}${extras.mediainfo}${downloadBBCode}`,
+		extras.tags,
+		extras.title,
+		titleBool
+	);
+};
 
-GM_addStyle(`                                                     
+const main = () => {
+	document.getElementsByTagName('dd')[0].innerHTML += htmlTemplate;
+	document.querySelector('#hideTemplate').addEventListener(
+		'click',
+		() => {
+			HideTemplate();
+		},
+		false
+	);
+	document.querySelector('#showTemplate').addEventListener(
+		'click',
+		() => {
+			ShowTemplate();
+		},
+		false
+	);
+	document.querySelector('#generateTemplate').addEventListener(
+		'click',
+		() => {
+			generateTemplate();
+		},
+		false
+	);
+};
+
+GM_addStyle(`
 @media screen and (min-width: 300px) {
 	/* Reactscore & Posts */
 	input[type='number'] {
@@ -713,3 +874,5 @@ GM_addStyle(`
 		border-radius: 50%;
 	}
 }`);
+
+main();

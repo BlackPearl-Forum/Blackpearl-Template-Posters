@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Blackpearl Movie/TV Template Generator
-// @version     4.0.2
+// @version     4.0.3
 // @description Template Maker
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png

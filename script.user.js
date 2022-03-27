@@ -9,7 +9,6 @@
 // @updateURL   https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/raw/Omdb/script.user.js
 // @downloadURL https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/raw/Omdb/script.user.js
 // @include     /^https:\/\/blackpearl\.biz\/forums\/(129|172|173|174|175|176|178|179|180|181|183|184|187|188|189|190|193|194|197|198|199|200|203|204|206|207|208|210|223)\/post-thread/
-// @require     https://code.jquery.com/jquery-3.6.0.min.js
 // @grant       GM_addStyle
 // @grant       GM.xmlHttpRequest
 // @run-at      document-end
@@ -336,12 +335,13 @@ const splitPascalCase = (word) => {
 };
 
 // Close Error Popup if overlay clicked
-$(document).click(function (e) {
+document.addEventListener('click', (element) => {
 	if (
-		(!$('#errBox').is(e.target) && $('#js-XFUniqueId2').is(e.target)) ||
-		$('.js-overlayClose').is(e.target)
+		(document.querySelector('#errBox') != element.target &&
+			document.querySelector('#js-XFUniqueId2') == element.target) ||
+		document.querySelector('.js-overlayClose') == element.target
 	) {
-		document.getElementsByName('errorpopup')[0].remove();
+		document.querySelector('[name="errorpopup"]').remove();
 	}
 });
 

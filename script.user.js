@@ -378,7 +378,7 @@ const Popup = (errors) => {
  * @param tag String containing tag that should be added to the forum.
  */
 const TagsPush = (tag) => {
-	let tagOutput = tagSelect.replace(/tagname/g, tag);
+	const tagOutput = tagSelect.replace(/tagname/g, tag);
 	let tagParent = document.getElementsByClassName(
 		'select2-selection__rendered'
 	)[1];
@@ -711,7 +711,7 @@ const PasteToForum = (forumBBcode, tags, title, titleBool) => {
 };
 
 const generateTemplate = async () => {
-	var [imdbInput, downloadLinks, mediaInfo] = [
+	const [imdbInput, downloadLinks, mediaInfo] = [
 		document.getElementById('searchID').value,
 		document.getElementById('ddl').value,
 		document.getElementById('mediaInfo').value,
@@ -733,13 +733,12 @@ const generateTemplate = async () => {
 	const screenshotsBBCode = bbcodeHandler.screenshots(
 		document.querySelector('#screensLinks').value
 	);
-	let youtubeLink = document.getElementById('ytLink').value;
-
-	var trailer = youtubeLink.match(/[a-z]/)
+	const youtubeLink = document.getElementById('ytLink').value;
+	const trailer = youtubeLink.match(/[a-z]/)
 		? `\n[hr][/hr][indent][size=6][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n ${youtubeLink}`
 		: '';
 	const imdbInfo = await bbcodeHandler.imdb(imdbInput);
-	let titleBool = !document.getElementsByClassName('js-titleInput')[0].value;
+	const titleBool = !document.getElementsByClassName('js-titleInput')[0].value;
 	const extras = GenerateExtras(
 		mediaInfo,
 		imdbInfo.TitleSimple,

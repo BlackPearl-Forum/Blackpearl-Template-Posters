@@ -452,7 +452,7 @@ class Mediainfo {
 	 * Returns Null if Invalid or Unknown
 	 */
 	get videoResolution() {
-		switch (this.video?.match(/(?<=Width.*)\d(\s)?\d+/)[0] || null) {
+		switch (this.video?.match(/(?<=Width.*)\d(\s)?\d+/)?.[0]) {
 			case '3 840':
 				return '2160p';
 			case '1 920':
@@ -472,10 +472,10 @@ class Mediainfo {
 	 * Returns Null if Invalid or Unknown
 	 */
 	get videoWritingLib() {
-		const videoLib = this.VideoLibrary?.match(/Writing library.*/)[0] || null;
-		return videoLib
-			? videoLib
-			: this.VideoLibrary?.match(/(?<=Format.*\s)\w{3,4}\n/)[0] || null;
+		return (
+			this.video?.match(/Writing library.*(x264|x265)/)?.[1] ||
+			this.video?.match(/(?<=Format.*\s)\w{3,4}\n/)?.[0]
+		);
 	}
 
 	/**
@@ -484,9 +484,7 @@ class Mediainfo {
 	 * Returns Null if Invalid or Unknown
 	 */
 	get videoBitDepth() {
-		return (
-			this.BitDepth?.match(/(?<=Bit depth.*)\d+/)[0]?.concat('Bit') || null
-		);
+		return this.video?.match(/(?<=Bit depth.*)\d+/)?.[0].concat('Bit');
 	}
 
 	/**
@@ -495,7 +493,7 @@ class Mediainfo {
 	 * Returns Null if Invalid or Unknown
 	 */
 	get audioCodec() {
-		return this.audio?.match(/(?<=Codec ID.*A_)\w+/)[0] || null;
+		return this.audio?.match(/(?<=Codec ID.*A_)\w+/)?.[0];
 	}
 
 	/**
@@ -504,9 +502,9 @@ class Mediainfo {
 	 * Returns Null if Invalid or Unknown
 	 */
 	get fileSize() {
-		return (
-			this.size?.match(/(?<=File size.*)\d+\s\w+/).replace('i', '') || null
-		);
+		return this.general
+			?.match(/(?<=File size.*)\d+\s\w+/)?.[0]
+			.replace('i', '');
 	}
 }
 
@@ -625,20 +623,34 @@ class BBCodeGenerator {
 ///////////////////////////////////////////////////////////////////////////
 //                                Undefined                              //
 ///////////////////////////////////////////////////////////////////////////
-const GenerateExtras = (titleBool, mediainfo, title, genres) => {
+const GenerateExtras = (mediainfo, title, genres) => {
 	const mediaScraper = new Mediainfo(mediainfo);
 	const media = mediaScraper.create();
 	let tags = genres ? genres : [];
+	title = [
+		title,
+		media.VideoResolution,
+		media.BitDepth,
+		media.VideoLibrary,
+	].join(' ');
 	if (media.video?.includes('Dolby Vision')) {
 		tags.push('Dolby Vision');
-		title += titleBool ? ' Dolby Vision' : '';
+		title += ' Dolby Vision';
 	}
 	if (media.video?.includes('HDR10+ Profile')) {
 		tags.push('hdr10plus');
-		title += titleBool ? ' HDR10Plus' : '';
+		title += ' HDR10Plus';
 	} else if (media.video?.includes('HDR10 Compatible')) {
 		tags.push('hdr10');
-		title += titleBool ? ' HDR10' : '';
+		title += ' HDR10';
+	}
+	title += ` ${media.AudioCodec}`;
+	if (
+		[
+			129, 172, 173, 174, 175, 176, 178, 179, 180, 181, 183, 184, 202, 204,
+		].includes(parseInt(window.location.href.match(/\d+/, '')[0]))
+	) {
+		title += ` ${media.Size}`;
 	}
 	return {
 		title: title,
@@ -706,7 +718,6 @@ const generateTemplate = async () => {
 	 */
 	let titleBool = !document.getElementsByClassName('js-titleInput')[0].value;
 	const extras = GenerateExtras(
-		titleBool,
 		mediaInfo,
 		imdbInfo.TitleSimple,
 		imdbInfo.Genres

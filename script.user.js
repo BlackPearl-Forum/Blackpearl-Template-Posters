@@ -484,7 +484,9 @@ class Mediainfo {
 	 * Returns Null if Invalid or Unknown
 	 */
 	get videoBitDepth() {
-		return this.BitDepth?.match(/(?<=Bit depth.*)\d+/)[0]?.concat('Bit') || null;
+		return (
+			this.BitDepth?.match(/(?<=Bit depth.*)\d+/)[0]?.concat('Bit') || null
+		);
 	}
 
 	/**
@@ -663,8 +665,7 @@ const PasteToForum = (forumBBcode, tags, title, titleBool) => {
 			}
 		}
 		if (titleBool) {
-			document.getElementsByClassName('js-titleInput')[0].value =
-				premadeTitle.title;
+			document.getElementsByClassName('js-titleInput')[0].value = title;
 		}
 	}
 };

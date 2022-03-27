@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Blackpearl Movie/TV Template Generator
-// @version     4.0.0
+// @version     4.0.1
 // @description Template Maker
 // @author      Blackpearl_Team
 // @icon        https://blackpearl.biz/favicon.png
@@ -472,10 +472,10 @@ class Mediainfo {
 	 * Returns Null if Invalid or Unknown
 	 */
 	get videoWritingLib() {
-		const videoLib = this.video?.match(/(?<=Writing library.*)x\d+/)[0] || null;
+		const videoLib = this.VideoLibrary?.match(/Writing library.*/)[0] || null;
 		return videoLib
 			? videoLib
-			: this.video?.match(/(?<=Format.*\s)\w{3,4}\n/)[0] || null;
+			: this.VideoLibrary?.match(/(?<=Format.*\s)\w{3,4}\n/)[0] || null;
 	}
 
 	/**
@@ -484,7 +484,7 @@ class Mediainfo {
 	 * Returns Null if Invalid or Unknown
 	 */
 	get videoBitDepth() {
-		return this.video?.match(/(?<=Bit depth.*)\d+/)[0]?.concat('Bit') || null;
+		return this.BitDepth?.match(/(?<=Bit depth.*)\d+/)[0]?.concat('Bit') || null;
 	}
 
 	/**
@@ -503,7 +503,7 @@ class Mediainfo {
 	 */
 	get fileSize() {
 		return (
-			this.general?.match(/(?<=File size.*)\d+\s\w+/).replace('i', '') || null
+			this.size?.match(/(?<=File size.*)\d+\s\w+/).replace('i', '') || null
 		);
 	}
 }

@@ -453,7 +453,7 @@ class Mediainfo {
 	/**
 	 * Returns String of the corresponding resolution based on Video Width.
 	 *
-	 * Returns Null if Invalid or Unknown
+	 * Returns Empty String if Invalid or Unknown
 	 */
 	get videoResolution() {
 		switch (this.video?.match(/(?<=Width.*)\d(\s)?\d+/)?.[0]) {
@@ -466,49 +466,51 @@ class Mediainfo {
 			case '720':
 				return '480p';
 			default:
-				return null;
+				return '';
 		}
 	}
 
 	/**
 	 * Returns String containing first video Libaray or Format
 	 *
-	 * Returns Null if Invalid or Unknown
+	 * Returns Empty String if Invalid or Unknown
 	 */
 	get videoWritingLib() {
 		return (
 			this.video?.match(/Writing library.*(x264|x265)/)?.[1] ||
-			this.video?.match(/(?<=Format.*\s)\w{3,4}\n/)?.[0]
+			this.video?.match(/(?<=Format.*\s)\w{3,4}\n/)?.[0] ||
+			''
 		);
 	}
 
 	/**
 	 * Returns String containing first video Bit Depth
 	 *
-	 * Returns Null if Invalid or Unknown
+	 * Returns Empty String if Invalid or Unknown
 	 */
 	get videoBitDepth() {
-		return this.video?.match(/(?<=Bit depth.*)\d+/)?.[0].concat('Bit');
+		return this.video?.match(/(?<=Bit depth.*)\d+/)?.[0].concat('Bit') || '';
 	}
 
 	/**
 	 * Returns String containing first audio Codec
 	 *
-	 * Returns Null if Invalid or Unknown
+	 * Returns Empty String if Invalid or Unknown
 	 */
 	get audioCodec() {
-		return this.audio?.match(/(?<=Codec ID.*A_)\w+/)?.[0];
+		return this.audio?.match(/(?<=Codec ID.*A_)\w+/)?.[0] || '';
 	}
 
 	/**
 	 * Returns String containing the File Size.
 	 *
-	 * Returns Null if Invalid or Unknown
+	 * Returns Empty String if Invalid or Unknown
 	 */
 	get fileSize() {
-		return this.general
-			?.match(/(?<=File size.*)\d+\s\w+/)?.[0]
-			.replace('i', '');
+		return (
+			this.general?.match(/(?<=File size.*)\d+\s\w+/)?.[0].replace('i', '') ||
+			''
+		);
 	}
 }
 

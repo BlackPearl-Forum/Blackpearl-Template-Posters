@@ -526,8 +526,8 @@ class BBCodeGenerator {
 		var suffix = ['\n[/center]', '[/hidereact]'];
 		const reactCount = document.getElementById('HideReactScore').value;
 		if (reactCount !== '0') {
-			BBcodePrefix.push(`[hidereactscore=${reactCount}]`);
-			BBCodeSuffix.unshift('[/hidereactscore]');
+			prefix.push(`[hidereactscore=${reactCount}]`);
+			suffix.unshift('[/hidereactscore]');
 		}
 		const postsCount = document.getElementById('HidePosts').value;
 		if (postsCount !== '0') {

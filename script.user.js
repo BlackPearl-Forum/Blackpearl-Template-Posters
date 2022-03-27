@@ -538,7 +538,7 @@ class BBCodeGenerator {
 	}
 
 	screenshots(links) {
-		if (!links) return;
+		if (!links) return '';
 		const imageBBCode = links
 			.split(' ')
 			.map((link) => `[img]${link}[/img]`)

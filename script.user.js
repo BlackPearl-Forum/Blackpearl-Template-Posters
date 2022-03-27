@@ -327,6 +327,10 @@ const titleCase = (str) => {
 	return str.join(' ');
 };
 
+/**
+ * Converts the text in a string to pascal case (Title Case)
+ * @param word String that contains text.
+ */
 const splitPascalCase = (word) => {
 	return word.match(/($[a-z])|[A-Z][^A-Z]+/g).join(' ');
 };
@@ -516,6 +520,10 @@ class Mediainfo {
  * Handles all generation of BBCode
  */
 class BBCodeGenerator {
+	/**
+	 * Generates BBCode for Download Links.
+	 * @param links - String that contains 1 or more link to process (Seperated by spaces)
+	 */
 	download(links) {
 		links = document.getElementById('Downcloud').checked
 			? links.split(' ').map((link) => `[downcloud]${link}[/downcloud]\n`)
@@ -536,7 +544,10 @@ class BBCodeGenerator {
 		}
 		return prefix.join('') + links.join('') + suffix.join('');
 	}
-
+	/**
+	 * Generates BBCode for Screenshot Images.
+	 * @param links - String that contains 1 or more link to process (Seperated by spaces)
+	 */
 	screenshots(links) {
 		if (!links) return '';
 		const imageBBCode = links
@@ -545,7 +556,10 @@ class BBCodeGenerator {
 			.join('');
 		return `\n[hr][/hr][indent][size=6][forumcolor][b]Screenshots[/b][/forumcolor][/size][/indent]\n [spoiler='Screenshots']\n${imageBBCode}[/spoiler]`;
 	}
-
+	/**
+	 * Generates BBCode based on IMDB Scraper.
+	 * @param link - String that contains IMDB title url.
+	 */
 	async imdb(link) {
 		const scraper = new Imdb();
 		await scraper.requestUrl(link);
@@ -621,8 +635,15 @@ class BBCodeGenerator {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-//                                Undefined                              //
+//                            Main Generation                            //
 ///////////////////////////////////////////////////////////////////////////
+
+/**
+ * Create's extra BBCode not related to the body message.
+ * @param mediainfo String that contains FULL mediainfo from Mediainfo Application
+ * @param title String that contains the Title from the IMDB Scraper.
+ * @param genres Array that contains the Generes from the IMDB Scraper.
+ */
 const GenerateExtras = (mediainfo, title, genres) => {
 	const mediaScraper = new Mediainfo(mediainfo);
 	const media = mediaScraper.create();
@@ -659,6 +680,13 @@ const GenerateExtras = (mediainfo, title, genres) => {
 	};
 };
 
+/**
+ * Send's generated data into DOM
+ * @param forumBBcode String that contains FULL body message we want to send.
+ * @param tags Array that contains the tags we want to add to the post.
+ * @param title String that contains the Full title of the post.
+ * @param titleBool Boolean to send title data.
+ */
 const PasteToForum = (forumBBcode, tags, title, titleBool) => {
 	try {
 		document.getElementsByName('message')[0].value = forumBBcode;
@@ -711,11 +739,6 @@ const generateTemplate = async () => {
 		? `\n[hr][/hr][indent][size=6][forumcolor][b]Trailer[/b][/forumcolor][/size][/indent]\n ${youtubeLink}`
 		: '';
 	const imdbInfo = await bbcodeHandler.imdb(imdbInput);
-	/*
-	 *
-	 * Everything below needs fixing
-	 *
-	 */
 	let titleBool = !document.getElementsByClassName('js-titleInput')[0].value;
 	const extras = GenerateExtras(
 		mediaInfo,
@@ -730,6 +753,15 @@ const generateTemplate = async () => {
 	);
 };
 
+///////////////////////////////////////////////////////////////////////////
+//                                  Main                                 //
+///////////////////////////////////////////////////////////////////////////
+
+/**
+ * The main function being ran.
+ * Pushes our HTML to the DOM.
+ * Generates Event Listeners on our buttons.
+ */
 const main = () => {
 	document.getElementsByTagName('dd')[0].innerHTML += htmlTemplate;
 	document.querySelector('#hideTemplate').addEventListener(

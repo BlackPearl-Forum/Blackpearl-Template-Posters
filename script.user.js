@@ -229,14 +229,13 @@ const SearchDiscog = (APIVALUE) => {
  */
 const CheckApiStatus = async (url) => {
 	return RequestUrl('GET', url)
-		.then(function (response) {
+		.then((response) => {
 			if (!response.ok) {
 				if (response.status === 401) {
-					let data = JSON.parse(response.responseText);
-					let errors =
-						'<li>Something Messed Up! Check The Discog Error Below.</li>';
-					errors += `<li>${data.message}</li>`;
-					Popup(errors);
+					const data = JSON.parse(response.responseText);
+					Popup(
+						`<li>Something Messed Up! Check The Discog Error Below.</li>\n<li>${data.message}</li>`
+					);
 					throw Error('401 Response');
 				}
 			} else {
@@ -246,15 +245,14 @@ const CheckApiStatus = async (url) => {
 			}
 			return response;
 		})
-		.then(function (response) {
+		.then((response) => {
 			return true;
 		})
-		.catch(function (error) {
+		.catch((error) => {
 			if (error.message !== '401 Response') {
-				let errors =
-					'<li>Something Messed Up! Check The Discog Error Below.</li>';
-				errors += `<li>${error.message}</li>`;
-				Popup(errors);
+				Popup(
+					`<li>Something Messed Up! Check The Discog Error Below.</li>\n<li>${error.message}</li>`
+				);
 			}
 			console.error(error);
 			return false;

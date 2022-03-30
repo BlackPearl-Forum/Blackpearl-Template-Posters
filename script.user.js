@@ -9,7 +9,6 @@
 // @updateURL   https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/raw/Omdb/script.user.js
 // @downloadURL https://github.com/BlackPearl-Forum/Blackpearl-Template-Posters/raw/Omdb/script.user.js
 // @include     /^https:\/\/blackpearl\.biz\/forums\/(129|172|173|174|175|176|178|179|180|181|183|184|187|188|189|190|193|194|197|198|199|200|203|204|206|207|208|210|223)\/post-thread/
-// @grant       GM_addStyle
 // @grant       GM.xmlHttpRequest
 // @run-at      document-end
 // @connect     imdb.com
@@ -430,6 +429,17 @@ const RequestUrl = async (method, url, data, headers) => {
 	});
 };
 
+/**
+ * Adds CSS into DOM.
+ * @param {string} styleString Style to inject into HTML head
+ */
+const addStyle = (styleString) => {
+	const style = document.createElement('style');
+	style.textContent = styleString;
+	style.id = 'blackpearl-omdb-userscript';
+	document.head.append(style);
+};
+
 ///////////////////////////////////////////////////////////////////////////
 //                                 Mediainfo                             //
 ///////////////////////////////////////////////////////////////////////////
@@ -799,7 +809,7 @@ const main = () => {
 	);
 };
 
-GM_addStyle(`
+addStyle(`
 @media screen and (min-width: 300px) {
 	/* Reactscore & Posts */
 	input[type='number'] {

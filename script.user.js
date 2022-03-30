@@ -453,7 +453,7 @@ function SubmitToForum(albumDict, artistDict, quality, downloadLinks) {
 }
 
 // Handles Generation of BBcode Template
-async function GenerateTemplate(APIVALUE, lossless) {
+async function GenerateTemplate(APIVALUE) {
 	var [downloadLinks, qualityImages, qualityText, masterUrl] = [
 		document.getElementById('ddl').value,
 		document.getElementById('qImgs').value,

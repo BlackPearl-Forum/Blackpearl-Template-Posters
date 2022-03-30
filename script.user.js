@@ -322,26 +322,22 @@ async function AlbumHandler(albumURL) {
 	let styles = String();
 	if (albumjson.styles) {
 		styles = '[*][b][forumcolor]Style(s): [/b][/forumcolor] | ';
-		for (let i = 0; i < albumjson.styles.length; i++) {
-			styles += `[url=https://www.discogs.com/style/${albumjson.styles[
-				i
-			].replace(' ', '+')}]${albumjson.styles[i]}[/url] | `;
+		for (const style of albumjson.styles) {
+			styles += `[url=https://www.discogs.com/style/${style}].replace(' ', '+')}]${style}[/url] | `;
 		}
 	}
 	let genres = String();
 	if (albumjson.genres) {
 		genres = '\n[*][forumcolor][b]Genre(s): [/b][/forumcolor] | ';
-		for (let i = 0; i < albumjson.genres.length; i++) {
-			genres += `[url=https://www.discogs.com/genre/${albumjson.genres[
-				i
-			].replace(' ', '+')}]${albumjson.genres[i]}[/url] | `;
+		for (const genre of albumjson.genres) {
+			genres += `[url=https://www.discogs.com/genre/${genre}].replace(' ', '+')}]${genre}[/url] | `;
 		}
 	}
 	let videos = String();
 	if (albumjson.videos) {
 		videos = '[spoiler="Video(s)"]\n';
-		for (let i = 0; i < albumjson.videos.length; i++) {
-			videos += albumjson.videos[i].uri + '\n';
+		for (const video of albumjson.videos) {
+			videos += video.uri + '\n';
 		}
 		videos += '[/spoiler]\n';
 	}

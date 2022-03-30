@@ -263,12 +263,12 @@ const CheckApiStatus = async (url) => {
 
 // Check and Save API Key if valid
 const SaveApiKey = () => {
-	let discogKey = document.getElementById('dgKey').value;
+	const discogKey = document.getElementById('dgKey').value;
 	if (discogKey) {
-		let apiResult = CheckApiStatus(
+		const apiResult = CheckApiStatus(
 			`https://api.discogs.com/oauth/identity?token=${discogKey}`
 		);
-		apiResult.then(function (result) {
+		apiResult.then((result) => {
 			if (result) {
 				GM.setValue('DiscogKey', discogKey);
 				document.getElementById('discogGenerator').remove();
@@ -276,11 +276,11 @@ const SaveApiKey = () => {
 				Main();
 			}
 		});
-	} else {
-		let errors = '<li>Something Messed Up! Check The Error Below.</li>';
-		errors += `<li>No API Key found. Please check that you have entered your key and try again.</li>`;
-		Popup(errors);
+		return;
 	}
+	let errors = '<li>Something Messed Up! Check The Error Below.</li>';
+	errors += `<li>No API Key found. Please check that you have entered your key and try again.</li>`;
+	Popup(errors);
 };
 /**
  * Handles all generation of BBCode

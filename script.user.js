@@ -313,7 +313,8 @@ class Imdb {
 
 /**
  * Converts the text in a string to TitleCase
- * @param str String that contains text.
+ * @param {string} str text to convert
+ * @returns {string} TitleCased string
  */
 const titleCase = (str) => {
 	if (!str) {
@@ -328,7 +329,8 @@ const titleCase = (str) => {
 
 /**
  * Converts the text in a string to pascal case (Title Case)
- * @param word String that contains text.
+ * @param {string} word text to convert.
+ * @returns {string} TitleCase -> Title Case
  */
 const splitPascalCase = (word) => {
 	return word.match(/($[a-z])|[A-Z][^A-Z]+/g).join(' ');
@@ -364,8 +366,9 @@ const HideTemplate = () => {
 };
 
 /**
- * Adds a tag to the page.
- * @param tag String containing tag that should be added to the forum.
+ * Pop's up an error overlay
+ * @param {string} errors HTML Errors (li) that should be displayed to the user.
+ * @returns {void}
  */
 const Popup = (errors) => {
 	let errOutput = errPopup.replace('errormessages', errors);
@@ -374,8 +377,9 @@ const Popup = (errors) => {
 };
 
 /**
- * Adds a tag to the page.
- * @param tag String containing tag that should be added to the forum.
+ * Adds a tag to the post.
+ * @param {string} tag text to add to the post as a tag.
+ * @returns {void}
  */
 const TagsPush = (tag) => {
 	const tagOutput = tagSelect.replace(/tagname/g, tag);
@@ -392,7 +396,8 @@ const TagsPush = (tag) => {
 
 /**
  * Removes all children from a Node.
- * @param parent Node where the children should be removed from.
+ * @param {HTMLElement} parent parent node to remove children from.
+ * @returns {void}
  */
 const RemoveAllChildNodes = (parent) => {
 	while (parent.firstChild) {
@@ -402,10 +407,11 @@ const RemoveAllChildNodes = (parent) => {
 
 /**
  * Asyncronous XHR returning a Promise.
- * @param method String defining what request method should be used.
- * @param url String containing URL where the request should be sent.
- * @param data Any data to be sent with your request.
- * @param headers Object containing key and values to used as your header.
+ * @param {string} method HTTP method to use. [GET, HEAD, POST, etc]
+ * @param {string} url String containing URL where the request should be sent.
+ * @param {any} data Any data to be sent with your request.
+ * @param {object} headers Object containing key and values to used as your header.
+ * @returns {Promise<object>} HTTP Response
  */
 const RequestUrl = async (method, url, data, headers) => {
 	return new Promise((resolve, reject) => {
@@ -429,7 +435,7 @@ const RequestUrl = async (method, url, data, headers) => {
 ///////////////////////////////////////////////////////////////////////////
 /**
  * Handles scraping of Mediainfo
- * @param mediainfo String that contains FULL mediainfo from Mediainfo Application
+ * @param {string} mediainfo FULL mediainfo text from Mediainfo Application
  */
 class Mediainfo {
 	constructor(mediainfo) {
@@ -524,7 +530,8 @@ class Mediainfo {
 class BBCodeGenerator {
 	/**
 	 * Generates BBCode for Download Links.
-	 * @param links - String that contains 1 or more link to process (Seperated by spaces)
+	 * @param {string} links - Link(s) to be processed.
+	 * @returns {string} - Compiled BBCode.
 	 */
 	download(links) {
 		links = document.getElementById('Downcloud').checked
@@ -548,7 +555,8 @@ class BBCodeGenerator {
 	}
 	/**
 	 * Generates BBCode for Screenshot Images.
-	 * @param links - String that contains 1 or more link to process (Seperated by spaces)
+	 * @param {string} links - Link(s) to be processed.
+	 * @returns {string} - Compiled BBCode
 	 */
 	screenshots(links) {
 		if (!links) return '';
@@ -560,7 +568,8 @@ class BBCodeGenerator {
 	}
 	/**
 	 * Generates BBCode based on IMDB Scraper.
-	 * @param link - String that contains IMDB title url.
+	 * @param {string} link - IMDB ID or Link.
+	 * @returns {object} - Compiled BBCode
 	 */
 	async imdb(link) {
 		const scraper = new Imdb();
@@ -642,9 +651,10 @@ class BBCodeGenerator {
 
 /**
  * Create's extra BBCode not related to the body message.
- * @param mediainfo String that contains FULL mediainfo from Mediainfo Application
- * @param title String that contains the Title from the IMDB Scraper.
- * @param genres Array that contains the Generes from the IMDB Scraper.
+ * @param {string} mediainfo FULL mediainfo from Mediainfo Application
+ * @param {string} title Title from the IMDB Scraper.
+ * @param {array} genres Genres from the IMDB Scraper.
+ * @returns {object} - Compiled BBCode
  */
 const GenerateExtras = (mediainfo, title, genres) => {
 	const mediaScraper = new Mediainfo(mediainfo);
@@ -684,10 +694,11 @@ const GenerateExtras = (mediainfo, title, genres) => {
 
 /**
  * Send's generated data into DOM
- * @param forumBBcode String that contains FULL body message we want to send.
- * @param tags Array that contains the tags we want to add to the post.
- * @param title String that contains the Full title of the post.
- * @param titleBool Boolean to send title data.
+ * @param {string} forumBBcode Body Message for the post.
+ * @param {string[]} tags Tags to add to the post.
+ * @param {string} title Full title for the post.
+ * @param {boolean} titleBool Depict sending title data.
+ * @returns {void}
  */
 const PasteToForum = (forumBBcode, tags, title, titleBool) => {
 	try {

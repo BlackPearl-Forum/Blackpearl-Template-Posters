@@ -13,16 +13,16 @@
 // @require     https://code.jquery.com/ui/1.12.1/jquery-ui.js
 // @require     https://raw.githubusercontent.com/Semantic-Org/UI-Search/master/search.js
 // @require     https://raw.githubusercontent.com/Semantic-Org/UI-Api/master/api.js
-// @grant       GM_addStyle
-// @grant       GM_xmlhttpRequest
+// @grant       GM.xmlHttpRequest
 // @grant       GM.setValue
 // @grant       GM.getValue
 // @run-at      document-end
 // @connect     api.discogs.com
 // ==/UserScript==
 
-Main();
-
+///////////////////////////////////////////////////////////////////////////
+//                                  HTML                                 //
+///////////////////////////////////////////////////////////////////////////
 const htmlTemplate = `
 <button id="showTemplate" name="templateButton" style="display:none" type="button">Show</button>
 <div id="discogGenerator">
@@ -75,78 +75,49 @@ var tagSelect = `<li class="select2-selection__choice" title="tagname"><span cla
 
 const lossless = window.location.href.match(/\d+/, '').includes('88');
 
-// TODO: Add CheckApiStatus to Main
-function Main() {
-	GM.getValue('DiscogKey', 'foo').then((value) => {
-		const APIVALUE = value;
-		const htmlpush = document.getElementsByTagName('dd')[0];
-		htmlpush.innerHTML += APIVALUE !== 'foo' ? htmlTemplate : dginput;
-		document.getElementById('hideTemplate').addEventListener(
-			'click',
-			() => {
-				HideTemplate();
-			},
-			false
-		);
-		document.getElementById('showTemplate').addEventListener(
-			'click',
-			() => {
-				ShowTemplate();
-			},
-			false
-		);
-		if (APIVALUE !== 'foo') {
-			SearchDiscog(APIVALUE);
-			document.getElementById('generateTemplate').addEventListener(
-				'click',
-				() => {
-					GenerateTemplate(APIVALUE);
-				},
-				false
-			);
-		} else {
-			document.getElementById('saveKey').addEventListener(
-				'click',
-				() => {
-					SaveApiKey();
-				},
-				false
-			);
-		}
-	});
-}
-
+///////////////////////////////////////////////////////////////////////////
+//                                Utility                                //
+///////////////////////////////////////////////////////////////////////////
 // Close Error Popup if overlay clicked
-$(document).click(function (e) {
+document.addEventListener('click', (element) => {
 	if (
-		(!$('#errBox').is(e.target) & $('#js-XFUniqueId2').is(e.target)) |
-		$('.js-overlayClose').is(e.target)
+		(document.querySelector('#errBox') != element.target &&
+			document.querySelector('#js-XFUniqueId2') == element.target) ||
+		document.querySelector('.js-overlayClose') == element.target
 	) {
-		document.getElementsByName('errorpopup')[0].remove();
+		document.querySelector('[name="errorpopup"]').remove();
 	}
 });
 
-// Code behind Show button
-function ShowTemplate() {
+// Changes template to "shown" state
+const ShowTemplate = () => {
 	document.getElementById('showTemplate').style.display = 'none';
 	document.getElementById('discogGenerator').style.display = 'none';
-}
+};
 
-// Code behind Hide button
-function HideTemplate() {
+// Changes template to "hidden" state
+const HideTemplate = () => {
 	document.getElementById('showTemplate').style.display = 'block';
 	document.getElementById('discogGenerator').style.display = 'block';
-}
+};
 
-// Popup for Errors
-function Popup(errors) {
+/**
+ * Pop's up an error overlay
+ * @param {string} errors HTML Errors (li) that should be displayed to the user.
+ * @returns {void}
+ */
+const Popup = (errors) => {
 	let errOutput = errPopup.replace('errormessages', errors);
 	var body = document.getElementsByTagName('Body')[0];
 	body.insertAdjacentHTML('beforeend', errOutput);
-}
+};
 
-// Push Genre Tags to HTML
-function TagsPush(tag) {
+/**
+ * Adds a tag to the post.
+ * @param {string} tag text to add to the post as a tag.
+ * @returns {void}
+ */
+const TagsPush = (tag) => {
 	let tagOutput = tagSelect.replace(/tagname/g, tag);
 	let tagParent = document.getElementsByClassName(
 		'select2-selection__rendered'
@@ -157,17 +128,56 @@ function TagsPush(tag) {
 	option.value = tag;
 	tagParent.insertAdjacentHTML('afterbegin', tagOutput);
 	tagParent2.add(option);
-}
+};
 
-// Removes all Child nodes from a parent | Used for clearing the HTML Render
-function RemoveAllChildNodes(parent) {
+/**
+ * Removes all children from a Node.
+ * @param {HTMLElement} parent parent node to remove children from.
+ * @returns {void}
+ */
+const RemoveAllChildNodes = (parent) => {
 	while (parent.firstChild) {
 		parent.removeChild(parent.firstChild);
 	}
-}
+};
+/**
+ * Asyncronous XHR returning a Promise.
+ * @param {string} method HTTP method to use. [GET, HEAD, POST, etc]
+ * @param {string} url String containing URL where the request should be sent.
+ * @param {any} data Any data to be sent with your request.
+ * @param {object} headers Object containing key and values to used as your header.
+ * @returns {Promise<object>} HTTP Response
+ */
+const RequestUrl = async (method, url, data, headers) => {
+	return new Promise((resolve, reject) => {
+		GM.xmlHttpRequest({
+			method: method,
+			url: url,
+			data: data,
+			headers: headers,
+			onload: (response) => {
+				resolve(response);
+			},
+			onerror: (response) => {
+				reject(response);
+			},
+		});
+	});
+};
+
+/**
+ * Adds CSS into DOM.
+ * @param {string} styleString Style to inject into HTML head
+ */
+const addStyle = (styleString) => {
+	const style = document.createElement('style');
+	style.textContent = styleString;
+	style.id = 'blackpearl-omdb-userscript';
+	document.head.append(style);
+};
 
 // Displays Search Results
-function SearchDiscog(APIVALUE) {
+const SearchDiscog = (APIVALUE) => {
 	$('#discogSearch').search({
 		type: 'category',
 		apiSettings: {
@@ -210,27 +220,15 @@ function SearchDiscog(APIVALUE) {
 		},
 		minCharacters: 3,
 	});
-}
+};
 
-// Asyncronous http requests
-async function RequestUrl(url) {
-	return new Promise((resolve, reject) => {
-		GM_xmlhttpRequest({
-			method: 'GET',
-			url: url,
-			onload: (response) => {
-				resolve(response);
-			},
-			onerror: (response) => {
-				reject(response);
-			},
-		});
-	});
-}
-
-// Check response status from API
-function CheckApiStatus(url) {
-	return RequestUrl(url)
+/**
+ * Checks API Key for valid response from Discog.
+ * @param {string} url Url to check API.
+ * @returns {Promise <boolean|object>}
+ */
+const CheckApiStatus = async (url) => {
+	return RequestUrl('GET', url)
 		.then(function (response) {
 			if (!response.ok) {
 				if (response.status === 401) {
@@ -261,10 +259,10 @@ function CheckApiStatus(url) {
 			console.error(error);
 			return false;
 		});
-}
+};
 
 // Check and Save API Key if valid
-function SaveApiKey() {
+const SaveApiKey = () => {
 	let discogKey = document.getElementById('dgKey').value;
 	if (discogKey) {
 		let apiResult = CheckApiStatus(
@@ -283,54 +281,77 @@ function SaveApiKey() {
 		errors += `<li>No API Key found. Please check that you have entered your key and try again.</li>`;
 		Popup(errors);
 	}
-}
-
-// Handles BBCode for Download Links
-function DownloadLinkHandler(downloadLinks) {
-	let [hideReactScore, hidePosts] = [
-		document.getElementById('HideReactScore').value,
-		document.getElementById('HidePosts').value,
-	];
-	if (document.getElementById('Downcloud').checked) {
-		let ddlSplit = downloadLinks.split(' ');
-		downloadLinks = '';
-		for (let singleLink of ddlSplit) {
-			if (singleLink) {
-				downloadLinks += `[downcloud]${singleLink}[/downcloud]\n`;
-			}
+};
+/**
+ * Handles all generation of BBCode
+ */
+class BBCodeGenerator {
+	/**
+	 * Generates BBCode for Download Links.
+	 * @param {string} links - Link(s) to be processed.
+	 * @returns {string} - Compiled BBCode.
+	 */
+	download(links) {
+		links = document.getElementById('Downcloud').checked
+			? links.split(' ').map((link) => `[downcloud]${link}[/downcloud]\n`)
+			: links.split(' ');
+		var prefix = [
+			'[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n[hidereact=1,2,3,4,5,6,7,8]',
+		];
+		var suffix = ['\n[/center]', '[/hidereact]'];
+		const reactCount = document.getElementById('HideReactScore').value;
+		if (reactCount !== '0') {
+			prefix.push(`[hidereactscore=${reactCount}]`);
+			suffix.unshift('[/hidereactscore]');
 		}
-	} else {
-		downloadLinks = downloadLinks.replace(/\ /g, '\n');
+		const postsCount = document.getElementById('HidePosts').value;
+		if (postsCount !== '0') {
+			prefix.push(`[hideposts=${postsCount}]`);
+			suffix.unshift('[/hideposts]');
+		}
+		return prefix.join('') + links.join('') + suffix.join('');
 	}
-	downloadLinks = `[hidereact=1,2,3,4,5,6,7,8]${downloadLinks.replace(
-		/\n+$/,
-		''
-	)}[/hidereact]`; // Remove extra newline at end of string
-	if (hideReactScore !== '0') {
-		downloadLinks = `[hidereactscore=${hideReactScore}]${downloadLinks}[/hidereactscore]`;
+	/**
+	 * Generates BBCode for Images.
+	 * @param {string} images - Link(s) to be processed.
+	 * @param {string} text - Text to be processed.
+	 * @returns {string} - Compiled BBCode
+	 */
+	quality(images, text) {
+		if (!images && !text) return '';
+		var imageBBCode = '';
+		if (images) {
+			imageBBCode = images
+				.split(' ')
+				.map((link) => `[img]${link}[/img]`)
+				.join('');
+		}
+		return `[hr][/hr][center][size=6][forumcolor][b]Quality Proof[/b][/forumcolor][/size]\n${imageBBCode}[spoiler="Quality Proof"]${text}[/Spoiler]\n`;
 	}
-	if (hidePosts !== '0') {
-		downloadLinks = `[hideposts=${hidePosts}]${downloadLinks}[/hideposts]`;
-	}
-	return `[hr][/hr][center][size=6][forumcolor][b]Download Link[/b][/forumcolor][/size]\n${downloadLinks}\n[/center]`;
 }
 
 // Handle BBCode for Album Details
-async function AlbumHandler(albumURL) {
-	let response = await RequestUrl(albumURL);
+const AlbumHandler = async (albumURL) => {
+	let response = await RequestUrl('GET', albumURL);
 	var albumjson = JSON.parse(response.responseText);
 	let styles = String();
 	if (albumjson.styles) {
-		styles = '[*][b][forumcolor]Style(s): [/b][/forumcolor] | ';
+		styles = '[*][b][forumcolor]Style(s): [/b][/forumcolor] ';
 		for (const style of albumjson.styles) {
-			styles += `[url=https://www.discogs.com/style/${style}].replace(' ', '+')}]${style}[/url] | `;
+			styles += `[url=https://www.discogs.com/style/${style.replace(
+				' ',
+				'+'
+			)}]${style}[/url], `;
 		}
 	}
 	let genres = String();
 	if (albumjson.genres) {
-		genres = '\n[*][forumcolor][b]Genre(s): [/b][/forumcolor] | ';
+		genres = '\n[*][forumcolor][b]Genre(s): [/b][/forumcolor] ';
 		for (const genre of albumjson.genres) {
-			genres += `[url=https://www.discogs.com/genre/${genre}].replace(' ', '+')}]${genre}[/url] | `;
+			genres += `[url=https://www.discogs.com/genre/${genre.replace(
+				' ',
+				'+'
+			)}]${genre}[/url], `;
 		}
 	}
 	let videos = String();
@@ -377,11 +398,11 @@ async function AlbumHandler(albumURL) {
 		tags: albumjson.genres.concat(albumjson.styles), //? Find example of "blank" genres or styles, possible error checking needed
 		forumTitle: `${artistName} - ${albumjson.title} (${albumjson.year})`,
 	};
-}
+};
 
 // Handle BBCode for Artist Details
-async function ArtistHandler(artistURL, artistName) {
-	let response = await RequestUrl(artistURL);
+const ArtistHandler = async (artistURL, artistName) => {
+	let response = await RequestUrl('GET', artistURL);
 	var artistjson = JSON.parse(response.responseText);
 	let members =
 		'[indent][size=6][forumcolor][B]Artist Details[/B][/forumcolor][/size][/indent]\n';
@@ -417,10 +438,10 @@ async function ArtistHandler(artistURL, artistName) {
 		members: members,
 		artistLinks: artistLinks,
 	};
-}
+};
 
 // Submit Generated BBCode to the forums
-function SubmitToForum(albumDict, artistDict, quality, downloadLinks) {
+const SubmitToForum = (albumDict, artistDict, quality, downloadLinks) => {
 	let forumBBcode = `${albumDict.cover}${artistDict.artist}${albumDict.album}${albumDict.tracknum}${artistDict.members}${artistDict.artistInfo}${artistDict.artistLinks}${albumDict.albumDetails}${albumDict.tracks}${albumDict.videos}${quality}${downloadLinks}`;
 	try {
 		document.getElementsByName('message')[0].value = forumBBcode;
@@ -444,10 +465,10 @@ function SubmitToForum(albumDict, artistDict, quality, downloadLinks) {
 				albumDict.forumTitle;
 		}
 	}
-}
+};
 
 // Handles Generation of BBcode Template
-async function GenerateTemplate(APIVALUE) {
+const GenerateTemplate = async (APIVALUE) => {
 	var [downloadLinks, qualityImages, qualityText, masterUrl] = [
 		document.getElementById('ddl').value,
 		document.getElementById('qImgs').value,
@@ -477,47 +498,73 @@ async function GenerateTemplate(APIVALUE) {
 		}
 		return;
 	}
-	let albumDict = AlbumHandler(`${masterUrl}?token=${APIVALUE}`);
-	downloadLinks = DownloadLinkHandler(downloadLinks);
-	let qualityImage = '';
-	if (qualityImages) {
-		for (let qi of qualityImages.split(' ')) {
-			qualityImage += `[img width="300"]${qi}[/img]`;
-		}
-		qualityImage += '\n';
+	let albumDict = await AlbumHandler(`${masterUrl}?token=${APIVALUE}`);
+	const bbcode = new BBCodeGenerator();
+	const downloadBBCode = bbcode.download(downloadLinks);
+	const quality = bbcode.quality(qualityImages, qualityText);
+	const artistDict = albumDict.artistURL
+		? ArtistHandler(
+				`${albumDict.artistURL}?token=${APIVALUE}`,
+				albumDict.artistName
+		  )
+		: null;
+	if (artistDict) {
+		artistDict.then((artistValue) => {
+			SubmitToForum(albumDict, artistValue, quality, downloadBBCode);
+		});
+	} else {
+		const artistDetails = {
+			artist: `[center][forumcolor][b][size=6]Various Artists[/size][/b][/forumcolor][/center]\n`,
+			artistInfo: '',
+			artistLinks: '',
+			members: '',
+		};
+		SubmitToForum(albumDict, artistDetails, quality, downloadBBCode);
 	}
-	qualityText = qualityText
-		? `[spoiler="Quality Proof"]${qualityText}[/Spoiler]\n`
-		: '';
-	let quality =
-		qualityImage || qualityText
-			? `[hr][/hr][center][size=6][forumcolor][b]Quality Proof[/b][/forumcolor][/size]\n${qualityImage}${qualityText}`
-			: '';
-	albumDict.then(function (albumDict) {
-		let artistDict = albumDict.artistURL
-			? ArtistHandler(
-					`${albumDict.artistURL}?token=${APIVALUE}`,
-					albumDict.artistName
-			  )
-			: null;
-		if (artistDict) {
-			artistDict.then(function (artistDict) {
-				SubmitToForum(albumDict, artistDict, quality, downloadLinks);
-			});
-		} else {
-			artistDict = {
-				artist: `[center][forumcolor][b][size=6]Various Artists[/size][/b][/forumcolor][/center]\n`,
-				artistInfo: '',
-				artistLinks: '',
-				members: '',
-			};
-			SubmitToForum(albumDict, artistDict, quality, downloadLinks);
-		}
-	});
-}
+};
 
-//--- CSS styles make it work...
-GM_addStyle(`@media screen and (min-width: 300px) {
+// TODO: Add CheckApiStatus to Main
+const Main = async () => {
+	const APIVALUE = await GM.getValue('DiscogKey', 'foo');
+	document.getElementsByTagName('dd')[0].innerHTML +=
+		APIVALUE !== 'foo' ? htmlTemplate : dginput;
+	document.getElementById('hideTemplate').addEventListener(
+		'click',
+		() => {
+			HideTemplate();
+		},
+		false
+	);
+	document.getElementById('showTemplate').addEventListener(
+		'click',
+		() => {
+			ShowTemplate();
+		},
+		false
+	);
+	if (APIVALUE !== 'foo') {
+		SearchDiscog(APIVALUE);
+		document.getElementById('generateTemplate').addEventListener(
+			'click',
+			() => {
+				GenerateTemplate(APIVALUE);
+			},
+			false
+		);
+	} else {
+		document.getElementById('saveKey').addEventListener(
+			'click',
+			() => {
+				SaveApiKey();
+			},
+			false
+		);
+	}
+};
+
+Main();
+
+addStyle(`@media screen and (min-width: 300px) {
 	/* Divide Buttons */
 	.divider {
 		width: 8px;

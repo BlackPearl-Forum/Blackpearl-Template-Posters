@@ -214,7 +214,7 @@ function SearchDiscog(APIVALUE) {
 
 // Asyncronous http requests
 async function RequestUrl(url) {
-	return await new Promise((resolve, reject) => {
+	return new Promise((resolve, reject) => {
 		GM_xmlhttpRequest({
 			method: 'GET',
 			url: url,
@@ -230,7 +230,7 @@ async function RequestUrl(url) {
 
 // Check response status from API
 function CheckApiStatus(url) {
-	let returnResult = RequestUrl(url)
+	return RequestUrl(url)
 		.then(function (response) {
 			if (!response.ok) {
 				if (response.status === 401) {
@@ -261,7 +261,6 @@ function CheckApiStatus(url) {
 			console.error(error);
 			return false;
 		});
-	return returnResult;
 }
 
 // Check and Save API Key if valid
@@ -283,7 +282,6 @@ function SaveApiKey() {
 		let errors = '<li>Something Messed Up! Check The Error Below.</li>';
 		errors += `<li>No API Key found. Please check that you have entered your key and try again.</li>`;
 		Popup(errors);
-		return;
 	}
 }
 

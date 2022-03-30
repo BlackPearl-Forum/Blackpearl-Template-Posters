@@ -441,8 +441,8 @@ function SubmitToForum(albumDict, artistDict, quality, downloadLinks) {
 		// TODO: Add all Genre's and Styles from Discog to BP Tag System
 		if (albumDict.tags) {
 			document.getElementsByName('tags')[0].value = albumDict.tags.toString();
-			for (let i = 0; i < albumDict.tags.length; i++) {
-				TagsPush(albumDict.tags[i]);
+			for (const tag of albumDict.tags) {
+				TagsPush(tag);
 			}
 		}
 		if (!document.getElementsByClassName('js-titleInput')[0].value) {

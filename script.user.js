@@ -326,117 +326,126 @@ class BBCodeGenerator {
 		}
 		return `[hr][/hr][center][size=6][forumcolor][b]Quality Proof[/b][/forumcolor][/size]\n${imageBBCode}[spoiler="Quality Proof"]${text}[/Spoiler]\n`;
 	}
-}
 
-// Handle BBCode for Album Details
-const AlbumHandler = async (albumURL) => {
-	let response = await RequestUrl('GET', albumURL);
-	var albumjson = JSON.parse(response.responseText);
-	let styles = String();
-	if (albumjson.styles) {
-		styles = '[*][b][forumcolor]Style(s): [/b][/forumcolor] ';
-		for (const style of albumjson.styles) {
-			styles += `[url=https://www.discogs.com/style/${style.replace(
-				' ',
-				'+'
-			)}]${style}[/url], `;
-		}
-	}
-	let genres = String();
-	if (albumjson.genres) {
-		genres = '\n[*][forumcolor][b]Genre(s): [/b][/forumcolor] ';
-		for (const genre of albumjson.genres) {
-			genres += `[url=https://www.discogs.com/genre/${genre.replace(
-				' ',
-				'+'
-			)}]${genre}[/url], `;
-		}
-	}
-	let videos = String();
-	if (albumjson.videos) {
-		videos = '[spoiler="Video(s)"]\n';
-		for (const video of albumjson.videos) {
-			videos += video.uri + '\n';
-		}
-		videos += '[/spoiler]\n';
-	}
-	let tracks = String();
-	if (albumjson.tracklist) {
-		tracks =
-			'\n[spoiler="Track List"]\n[TABLE=collapse]\n[TR]\n[TH]No.[/TH]\n[TH]Track Name[/TH]\n[TH]Track Duration[/TH]\n[/TR]\n';
-		for (let t of albumjson.tracklist) {
-			tracks += `[TR][TD]${t.position}[/TD]\n[TD]${t.title}[/TD]\n`;
-			if (t.duration) {
-				tracks += `[TD]${t.duration}[/TD]`;
+	/**
+	 * Generates BBCode for Discog Album Data.
+	 * @param {string} albumURL - API Url.
+	 * @returns {string} - Compiled BBCode
+	 */
+	async album(albumURL) {
+		const response = await RequestUrl('GET', albumURL);
+		const albumjson = JSON.parse(response.responseText);
+		let styles = String();
+		if (albumjson.styles) {
+			styles = '[*][b][forumcolor]Style(s): [/b][/forumcolor] ';
+			for (const style of albumjson.styles) {
+				styles += `[url=https://www.discogs.com/style/${style.replace(
+					' ',
+					'+'
+				)}]${style}[/url], `;
 			}
-			tracks += '[/TR]\n';
 		}
-		if (!albumjson.tracklist[0].duration) {
-			tracks = tracks.replace('[TH]Track Duration[/TH]\n', '');
+		let genres = String();
+		if (albumjson.genres) {
+			genres = '\n[*][forumcolor][b]Genre(s): [/b][/forumcolor] ';
+			for (const genre of albumjson.genres) {
+				genres += `[url=https://www.discogs.com/genre/${genre.replace(
+					' ',
+					'+'
+				)}]${genre}[/url], `;
+			}
 		}
-		tracks += '[/TABLE]\n[/spoiler]\n';
-	}
-	let artistName = albumjson.artists[0].name.replace(/\(\d*\)/g, '');
-	return {
-		cover: albumjson.images
-			? `[center][img width="250px"]${albumjson.images[0].uri}[/img][/center]\n`
-			: '',
-		artistName: artistName,
-		artistURL: albumjson.artists[0].resource_url,
-		album:
-			albumjson.uri && albumjson.title
-				? `[center][forumcolor][b][size=6][url=${albumjson.uri}]${albumjson.title}[/url][/size][/b][/forumcolor][/center]\n`
+		let videos = String();
+		if (albumjson.videos) {
+			videos = '[spoiler="Video(s)"]\n';
+			for (const video of albumjson.videos) {
+				videos += video.uri + '\n';
+			}
+			videos += '[/spoiler]\n';
+		}
+		let tracks = String();
+		if (albumjson.tracklist) {
+			tracks =
+				'\n[spoiler="Track List"]\n[TABLE=collapse]\n[TR]\n[TH]No.[/TH]\n[TH]Track Name[/TH]\n[TH]Track Duration[/TH]\n[/TR]\n';
+			for (let t of albumjson.tracklist) {
+				tracks += `[TR][TD]${t.position}[/TD]\n[TD]${t.title}[/TD]\n`;
+				if (t.duration) {
+					tracks += `[TD]${t.duration}[/TD]`;
+				}
+				tracks += '[/TR]\n';
+			}
+			if (!albumjson.tracklist[0].duration) {
+				tracks = tracks.replace('[TH]Track Duration[/TH]\n', '');
+			}
+			tracks += '[/TABLE]\n[/spoiler]\n';
+		}
+		let artistName = albumjson.artists[0].name.replace(/\(\d*\)/g, '');
+		return {
+			cover: albumjson.images
+				? `[center][img width="250px"]${albumjson.images[0].uri}[/img][/center]\n`
 				: '',
-		tracknum: `[center][size=6]${albumjson.tracklist.length} Tracks[/size][/center]\n`,
-		styles: styles,
-		genres: genres,
-		videos: videos,
-		albumDetails: `[INDENT][size=6][forumcolor][B]Album Details[/B][/forumcolor][/size][/INDENT]\n[list]\n${styles}${genres}\n[*][forumcolor][b]Release Year: [/b][/forumcolor]${albumjson.year}\n[/list]\n`,
-		tracks: tracks,
-		tags: albumjson.genres.concat(albumjson.styles), //? Find example of "blank" genres or styles, possible error checking needed
-		forumTitle: `${artistName} - ${albumjson.title} (${albumjson.year})`,
-	};
-};
-
-// Handle BBCode for Artist Details
-const ArtistHandler = async (artistURL, artistName) => {
-	let response = await RequestUrl('GET', artistURL);
-	var artistjson = JSON.parse(response.responseText);
-	let members =
-		'[indent][size=6][forumcolor][B]Artist Details[/B][/forumcolor][/size][/indent]\n';
-	if (artistjson.members) {
-		let memberlist = artistjson.members;
-		members += '[spoiler="Member List"]\n[tabs]';
-		for (let ml of memberlist) {
-			members += `[slide=${ml.name}]\n[img width="150px"]${ml.thumbnail_url}[/img][/slide]\n`;
-		}
-		members += '[/tabs]\n[/spoiler]\n';
+			artistName: artistName,
+			artistURL: albumjson.artists[0].resource_url,
+			album:
+				albumjson.uri && albumjson.title
+					? `[center][forumcolor][b][size=6][url=${albumjson.uri}]${albumjson.title}[/url][/size][/b][/forumcolor][/center]\n`
+					: '',
+			tracknum: `[center][size=6]${albumjson.tracklist.length} Tracks[/size][/center]\n`,
+			styles: styles,
+			genres: genres,
+			videos: videos,
+			//TODO! Some do not have a year, when none it will show 0 instead. Need a to check for this beforehand. ex Johnny Sex - Die Van Mij Is Klein Maar Dapper En Andere Sex-Sellers
+			albumDetails: `[INDENT][size=6][forumcolor][B]Album Details[/B][/forumcolor][/size][/INDENT]\n[list]\n${styles}${genres}\n[*][forumcolor][b]Release Year: [/b][/forumcolor]${albumjson.year}\n[/list]\n`,
+			tracks: tracks,
+			tags: albumjson.genres.concat(albumjson.styles), //? Find example of "blank" genres or styles, possible error checking needed
+			forumTitle: `${artistName} - ${albumjson.title} (${albumjson.year})`,
+		};
 	}
-	let artistLinks = String();
-	if (artistjson.urls) {
-		artistLinks = '[spoiler="Artist Links"]\n';
-		for (let link of artistjson.urls) {
-			artistLinks += link.replace('http:', 'https:') + '\n';
+	/**
+	 * Generates BBCode for Discog artist Data.
+	 * @param {string} artistURL - API Url.
+	 * @param {string} artistName - Name of the Artist.
+	 * @returns {string} - Compiled BBCode
+	 */
+	async artist(artistURL, artistName) {
+		let response = await RequestUrl('GET', artistURL);
+		var artistjson = JSON.parse(response.responseText);
+		let members =
+			'[indent][size=6][forumcolor][B]Artist Details[/B][/forumcolor][/size][/indent]\n';
+		if (artistjson.members) {
+			let memberlist = artistjson.members;
+			members += '[spoiler="Member List"]\n[tabs]';
+			for (let ml of memberlist) {
+				members += `[slide=${ml.name}]\n[img width="150px"]${ml.thumbnail_url}[/img][/slide]\n`;
+			}
+			members += '[/tabs]\n[/spoiler]\n';
 		}
-		artistLinks += '\n[/spoiler]\n[hr][/hr]\n';
-	}
-	return {
-		artist:
-			artistName && artistjson.uri
-				? `[center][forumcolor][b][size=6][url=${artistjson.uri.replace(
-						'http:',
-						'https:'
-				  )}]${artistName}[/url][/size][/b][/forumcolor][/center]\n`
+		let artistLinks = String();
+		if (artistjson.urls) {
+			artistLinks = '[spoiler="Artist Links"]\n';
+			for (let link of artistjson.urls) {
+				artistLinks += link.replace('http:', 'https:') + '\n';
+			}
+			artistLinks += '\n[/spoiler]\n[hr][/hr]\n';
+		}
+		return {
+			artist:
+				artistName && artistjson.uri
+					? `[center][forumcolor][b][size=6][url=${artistjson.uri.replace(
+							'http:',
+							'https:'
+					  )}]${artistName}[/url][/size][/b][/forumcolor][/center]\n`
+					: '',
+			artistInfo: artistjson.profile
+				? `[spoiler="About Artist"]\n${artistjson.profile
+						.replace(/\[.=/gm, '')
+						.replace(/\[.*?\]/gm, '')}\n[/spoiler]`
 				: '',
-		artistInfo: artistjson.profile
-			? `[spoiler="About Artist"]\n${artistjson.profile
-					.replace(/\[.=/gm, '')
-					.replace(/\[.*?\]/gm, '')}\n[/spoiler]`
-			: '',
-		members: members,
-		artistLinks: artistLinks,
-	};
-};
+			members: members,
+			artistLinks: artistLinks,
+		};
+	}
+}
 
 // Submit Generated BBCode to the forums
 const SubmitToForum = (albumDict, artistDict, quality, downloadLinks) => {
@@ -496,12 +505,12 @@ const GenerateTemplate = async (APIVALUE) => {
 		}
 		return;
 	}
-	let albumDict = await AlbumHandler(`${masterUrl}?token=${APIVALUE}`);
 	const bbcode = new BBCodeGenerator();
+	const albumDict = await bbcode.album(`${masterUrl}?token=${APIVALUE}`); // await is required here even if the IDE says no.
 	const downloadBBCode = bbcode.download(downloadLinks);
 	const quality = bbcode.quality(qualityImages, qualityText);
 	const artistDict = albumDict.artistURL
-		? ArtistHandler(
+		? bbcode.artist(
 				`${albumDict.artistURL}?token=${APIVALUE}`,
 				albumDict.artistName
 		  )
